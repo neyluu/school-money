@@ -24,7 +24,9 @@ public class Report {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Column(name = "report_type", columnDefinition = "report_type not null")
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "report_type", nullable = false, columnDefinition = "report_type")
     private ReportType reportType;
 
     @NotNull

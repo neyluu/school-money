@@ -35,8 +35,10 @@ public class User {
     @Column(name = "password_hash", nullable = false, length = Integer.MAX_VALUE)
     private String passwordHash;
 
+    @NotNull
+    @Enumerated(EnumType.STRING)
     @ColumnDefault("'user'")
-    @Column(name = "role", columnDefinition = "user_role not null")
+    @Column(name = "role", nullable = false, columnDefinition = "user_role not null")
     private UserRole role;
 
     @NotNull

@@ -13,8 +13,6 @@ services:
     restart: on-failure
 
   backend:
-    dns:
-      - 8.8.8.8
     build: ./backend
     command: sh -c "chmod +x mvnw && ./mvnw spring-boot:run"
     container_name: sm-backend

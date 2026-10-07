@@ -33,8 +33,10 @@ public class ClassMembership {
     @JoinColumn(name = "child_id", nullable = false)
     private Child child;
 
+    @NotNull
+    @Enumerated(EnumType.STRING)
     @ColumnDefault("'pending'")
-    @Column(name = "status", columnDefinition = "membership_status not null")
+    @Column(name = "status", nullable = false, columnDefinition = "membership_status")
     private MembershipStatus status;
 
     @NotNull

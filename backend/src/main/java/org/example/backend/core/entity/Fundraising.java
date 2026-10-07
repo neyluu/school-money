@@ -53,8 +53,10 @@ public class Fundraising {
     @Column(name = "amount_per_child", nullable = false, precision = 12, scale = 2)
     private BigDecimal amountPerChild;
 
+    @NotNull
+    @Enumerated(EnumType.STRING)
     @ColumnDefault("'active'")
-    @Column(name = "status", columnDefinition = "fundraising_status not null")
+    @Column(name = "status", nullable = false, columnDefinition = "fundraising_status")
     private FundraisingStatus status;
 
     @Column(name = "cancelled_at")

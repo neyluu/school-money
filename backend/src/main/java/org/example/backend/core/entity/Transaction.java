@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.backend.core.entity.types.TransactionStatus;
+import org.example.backend.core.entity.types.TransactionType;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -32,8 +33,10 @@ public class Transaction {
     @JoinColumn(name = "to_wallet_id")
     private Wallet toWallet;
 
-    @Column(name = "type", columnDefinition = "transaction_type not null")
-    private Object type;
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false, columnDefinition = "transaction_type")
+    private TransactionType TransactionType;
 
     @NotNull
     @Column(name = "amount", nullable = false, precision = 12, scale = 2)
@@ -43,8 +46,10 @@ public class Transaction {
     @Column(name = "title", nullable = false, length = Integer.MAX_VALUE)
     private String title;
 
+    @NotNull
+    @Enumerated(EnumType.STRING)
     @ColumnDefault("'pending'")
-    @Column(name = "status", columnDefinition = "transaction_status not null")
+    @Column(name = "status", nullable = false, columnDefinition = "transaction_status")
     private TransactionStatus status;
 
     @NotNull
