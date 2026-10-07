@@ -84,6 +84,10 @@ backend/
 
 Keep functionality-specific code inside its module. For example, authentication-related code should stay inside `auth`.
 
+## Timezone
+
+Backend and database use UTC timezone, every conversion to local datetime should be done on frontend, all endpoints should accept and return UTC.
+
 ## Development
 
 When adding API endpoints:
