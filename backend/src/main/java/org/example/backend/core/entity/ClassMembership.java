@@ -6,8 +6,10 @@ import lombok.Getter;
 import lombok.Setter;
 import org.example.backend.core.entity.types.MembershipStatus;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 
@@ -35,7 +37,8 @@ public class ClassMembership {
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    @ColumnDefault("'pending'")
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @ColumnDefault("'PENDING'")
     @Column(name = "status", nullable = false, columnDefinition = "membership_status")
     private MembershipStatus status;
 

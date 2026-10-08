@@ -26,6 +26,7 @@ public class Report {
 
     @NotNull
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "report_type", nullable = false, columnDefinition = "report_type")
     private ReportType reportType;
 
