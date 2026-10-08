@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.example.backend.core.entity.types.UserRole;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 
@@ -37,7 +39,8 @@ public class User {
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    @ColumnDefault("'user'")
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @ColumnDefault("'USER'")
     @Column(name = "role", nullable = false, columnDefinition = "user_role not null")
     private UserRole role;
 

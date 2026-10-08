@@ -9,13 +9,13 @@ ALTER TABLE children
 
 ALTER TABLE class_memberships
     ADD CONSTRAINT chk_class_memberships_decided
-        CHECK ((status = 'accepted') = (decided_at IS NOT NULL));
+        CHECK ((status = 'ACCEPTED') = (decided_at IS NOT NULL));
 
 ALTER TABLE fundraisings
     ADD CONSTRAINT chk_fundraisings_period CHECK (end_at > start_at),
     ADD CONSTRAINT chk_fundraisings_amount CHECK (amount_per_child > 0),
     ADD CONSTRAINT chk_fundraisings_cancelled
-        CHECK ((status = 'cancelled') = (cancelled_at IS NOT NULL));
+        CHECK ((status = 'CANCELLED') = (cancelled_at IS NOT NULL));
 
 ALTER TABLE wallets
     ADD CONSTRAINT chk_wallets_single_owner
@@ -26,13 +26,13 @@ ALTER TABLE transactions
     ADD CONSTRAINT chk_transactions_wallets_differ
         CHECK (from_wallet_id IS DISTINCT FROM to_wallet_id),
     ADD CONSTRAINT chk_transactions_type_wallets CHECK (
-        (type = 'deposit' AND from_wallet_id IS NULL AND to_wallet_id IS NOT NULL)
-            OR (type = 'withdrawal' AND from_wallet_id IS NOT NULL AND to_wallet_id IS NULL)
-            OR (type IN ('payment', 'refund')
+        (type = 'DEPOSIT' AND from_wallet_id IS NULL AND to_wallet_id IS NOT NULL)
+            OR (type = 'WITHDRAWAL' AND from_wallet_id IS NOT NULL AND to_wallet_id IS NULL)
+            OR (type IN ('PAYMENT', 'REFUND')
             AND from_wallet_id IS NOT NULL AND to_wallet_id IS NOT NULL)
         ),
     ADD CONSTRAINT chk_transactions_completed
-        CHECK ((status = 'completed') = (completed_at IS NOT NULL));
+        CHECK ((status = 'COMPLETED') = (completed_at IS NOT NULL));
 
 ALTER TABLE fundraising_contributions
     ADD CONSTRAINT chk_contributions_distinct_tx

@@ -7,8 +7,10 @@ import lombok.Setter;
 import org.example.backend.core.entity.types.TransactionStatus;
 import org.example.backend.core.entity.types.TransactionType;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -35,6 +37,7 @@ public class Transaction {
 
     @NotNull
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "type", nullable = false, columnDefinition = "transaction_type")
     private TransactionType TransactionType;
 
@@ -48,7 +51,8 @@ public class Transaction {
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    @ColumnDefault("'pending'")
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @ColumnDefault("'PENDING'")
     @Column(name = "status", nullable = false, columnDefinition = "transaction_status")
     private TransactionStatus status;
 
