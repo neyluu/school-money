@@ -1,3 +1,4 @@
+import { FileUpload } from "./components/file-upload";
 import { Button } from "./components/ui/button";
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
         <h2 className="text-warning">Warning</h2>
         <h2 className="text-danger">Danger</h2>
         <Button>Login</Button>
+        <FileUpload />
       </section>
     </>
   );
