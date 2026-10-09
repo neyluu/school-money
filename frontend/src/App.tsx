@@ -1,30 +1,17 @@
 import { Badge } from "./components/ui/badge";
-import { CommandPalette } from "./components/command-palette";
 import type { PaletteItem } from "./components/command-palette";
-
-// Mock catalogue until real search endpoints exist.
-const mockPaletteItems: PaletteItem[] = [
-  { id: "zbiorka-pinokio", group: "Zbiórki", label: "Teatr „Pinokio”" },
-  { id: "zbiorka-zoo", group: "Zbiórki", label: "Wycieczka do zoo" },
-  { id: "zbiorka-prezenty", group: "Zbiórki", label: "Prezenty świąteczne" },
-  { id: "rodzic-kowalska", group: "Rodzice", label: "Anna Kowalska" },
-  { id: "rodzic-nowak", group: "Rodzice", label: "Marek Nowak" },
-  {
-    id: "akcja-nowa-zbiorka",
-    group: "Szybkie akcje",
-    label: "Nowa zbiórka",
-    hint: "Tworzy nową zbiórkę",
-  },
-  {
-    id: "akcja-rachunek",
-    group: "Szybkie akcje",
-    label: "Mój rachunek",
-    hint: "Podgląd salda",
-  },
-];
+import { CommandPalette } from "./components/command-palette";
 import { EmptyState } from "./components/empty-state";
 import { FileUpload } from "./components/file-upload";
-import { Wallet } from "lucide-react";
+import {
+  BellRing,
+  Drama,
+  MoreHorizontal,
+  Pencil,
+  Tent,
+  UserMinus,
+  Wallet,
+} from "lucide-react";
 import { Button } from "./components/ui/button";
 import {
   Card,
@@ -49,10 +36,8 @@ import {
   SelectValue,
 } from "./components/ui/select";
 import { Separator } from "./components/ui/separator";
-import { Drama, Tent } from "lucide-react";
 import { CollectionCard } from "./components/collection-card";
 import { Skeleton } from "./components/ui/skeleton";
-import { BellRing, MoreHorizontal, Pencil, UserMinus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import {
   DropdownMenu,
@@ -62,7 +47,7 @@ import {
   DropdownMenuTrigger,
 } from "./components/ui/dropdown-menu";
 import { Textarea } from "./components/ui/textarea";
-import { Toaster, toast } from "./components/ui/toast";
+import { toast, Toaster } from "./components/ui/toast";
 import { MoneyAmount } from "./components/money-amount";
 import { FundsRatioBar } from "./components/funds-ratio-bar";
 import {
@@ -73,6 +58,27 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from "./components/responsive-dialog";
+
+// Mock catalogue until real search endpoints exist.
+const mockPaletteItems: PaletteItem[] = [
+  { id: "zbiorka-pinokio", group: "Zbiórki", label: "Teatr „Pinokio”" },
+  { id: "zbiorka-zoo", group: "Zbiórki", label: "Wycieczka do zoo" },
+  { id: "zbiorka-prezenty", group: "Zbiórki", label: "Prezenty świąteczne" },
+  { id: "rodzic-kowalska", group: "Rodzice", label: "Anna Kowalska" },
+  { id: "rodzic-nowak", group: "Rodzice", label: "Marek Nowak" },
+  {
+    id: "akcja-nowa-zbiorka",
+    group: "Szybkie akcje",
+    label: "Nowa zbiórka",
+    hint: "Tworzy nową zbiórkę",
+  },
+  {
+    id: "akcja-rachunek",
+    group: "Szybkie akcje",
+    label: "Mój rachunek",
+    hint: "Podgląd salda",
+  },
+];
 
 function DemoSection({
   title,
@@ -259,10 +265,6 @@ function App() {
 
       <Separator />
 
-      <DemoSection title="Przesyłanie plików">
-        <FileUpload />
-      </DemoSection>
-
       <DemoSection title="Pusty stan">
         <Card className="w-full">
           <CardContent>
@@ -274,12 +276,6 @@ function App() {
             />
           </CardContent>
         </Card>
-      </DemoSection>
-
-      <Separator />
-
-      <DemoSection title="Przesyłanie plików">
-        <FileUpload />
       </DemoSection>
 
       <Separator />
