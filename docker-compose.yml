@@ -57,10 +57,10 @@ services:
     build: ./frontend
     container_name: sm-frontend
     working_dir: /app
-    command: npm run dev -- --host 0.0.0.0 --port 5173
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
     volumes:
       - ./frontend:/app
-      - /app/node_modules
+      - frontend_node_modules:/app/node_modules
     environment:
       CHOKIDAR_USEPOLLING: "true"
     depends_on:
@@ -69,3 +69,4 @@ services:
 
 volumes:
   sm_postgres_data:
+  frontend_node_modules:
