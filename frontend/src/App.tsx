@@ -24,13 +24,16 @@ import {
   SelectValue,
 } from "./components/ui/select";
 import { Separator } from "./components/ui/separator";
-import { Skeleton } from "./components/ui/skeleton";
+import { BellRing, MoreHorizontal, Pencil, UserMinus } from "lucide-react";
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "./components/ui/tabs";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./components/ui/dropdown-menu";
+import { Skeleton } from "./components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { Textarea } from "./components/ui/textarea";
 import { Toaster, toast } from "./components/ui/toast";
 import { MoneyAmount } from "./components/money-amount";
@@ -192,6 +195,33 @@ function App() {
       </DemoSection>
 
       <Separator />
+
+      <DemoSection title="Menu akcji">
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="ghost" size="icon" aria-label="Akcje wiersza" />
+            }
+          >
+            <MoreHorizontal />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem>
+              <Pencil />
+              Edytuj
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <BellRing />
+              Przypomnij
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive">
+              <UserMinus />
+              Wypisz ucznia
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </DemoSection>
 
       <DemoSection title="Powiadomienia">
         <Button
