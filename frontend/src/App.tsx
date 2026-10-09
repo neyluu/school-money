@@ -1,4 +1,5 @@
 import { Badge } from "./components/ui/badge";
+import { FileUpload } from "./components/file-upload";
 import { Button } from "./components/ui/button";
 import {
   Card,
