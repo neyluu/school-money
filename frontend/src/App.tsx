@@ -28,12 +28,7 @@ import {
 import { Separator } from "./components/ui/separator";
 import { Skeleton } from "./components/ui/skeleton";
 import { BellRing, MoreHorizontal, Pencil, UserMinus } from "lucide-react";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "./components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -287,10 +282,6 @@ function App() {
         </Button>
       </DemoSection>
       <Separator />
-
-      <DemoSection title="Przesyłanie plików">
-        <FileUpload />
-      </DemoSection>
       <Toaster />
     </main>
   );
