@@ -11,7 +11,10 @@ function App() {
   return (
     <>
       <section id="center">
-        <h1 className={"text-red-500 text-xl p-10"}>Test</h1>
+        <h1 className="text-xl">Test</h1>
+        <h2 className="text-success">Success</h2>
+        <h2 className="text-warning">Warning</h2>
+        <h2 className="text-danger">Danger</h2>
         <Button>Login</Button>
       </section>
     </>
