@@ -22,7 +22,9 @@ const mockPaletteItems: PaletteItem[] = [
     hint: "Podgląd salda",
   },
 ];
+import { EmptyState } from "./components/empty-state";
 import { FileUpload } from "./components/file-upload";
+import { Wallet } from "lucide-react";
 import { Button } from "./components/ui/button";
 import {
   Card,
@@ -48,13 +50,17 @@ import {
 } from "./components/ui/select";
 import { Separator } from "./components/ui/separator";
 import { Skeleton } from "./components/ui/skeleton";
+import { BellRing, MoreHorizontal, Pencil, UserMinus } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "./components/ui/tabs";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./components/ui/dropdown-menu";
 import { Textarea } from "./components/ui/textarea";
+import { Toaster, toast } from "./components/ui/toast";
 import { MoneyAmount } from "./components/money-amount";
 import { FundsRatioBar } from "./components/funds-ratio-bar";
 import {
@@ -227,6 +233,95 @@ function App() {
       <DemoSection title="Przesyłanie plików">
         <FileUpload />
       </DemoSection>
+
+      <DemoSection title="Pusty stan">
+        <Card className="w-full">
+          <CardContent>
+            <EmptyState
+              icon={<Wallet />}
+              title="Brak zbiórek"
+              description="Utwórz pierwszą zbiórkę, aby zacząć zbierać wpłaty od rodziców."
+              action={<Button>Nowa zbiórka</Button>}
+            />
+          </CardContent>
+        </Card>
+      </DemoSection>
+
+      <Separator />
+
+      <DemoSection title="Przesyłanie plików">
+        <FileUpload />
+      </DemoSection>
+
+      <Separator />
+
+      <DemoSection title="Menu akcji">
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="ghost" size="icon" aria-label="Akcje wiersza" />
+            }
+          >
+            <MoreHorizontal />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem>
+              <Pencil />
+              Edytuj
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <BellRing />
+              Przypomnij
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive">
+              <UserMinus />
+              Wypisz ucznia
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </DemoSection>
+
+      <DemoSection title="Powiadomienia">
+        <Button
+          variant="outline"
+          onClick={() =>
+            toast.add({
+              title: "Wpłata przyjęta",
+              description: "120,00 zł · Teatr „Pinokio”",
+              type: "success",
+            })
+          }
+        >
+          Sukces
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() =>
+            toast.add({
+              title: "Nie udało się zapisać",
+              description: "Spróbuj ponownie za chwilę.",
+              type: "error",
+            })
+          }
+        >
+          Błąd
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() =>
+            toast.add({
+              title: "Nowa wiadomość",
+              description: "Skarbnik napisał na czacie klasy.",
+              type: "info",
+            })
+          }
+        >
+          Info
+        </Button>
+      </DemoSection>
+      <Separator />
+      <Toaster />
     </main>
   );
 }
