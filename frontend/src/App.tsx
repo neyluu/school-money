@@ -1,4 +1,27 @@
 import { Badge } from "./components/ui/badge";
+import { CommandPalette } from "./components/command-palette";
+import type { PaletteItem } from "./components/command-palette";
+
+// Mock catalogue until real search endpoints exist.
+const mockPaletteItems: PaletteItem[] = [
+  { id: "zbiorka-pinokio", group: "Zbiórki", label: "Teatr „Pinokio”" },
+  { id: "zbiorka-zoo", group: "Zbiórki", label: "Wycieczka do zoo" },
+  { id: "zbiorka-prezenty", group: "Zbiórki", label: "Prezenty świąteczne" },
+  { id: "rodzic-kowalska", group: "Rodzice", label: "Anna Kowalska" },
+  { id: "rodzic-nowak", group: "Rodzice", label: "Marek Nowak" },
+  {
+    id: "akcja-nowa-zbiorka",
+    group: "Szybkie akcje",
+    label: "Nowa zbiórka",
+    hint: "Tworzy nową zbiórkę",
+  },
+  {
+    id: "akcja-rachunek",
+    group: "Szybkie akcje",
+    label: "Mój rachunek",
+    hint: "Podgląd salda",
+  },
+];
 import { EmptyState } from "./components/empty-state";
 import { FileUpload } from "./components/file-upload";
 import { Wallet } from "lucide-react";
@@ -195,6 +218,22 @@ function App() {
           </ResponsiveDialogContent>
         </ResponsiveDialog>
       </DemoSection>
+
+      <Separator />
+
+      <DemoSection title="Szybkie wyszukiwanie">
+        <CommandPalette
+          items={mockPaletteItems}
+          onSelect={(item) => console.log("Wybrano:", item)}
+        />
+      </DemoSection>
+
+      <Separator />
+
+      <DemoSection title="Przesyłanie plików">
+        <FileUpload />
+      </DemoSection>
+
       <DemoSection title="Pusty stan">
         <Card className="w-full">
           <CardContent>
