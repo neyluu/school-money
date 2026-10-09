@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FileUpload } from "./components/file-upload";
 import { Button } from "./components/ui/button";
 import { ConfirmDialog } from "./components/confirm-dialog";
 
@@ -31,6 +32,7 @@ function App() {
           confirmLabel="Wypisz"
           onConfirm={() => setConfirmOpen(false)}
         />
+        <FileUpload />
       </section>
     </>
   );
