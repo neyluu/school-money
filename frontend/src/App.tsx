@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Badge } from "./components/ui/badge";
+import { CommandPalette } from "./components/command-palette";
 import { FileUpload } from "./components/file-upload";
 import { Button } from "./components/ui/button";
 import {
@@ -59,6 +61,10 @@ function DemoSection({
 }
 
 function App() {
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const isMac =
+    typeof navigator !== "undefined" && /mac/i.test(navigator.platform);
+
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-8 p-6">
       <h1 className="text-2xl">Demo komponentów UI</h1>
@@ -188,6 +194,25 @@ function App() {
             <Button>Zamknij i zwróć</Button>
           </ResponsiveDialogContent>
         </ResponsiveDialog>
+      </DemoSection>
+
+      <Separator />
+
+      <DemoSection title="Szybkie wyszukiwanie">
+        <Button variant="outline" onClick={() => setPaletteOpen(true)}>
+          Szukaj {isMac ? "⌘K" : "Ctrl+K"}
+        </Button>
+        <CommandPalette
+          open={paletteOpen}
+          onOpenChange={setPaletteOpen}
+          onSelect={(item) => console.log("Wybrano:", item)}
+        />
+      </DemoSection>
+
+      <Separator />
+
+      <DemoSection title="Przesyłanie plików">
+        <FileUpload />
       </DemoSection>
     </main>
   );
