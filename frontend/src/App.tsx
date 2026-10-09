@@ -24,6 +24,14 @@ import {
   SelectValue,
 } from "./components/ui/select";
 import { Separator } from "./components/ui/separator";
+import { BellRing, MoreHorizontal, Pencil, UserMinus } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./components/ui/dropdown-menu";
 import { Skeleton } from "./components/ui/skeleton";
 import {
   Tabs,
@@ -188,6 +196,44 @@ function App() {
             <Button>Zamknij i zwróć</Button>
           </ResponsiveDialogContent>
         </ResponsiveDialog>
+      </DemoSection>
+
+      <Separator />
+
+      <DemoSection title="Menu akcji">
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Akcje wiersza"
+              />
+            }
+          >
+            <MoreHorizontal />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem>
+              <Pencil />
+              Edytuj
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <BellRing />
+              Przypomnij
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive">
+              <UserMinus />
+              Wypisz ucznia
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </DemoSection>
+      <Separator />
+
+      <DemoSection title="Przesyłanie plików">
+        <FileUpload />
       </DemoSection>
     </main>
   );
