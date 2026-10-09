@@ -1,5 +1,6 @@
 import * as React from "react"
-import { Plus, ReceiptText, UserRound, Wallet } from "lucide-react"
+import { Plus, ReceiptText, Search, UserRound } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import {
   CommandDialog,
   CommandEmpty,
@@ -9,45 +10,42 @@ import {
   CommandList,
 } from "@/components/ui/command"
 
-type PaletteItem = {
-  group: "Zbiórki" | "Rodzice" | "Szybkie akcje"
+export type PaletteGroup = "Zbiórki" | "Rodzice" | "Szybkie akcje"
+
+export type PaletteItem = {
+  id: string
+  group: PaletteGroup
   label: string
   hint?: string
-  icon: React.ReactNode
+  /** Optional override; otherwise the group icon is used. */
+  icon?: React.ReactNode
 }
 
-// Mock catalogue until real search endpoints exist.
-const ITEMS: PaletteItem[] = [
-  { group: "Zbiórki", label: "Teatr „Pinokio”", icon: <ReceiptText /> },
-  { group: "Zbiórki", label: "Wycieczka do zoo", icon: <ReceiptText /> },
-  { group: "Zbiórki", label: "Prezenty świąteczne", icon: <ReceiptText /> },
-  { group: "Rodzice", label: "Anna Kowalska", icon: <UserRound /> },
-  { group: "Rodzice", label: "Marek Nowak", icon: <UserRound /> },
-  {
-    group: "Szybkie akcje",
-    label: "Nowa zbiórka",
-    hint: "Tworzy nową zbiórkę",
-    icon: <Plus />,
-  },
-  {
-    group: "Szybkie akcje",
-    label: "Mój rachunek",
-    hint: "Podgląd salda",
-    icon: <Wallet />,
-  },
-]
+const GROUP_ICONS: Record<PaletteGroup, React.ReactNode> = {
+  Zbiórki: <ReceiptText />,
+  Rodzice: <UserRound />,
+  "Szybkie akcje": <Plus />,
+}
 
-const GROUPS: PaletteItem["group"][] = ["Zbiórki", "Rodzice", "Szybkie akcje"]
+const GROUPS: PaletteGroup[] = ["Zbiórki", "Rodzice", "Szybkie akcje"]
+
+function shortcutLabel(): string {
+  if (typeof navigator !== "undefined" && /mac/i.test(navigator.platform)) {
+    return "⌘K"
+  }
+  return "Ctrl+K"
+}
 
 function CommandPalette({
-  open,
-  onOpenChange,
+  items,
   onSelect,
 }: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  /** Catalogue to search, e.g. from the API. */
+  items: PaletteItem[]
   onSelect?: (item: Omit<PaletteItem, "icon">) => void
 }) {
+  const [open, setOpen] = React.useState(false)
+
   React.useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       const target = event.target as HTMLElement | null
@@ -59,47 +57,64 @@ function CommandPalette({
           target.isContentEditable)
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault()
-        onOpenChange(!open)
+        setOpen((prev) => !prev)
       } else if (!typing && event.key === "/") {
         event.preventDefault()
-        onOpenChange(true)
+        setOpen(true)
       }
     }
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
-  }, [open, onOpenChange])
+  }, [])
 
   function handleSelect(item: PaletteItem) {
-    onOpenChange(false)
-    onSelect?.({ group: item.group, label: item.label, hint: item.hint })
+    setOpen(false)
+    onSelect?.({
+      id: item.id,
+      group: item.group,
+      label: item.label,
+      hint: item.hint,
+    })
   }
 
   return (
-    <CommandDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      title="Szukaj"
-      description="Przeszukaj zbiórki, rodziców i szybkie akcje"
-    >
-      <CommandInput placeholder="Szukaj zbiórek, rodziców…" />
-      <CommandList>
-        <CommandEmpty>Brak wyników.</CommandEmpty>
-        {GROUPS.map((group) => (
-          <CommandGroup key={group} heading={group}>
-            {ITEMS.filter((item) => item.group === group).map((item) => (
-              <CommandItem
-                key={`${group}-${item.label}`}
-                value={`${group} ${item.label}`}
-                onSelect={() => handleSelect(item)}
-              >
-                {item.icon}
-                {item.label}
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        ))}
-      </CommandList>
-    </CommandDialog>
+    <>
+      <Button variant="outline" onClick={() => setOpen(true)}>
+        <Search />
+        Szukaj
+        <kbd className="rounded border bg-muted px-1 py-px text-[11px] font-medium text-muted-foreground opacity-70">
+          {shortcutLabel()}
+        </kbd>
+      </Button>
+      <CommandDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Szukaj"
+        description="Przeszukaj zbiórki, rodziców i szybkie akcje"
+        className="bg-popover/80 rounded-lg! backdrop-blur-xl sm:max-w-lg"
+      >
+        <CommandInput placeholder="Szukaj zbiórek, rodziców…" />
+        <CommandList>
+          <CommandEmpty>Brak wyników.</CommandEmpty>
+          {GROUPS.map((group) => (
+            <CommandGroup key={group} heading={group}>
+              {items
+                .filter((item) => item.group === group)
+                .map((item) => (
+                  <CommandItem
+                    key={item.id}
+                    value={`${group} ${item.label}`}
+                    onSelect={() => handleSelect(item)}
+                  >
+                    {item.icon ?? GROUP_ICONS[item.group]}
+                    {item.label}
+                  </CommandItem>
+                ))}
+            </CommandGroup>
+          ))}
+        </CommandList>
+      </CommandDialog>
+    </>
   )
 }
 

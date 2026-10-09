@@ -1,6 +1,27 @@
-import { useState } from "react";
 import { Badge } from "./components/ui/badge";
 import { CommandPalette } from "./components/command-palette";
+import type { PaletteItem } from "./components/command-palette";
+
+// Mock catalogue until real search endpoints exist.
+const mockPaletteItems: PaletteItem[] = [
+  { id: "zbiorka-pinokio", group: "Zbiórki", label: "Teatr „Pinokio”" },
+  { id: "zbiorka-zoo", group: "Zbiórki", label: "Wycieczka do zoo" },
+  { id: "zbiorka-prezenty", group: "Zbiórki", label: "Prezenty świąteczne" },
+  { id: "rodzic-kowalska", group: "Rodzice", label: "Anna Kowalska" },
+  { id: "rodzic-nowak", group: "Rodzice", label: "Marek Nowak" },
+  {
+    id: "akcja-nowa-zbiorka",
+    group: "Szybkie akcje",
+    label: "Nowa zbiórka",
+    hint: "Tworzy nową zbiórkę",
+  },
+  {
+    id: "akcja-rachunek",
+    group: "Szybkie akcje",
+    label: "Mój rachunek",
+    hint: "Podgląd salda",
+  },
+];
 import { FileUpload } from "./components/file-upload";
 import { Button } from "./components/ui/button";
 import {
@@ -61,10 +82,6 @@ function DemoSection({
 }
 
 function App() {
-  const [paletteOpen, setPaletteOpen] = useState(false);
-  const isMac =
-    typeof navigator !== "undefined" && /mac/i.test(navigator.platform);
-
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-8 p-6">
       <h1 className="text-2xl">Demo komponentów UI</h1>
@@ -199,12 +216,8 @@ function App() {
       <Separator />
 
       <DemoSection title="Szybkie wyszukiwanie">
-        <Button variant="outline" onClick={() => setPaletteOpen(true)}>
-          Szukaj {isMac ? "⌘K" : "Ctrl+K"}
-        </Button>
         <CommandPalette
-          open={paletteOpen}
-          onOpenChange={setPaletteOpen}
+          items={mockPaletteItems}
           onSelect={(item) => console.log("Wybrano:", item)}
         />
       </DemoSection>
