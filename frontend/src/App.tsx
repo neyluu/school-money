@@ -24,6 +24,8 @@ import {
   SelectValue,
 } from "./components/ui/select";
 import { Separator } from "./components/ui/separator";
+import { Drama, Tent } from "lucide-react";
+import { CollectionCard } from "./components/collection-card";
 import { Skeleton } from "./components/ui/skeleton";
 import {
   Tabs,
@@ -188,6 +190,33 @@ function App() {
             <Button>Zamknij i zwróć</Button>
           </ResponsiveDialogContent>
         </ResponsiveDialog>
+      </DemoSection>
+
+      <Separator />
+
+      <DemoSection title="Karty zbiórek">
+        <CollectionCard
+          icon={<Drama />}
+          title="Wyjście do teatru „Pinokio”"
+          dueDate="2026-05-15"
+          collected={1250}
+          target={2000}
+          status="active"
+        />
+        <CollectionCard
+          icon={<Tent />}
+          title="Zielona szkoła"
+          dueDate="2026-03-20"
+          collected={2000}
+          target={2000}
+          status="closed"
+        />
+      </DemoSection>
+
+      <Separator />
+
+      <DemoSection title="Przesyłanie plików">
+        <FileUpload />
       </DemoSection>
     </main>
   );
