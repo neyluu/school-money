@@ -1,5 +1,7 @@
 import { Badge } from "./components/ui/badge";
+import { EmptyState } from "./components/empty-state";
 import { FileUpload } from "./components/file-upload";
+import { Wallet } from "lucide-react";
 import { Button } from "./components/ui/button";
 import {
   Card,
@@ -24,7 +26,9 @@ import {
   SelectValue,
 } from "./components/ui/select";
 import { Separator } from "./components/ui/separator";
+import { Skeleton } from "./components/ui/skeleton";
 import { BellRing, MoreHorizontal, Pencil, UserMinus } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,8 +36,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./components/ui/dropdown-menu";
-import { Skeleton } from "./components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { Textarea } from "./components/ui/textarea";
 import { Toaster, toast } from "./components/ui/toast";
 import { MoneyAmount } from "./components/money-amount";
@@ -193,6 +195,24 @@ function App() {
           </ResponsiveDialogContent>
         </ResponsiveDialog>
       </DemoSection>
+      <DemoSection title="Pusty stan">
+        <Card className="w-full">
+          <CardContent>
+            <EmptyState
+              icon={<Wallet />}
+              title="Brak zbiórek"
+              description="Utwórz pierwszą zbiórkę, aby zacząć zbierać wpłaty od rodziców."
+              action={<Button>Nowa zbiórka</Button>}
+            />
+          </CardContent>
+        </Card>
+      </DemoSection>
+
+      <Separator />
+
+      <DemoSection title="Przesyłanie plików">
+        <FileUpload />
+      </DemoSection>
 
       <Separator />
 
@@ -262,10 +282,6 @@ function App() {
         </Button>
       </DemoSection>
       <Separator />
-
-      <DemoSection title="Przesyłanie plików">
-        <FileUpload />
-      </DemoSection>
       <Toaster />
     </main>
   );
