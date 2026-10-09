@@ -1,5 +1,7 @@
 import { Badge } from "./components/ui/badge";
+import { EmptyState } from "./components/empty-state";
 import { FileUpload } from "./components/file-upload";
+import { Wallet } from "lucide-react";
 import { Button } from "./components/ui/button";
 import {
   Card,
@@ -188,6 +190,24 @@ function App() {
             <Button>Zamknij i zwróć</Button>
           </ResponsiveDialogContent>
         </ResponsiveDialog>
+      </DemoSection>
+      <DemoSection title="Pusty stan">
+        <Card className="w-full">
+          <CardContent>
+            <EmptyState
+              icon={<Wallet />}
+              title="Brak zbiórek"
+              description="Utwórz pierwszą zbiórkę, aby zacząć zbierać wpłaty od rodziców."
+              action={<Button>Nowa zbiórka</Button>}
+            />
+          </CardContent>
+        </Card>
+      </DemoSection>
+
+      <Separator />
+
+      <DemoSection title="Przesyłanie plików">
+        <FileUpload />
       </DemoSection>
     </main>
   );
