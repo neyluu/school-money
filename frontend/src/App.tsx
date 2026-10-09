@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Button } from "./components/ui/button";
+import { ConfirmDialog } from "./components/confirm-dialog";
 
 function App() {
   async function test() {
@@ -8,6 +10,8 @@ function App() {
 
   test();
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
   return (
     <>
       <section id="center">
@@ -16,6 +20,17 @@ function App() {
         <h2 className="text-warning">Warning</h2>
         <h2 className="text-danger">Danger</h2>
         <Button>Login</Button>
+        <Button variant="destructive" onClick={() => setConfirmOpen(true)}>
+          Wypisz dziecko
+        </Button>
+        <ConfirmDialog
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          title="Wypisać dziecko z klasy?"
+          description="Dziecko straci przypisane zbiórki. Tej akcji nie można cofnąć."
+          confirmLabel="Wypisz"
+          onConfirm={() => setConfirmOpen(false)}
+        />
       </section>
     </>
   );
