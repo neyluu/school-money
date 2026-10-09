@@ -33,13 +33,9 @@ import {
   DropdownMenuTrigger,
 } from "./components/ui/dropdown-menu";
 import { Skeleton } from "./components/ui/skeleton";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "./components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { Textarea } from "./components/ui/textarea";
+import { Toaster, toast } from "./components/ui/toast";
 import { MoneyAmount } from "./components/money-amount";
 import { FundsRatioBar } from "./components/funds-ratio-bar";
 import {
@@ -204,11 +200,7 @@ function App() {
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Akcje wiersza"
-              />
+              <Button variant="ghost" size="icon" aria-label="Akcje wiersza" />
             }
           >
             <MoreHorizontal />
@@ -230,11 +222,51 @@ function App() {
           </DropdownMenuContent>
         </DropdownMenu>
       </DemoSection>
+
+      <DemoSection title="Powiadomienia">
+        <Button
+          variant="outline"
+          onClick={() =>
+            toast.add({
+              title: "Wpłata przyjęta",
+              description: "120,00 zł · Teatr „Pinokio”",
+              type: "success",
+            })
+          }
+        >
+          Sukces
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() =>
+            toast.add({
+              title: "Nie udało się zapisać",
+              description: "Spróbuj ponownie za chwilę.",
+              type: "error",
+            })
+          }
+        >
+          Błąd
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() =>
+            toast.add({
+              title: "Nowa wiadomość",
+              description: "Skarbnik napisał na czacie klasy.",
+              type: "info",
+            })
+          }
+        >
+          Info
+        </Button>
+      </DemoSection>
       <Separator />
 
       <DemoSection title="Przesyłanie plików">
         <FileUpload />
       </DemoSection>
+      <Toaster />
     </main>
   );
 }
