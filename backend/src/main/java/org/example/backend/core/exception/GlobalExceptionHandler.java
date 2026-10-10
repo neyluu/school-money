@@ -33,6 +33,11 @@ public class GlobalExceptionHandler
         return build(HttpStatus.BAD_REQUEST, "Malformed request body", null);
     }
 
+    @ExceptionHandler(InvalidFileException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidFileException(InvalidFileException ex) {
+        return build(HttpStatus.BAD_REQUEST, "Invalid file: " + ex.getMessage(), null);
+    }
+
     private ResponseEntity<ErrorResponse> build(HttpStatus status, String message, Map<String, String> fieldErrors) {
         ErrorResponse body = new ErrorResponse(
             Instant.now(),
