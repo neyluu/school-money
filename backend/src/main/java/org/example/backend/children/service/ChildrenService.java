@@ -22,9 +22,9 @@ public class ChildrenService
     private final UserRepository userRepository;
 
     @Transactional
-    public ChildResponse create(ChildCreateRequest request, Integer userEmail)
+    public ChildResponse create(ChildCreateRequest request, Integer parentId)
     {
-        User parent = userRepository.findById(userEmail)
+        User parent = userRepository.findById(parentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
 
         Child child = new Child();
