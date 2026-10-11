@@ -1,4 +1,4 @@
-package org.example.backend.children.dto;
+package org.example.backend.children.dto.response;
 
 import java.time.LocalDate;
 

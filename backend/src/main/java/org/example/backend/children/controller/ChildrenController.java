@@ -1,10 +1,11 @@
 package org.example.backend.children.controller;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.backend.auth.security.AuthenticatedUser;
-import org.example.backend.children.dto.ChildRequest;
-import org.example.backend.children.dto.ChildResponse;
+import org.example.backend.children.dto.request.ChildCreateRequest;
+import org.example.backend.children.dto.response.ChildResponse;
 import org.example.backend.children.service.ChildrenService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,8 +30,8 @@ public class ChildrenController
 
     @PostMapping
     public ResponseEntity<ChildResponse> createChild(
-            @RequestBody ChildRequest request,
-            @AuthenticationPrincipal AuthenticatedUser user
+        @Valid @RequestBody ChildCreateRequest request,
+        @AuthenticationPrincipal AuthenticatedUser user
     ) {
         ChildResponse created = childrenService.create(request, user.id());
 
@@ -49,7 +50,7 @@ public class ChildrenController
     }
 
     @PatchMapping("/{childId}")
-    public ResponseEntity<?> updateChild(@PathVariable Integer childId, @RequestBody ChildRequest request)
+    public ResponseEntity<?> updateChild(@PathVariable Integer childId, @RequestBody ChildCreateRequest request)
     {
         return null;
     }

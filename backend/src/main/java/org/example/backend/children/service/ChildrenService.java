@@ -2,8 +2,8 @@ package org.example.backend.children.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.example.backend.children.dto.ChildRequest;
-import org.example.backend.children.dto.ChildResponse;
+import org.example.backend.children.dto.request.ChildCreateRequest;
+import org.example.backend.children.dto.response.ChildResponse;
 import org.example.backend.core.entity.Child;
 import org.example.backend.core.entity.User;
 import org.example.backend.core.repository.ChildRepository;
@@ -20,15 +20,15 @@ public class ChildrenService
     private final UserRepository userRepository;
 
     @Transactional
-    public ChildResponse create(ChildRequest request, Integer userEmail)
+    public ChildResponse create(ChildCreateRequest request, Integer userEmail)
     {
         User parent = userRepository.findById(userEmail)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
 
         Child child = new Child();
         child.setParent(parent);
-        child.setFirstName(request.firstname());
-        child.setLastName(request.lastname());
+        child.setFirstName(request.firstname().trim());
+        child.setLastName(request.lastname().trim());
         child.setBirthDate(request.birthDate());
 
         childRepository.save(child);
