@@ -7,6 +7,5 @@ public record ChildResponse(
     String firstname,
     String lastname,
     LocalDate birthDate,
-
     Integer avatarId
 ) {}

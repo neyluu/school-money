@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/children")
@@ -23,9 +24,15 @@ public class ChildrenController
     private final ChildrenService childrenService;
 
     @GetMapping
-    public ResponseEntity<?> getChildren()
+    public ResponseEntity<List<ChildResponse>> getChildren(@AuthenticationPrincipal AuthenticatedUser user)
     {
-        return null;
+        List<ChildResponse> children = childrenService.getAll(user.id());
+        if(children.isEmpty())
+        {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(children);
     }
 
     @PostMapping

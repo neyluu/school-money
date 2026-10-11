@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ChildrenService
@@ -38,7 +40,25 @@ public class ChildrenService
             child.getFirstName(),
             child.getLastName(),
             child.getBirthDate(),
-            child.getAvatarFile() != null ? child.getAvatarFile().getId() : null
+            getAvatarId(child)
         );
+    }
+
+    public List<ChildResponse> getAll(Integer parentId)
+    {
+        List<Child> children = childRepository.findByParentId(parentId);
+
+        return children.stream().map(child -> new ChildResponse(
+            child.getId(),
+            child.getFirstName(),
+            child.getLastName(),
+            child.getBirthDate(),
+            getAvatarId(child)
+        )).toList();
+    }
+
+    private Integer getAvatarId(Child child)
+    {
+        return child.getAvatarFile() != null ? child.getAvatarFile().getId() : null;
     }
 }
