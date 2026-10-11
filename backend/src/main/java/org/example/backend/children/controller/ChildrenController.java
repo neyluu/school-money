@@ -1,5 +1,6 @@
 package org.example.backend.children.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,8 @@ public class ChildrenController
 {
     private final ChildrenService childrenService;
 
+
+    @Operation(summary = "Get all parent's children")
     @GetMapping
     public ResponseEntity<List<ChildResponse>> getChildren(@AuthenticationPrincipal AuthenticatedUser user)
     {
@@ -35,6 +38,8 @@ public class ChildrenController
         return ResponseEntity.ok(children);
     }
 
+
+    @Operation(summary = "Create child")
     @PostMapping
     public ResponseEntity<ChildResponse> createChild(
         @Valid @RequestBody ChildCreateRequest request,
