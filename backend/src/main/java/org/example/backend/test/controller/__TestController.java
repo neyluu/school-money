@@ -20,7 +20,7 @@ public class __TestController
         return ResponseEntity.ok("Hello world");
     }
 
-//    Example endpoint that can take image as parameter, allowed types are PNG, PJEG and PDF with size limit od 3MB
+//    Example endpoint that can take image as parameter, allowed types are PNG, PJEG and PDF with size limit of 25MB per request
     @PostMapping(value = "/single-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> singleImage(@RequestParam("file") MultipartFile file)
     {
