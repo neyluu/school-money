@@ -4,9 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.*;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -44,15 +42,13 @@ public class Child {
     @JoinColumn(name = "avatar_file_id")
     private File avatarFile;
 
-    @NotNull
     @ColumnDefault("now()")
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @CreationTimestamp
     private Instant createdAt;
 
-    @NotNull
     @ColumnDefault("now()")
     @Column(name = "updated_at", nullable = false)
+    @UpdateTimestamp
     private Instant updatedAt;
-
-
 }

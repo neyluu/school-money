@@ -5,10 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.backend.core.entity.types.FundraisingStatus;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.*;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
@@ -70,15 +67,13 @@ public class Fundraising {
     @Column(name = "is_blocked", nullable = false)
     private Boolean isBlocked;
 
-    @NotNull
     @ColumnDefault("now()")
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @CreationTimestamp
     private Instant createdAt;
 
-    @NotNull
     @ColumnDefault("now()")
     @Column(name = "updated_at", nullable = false)
+    @UpdateTimestamp
     private Instant updatedAt;
-
-
 }
