@@ -58,6 +58,7 @@ import {
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
 } from "./components/responsive-dialog";
+import { FileUploadTest } from "@/components/_test/_file-upload-test.tsx";
 
 // Mock catalogue until real search endpoints exist.
 const mockPaletteItems: PaletteItem[] = [
@@ -347,6 +348,12 @@ function App() {
       </DemoSection>
       <Separator />
       <Toaster />
+
+      <DemoSection title="Upload plików">
+        <FileUploadTest />
+      </DemoSection>
+      <Separator />
+
     </main>
   );
 }
