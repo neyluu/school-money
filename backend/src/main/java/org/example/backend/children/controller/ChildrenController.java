@@ -55,10 +55,15 @@ public class ChildrenController
         return ResponseEntity.created(location).body(created);
     }
 
+
+    @Operation(summary = "Find child by id")
     @GetMapping("/{childId}")
-    public ResponseEntity<?> getChild(@PathVariable Integer childId)
-    {
-        return null;
+    public ResponseEntity<ChildResponse> getChild(
+        @PathVariable Integer childId,
+        @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        ChildResponse child = childrenService.find(childId, user.id());
+        return ResponseEntity.ok(child);
     }
 
     @PatchMapping("/{childId}")

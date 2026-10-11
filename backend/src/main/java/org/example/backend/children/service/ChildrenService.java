@@ -24,8 +24,7 @@ public class ChildrenService
     @Transactional
     public ChildResponse create(ChildCreateRequest request, Integer parentId)
     {
-        User parent = userRepository.findById(parentId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+        User parent = findParent(parentId);
 
         Child child = new Child();
         child.setParent(parent);
@@ -35,30 +34,31 @@ public class ChildrenService
 
         childRepository.save(child);
 
-        return new ChildResponse(
-            child.getId(),
-            child.getFirstName(),
-            child.getLastName(),
-            child.getBirthDate(),
-            getAvatarId(child)
-        );
+        return ChildResponse.from(child);
     }
 
     public List<ChildResponse> getAll(Integer parentId)
     {
         List<Child> children = childRepository.findByParentId(parentId);
-
-        return children.stream().map(child -> new ChildResponse(
-            child.getId(),
-            child.getFirstName(),
-            child.getLastName(),
-            child.getBirthDate(),
-            getAvatarId(child)
-        )).toList();
+        return children.stream().map(ChildResponse::from).toList();
     }
 
-    private Integer getAvatarId(Child child)
+    public ChildResponse find(Integer childId, Integer parentId)
     {
-        return child.getAvatarFile() != null ? child.getAvatarFile().getId() : null;
+        findParent(parentId);
+        Child child = findChild(childId, parentId);
+        return ChildResponse.from(child);
+    }
+
+    private User findParent(Integer id)
+    {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+    }
+
+    private Child findChild(Integer childId, Integer parentId)
+    {
+        return childRepository.findByIdAndParentId(childId, parentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Child with id " + childId + " not found"));
     }
 }
