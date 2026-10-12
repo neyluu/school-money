@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -96,6 +97,20 @@ public class ChildrenService
         childRepository.save(child);
 
         return ChildResponse.from(child);
+    }
+
+    public void remove(Integer childId, Integer parentId)
+    {
+        findParent(parentId);
+        Child child = findChild(childId, parentId);
+
+        child.setActive(false);
+        child.setFirstName("Deleted");
+        child.setLastName(" child");
+        child.setBirthDate(LocalDate.of(1, 1, 1));
+        child.setAvatarFile(null);
+
+        childRepository.save(child);
     }
 
     private User findParent(Integer id)

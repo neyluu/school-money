@@ -42,7 +42,7 @@ public class GlobalExceptionHandler
 
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException ex) {
-        return build(HttpStatus.BAD_REQUEST, ex.getReason(), null);
+        return build(HttpStatus.valueOf(ex.getStatusCode().value()), ex.getReason(), null);
     }
 
     private ResponseEntity<ErrorResponse> build(HttpStatus status, String message, Map<String, String> fieldErrors) {

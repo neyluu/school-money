@@ -12,7 +12,6 @@ import org.example.backend.children.service.ChildrenService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -68,6 +67,7 @@ public class ChildrenController
         return ResponseEntity.ok(child);
     }
 
+
     @Operation(summary = "Update child")
     @PatchMapping("/{childId}")
     public ResponseEntity<ChildResponse> updateChild(
@@ -79,11 +79,15 @@ public class ChildrenController
         return ResponseEntity.ok(child);
     }
 
+
+    @Operation(summary = "Remove child")
     @DeleteMapping("/{childId}")
-    public ResponseEntity<?> deleteChild(@PathVariable Integer childId)
+    public ResponseEntity<Void> deleteChild(@PathVariable Integer childId, @AuthenticationPrincipal AuthenticatedUser user)
     {
-        return null;
+        childrenService.remove(childId, user.id());
+        return ResponseEntity.noContent().build();
     }
+
 
     @GetMapping("/{childId}/avatar")
     public ResponseEntity<?> getAvatar(@PathVariable Integer childId)
