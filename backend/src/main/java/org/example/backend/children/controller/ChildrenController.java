@@ -99,6 +99,7 @@ public class ChildrenController
         return childrenService.getAvatar(childId, user.id());
     }
 
+
     @Operation(summary = "Set or replace child avatar")
     @PutMapping(value = "/{childId}/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<FileInfoDto> putAvatar(
@@ -109,9 +110,12 @@ public class ChildrenController
         return ResponseEntity.ok(childrenService.putAvatar(childId, user.id(), file));
     }
 
+
+    @Operation(summary = "Delete child avatar")
     @DeleteMapping("/{childId}/avatar")
-    public ResponseEntity<?> deleteAvatar(@PathVariable Integer childId)
+    public ResponseEntity<Void> deleteAvatar(@PathVariable Integer childId, @AuthenticationPrincipal AuthenticatedUser user)
     {
-        return null;
+        childrenService.deleteAvatar(childId, user.id());
+        return ResponseEntity.noContent().build();
     }
 }

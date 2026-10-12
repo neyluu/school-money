@@ -155,6 +155,19 @@ public class ChildrenService
         return fileProcessor.get(file);
     }
 
+    @Transactional
+    public void deleteAvatar(Integer childId, Integer parentId)
+    {
+        findParent(parentId);
+        Child child = findChild(childId, parentId);
+        File avatar = child.getAvatarFile();
+        if(avatar != null)
+        {
+            fileRepository.delete(avatar);
+            child.setAvatarFile(null);
+        }
+    }
+
     private User findParent(Integer id)
     {
         return userRepository.findById(id)
