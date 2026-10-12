@@ -5,10 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.backend.core.entity.types.ReportType;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.*;
 import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
@@ -47,10 +44,8 @@ public class Report {
     @JoinColumn(name = "generated_by", nullable = false)
     private User generatedBy;
 
-    @NotNull
     @ColumnDefault("now()")
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @CreationTimestamp
     private Instant createdAt;
-
-
 }

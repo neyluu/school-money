@@ -6,10 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.example.backend.core.entity.types.TransactionStatus;
 import org.example.backend.core.entity.types.TransactionType;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.*;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
@@ -56,13 +53,11 @@ public class Transaction {
     @Column(name = "status", nullable = false, columnDefinition = "transaction_status")
     private TransactionStatus status;
 
-    @NotNull
-    @ColumnDefault("now()")
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
-
     @Column(name = "completed_at")
     private Instant completedAt;
 
-
+    @ColumnDefault("now()")
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @CreationTimestamp
+    private Instant createdAt;
 }
