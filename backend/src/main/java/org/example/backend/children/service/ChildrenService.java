@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.backend.children.dto.request.ChildCreateRequest;
 import org.example.backend.children.dto.request.ChildUpdateRequest;
 import org.example.backend.children.dto.response.ChildResponse;
+import org.example.backend.core.dto.response.FileDto;
 import org.example.backend.core.dto.response.FileInfoDto;
 import org.example.backend.core.entity.Child;
 import org.example.backend.core.entity.File;
@@ -14,6 +15,7 @@ import org.example.backend.core.repository.FileRepository;
 import org.example.backend.core.repository.UserRepository;
 import org.example.backend.core.utils.FileProcessor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -136,6 +138,21 @@ public class ChildrenService
         }
 
         return saved;
+    }
+
+    public ResponseEntity<byte[]> getAvatar(Integer childId, Integer parentId)
+    {
+        findParent(parentId);
+        Child child = findChild(childId, parentId);
+
+        File avatar = child.getAvatarFile();
+        if(avatar == null)
+        {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Avatar not found");
+        }
+
+        FileDto file = fileProcessor.load(avatar.getId());
+        return fileProcessor.get(file);
     }
 
     private User findParent(Integer id)

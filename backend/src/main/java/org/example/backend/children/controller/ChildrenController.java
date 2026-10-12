@@ -92,10 +92,11 @@ public class ChildrenController
     }
 
 
+    @Operation(summary = "Get child avatar")
     @GetMapping("/{childId}/avatar")
-    public ResponseEntity<?> getAvatar(@PathVariable Integer childId)
+    public ResponseEntity<byte[]> getAvatar(@PathVariable Integer childId, @AuthenticationPrincipal AuthenticatedUser user)
     {
-        return null;
+        return childrenService.getAvatar(childId, user.id());
     }
 
     @Operation(summary = "Set or replace child avatar")
