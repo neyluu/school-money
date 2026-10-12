@@ -9,11 +9,11 @@ import java.time.LocalDate;
 
 public record ChildCreateRequest(
     @NotBlank(message = "Firstname is required")
-    @Size(min = 3, max = 100, message = "Firstname must contain between 3 and 100 characters")
+    @Size(min = 2, max = 100, message = "Firstname must contain between 2 and 100 characters")
     String firstname,
 
     @NotBlank(message = "Lastname is required")
-    @Size(min = 3, max = 100, message = "Lastname must contain between 3 and 100 characters")
+    @Size(min = 2, max = 100, message = "Lastname must contain between 2 and 100 characters")
     String lastname,
 
     @NotNull(message = "Birth date cannot be empty")

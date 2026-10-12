@@ -3,6 +3,7 @@ package org.example.backend.children.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.backend.children.dto.request.ChildCreateRequest;
+import org.example.backend.children.dto.request.ChildUpdateRequest;
 import org.example.backend.children.dto.response.ChildResponse;
 import org.example.backend.core.entity.Child;
 import org.example.backend.core.entity.User;
@@ -47,6 +48,53 @@ public class ChildrenService
     {
         findParent(parentId);
         Child child = findChild(childId, parentId);
+        return ChildResponse.from(child);
+    }
+
+    public ChildResponse update(Integer childId, Integer parentId, ChildUpdateRequest request)
+    {
+        findParent(parentId);
+        Child child = findChild(childId, parentId);
+
+        String firstname = request.firstname();
+        if(firstname != null)
+        {
+            String trimmed = firstname.trim();
+            if(trimmed.isBlank())
+            {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Firstname cannot be empty");
+            }
+            if(trimmed.length() < 2)
+            {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Firstname must contain between 2 and 100 characters");
+            }
+
+            child.setFirstName(trimmed);
+        }
+
+        String lastname = request.lastname();
+        if(request.lastname() != null)
+        {
+            String trimmed = lastname.trim();
+            if(trimmed.isBlank())
+            {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lastname cannot be empty");
+            }
+            if(trimmed.length() < 2)
+            {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lastname must contain between 2 and 100 characters");
+            }
+
+            child.setLastName(trimmed);
+        }
+
+        if(request.birthDate() != null)
+        {
+            child.setBirthDate(request.birthDate());
+        }
+
+        childRepository.save(child);
+
         return ChildResponse.from(child);
     }
 

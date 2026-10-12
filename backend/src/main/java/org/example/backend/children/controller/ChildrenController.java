@@ -6,11 +6,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.backend.auth.security.AuthenticatedUser;
 import org.example.backend.children.dto.request.ChildCreateRequest;
+import org.example.backend.children.dto.request.ChildUpdateRequest;
 import org.example.backend.children.dto.response.ChildResponse;
 import org.example.backend.children.service.ChildrenService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -66,10 +68,15 @@ public class ChildrenController
         return ResponseEntity.ok(child);
     }
 
+    @Operation(summary = "Update child")
     @PatchMapping("/{childId}")
-    public ResponseEntity<?> updateChild(@PathVariable Integer childId, @RequestBody ChildCreateRequest request)
-    {
-        return null;
+    public ResponseEntity<ChildResponse> updateChild(
+        @PathVariable Integer childId,
+        @Valid @RequestBody ChildUpdateRequest request,
+        @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        ChildResponse child = childrenService.update(childId, user.id(), request);
+        return ResponseEntity.ok(child);
     }
 
     @DeleteMapping("/{childId}")
