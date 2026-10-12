@@ -9,9 +9,12 @@ import org.example.backend.children.dto.request.ChildCreateRequest;
 import org.example.backend.children.dto.request.ChildUpdateRequest;
 import org.example.backend.children.dto.response.ChildResponse;
 import org.example.backend.children.service.ChildrenService;
+import org.example.backend.core.dto.response.FileInfoDto;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -95,10 +98,14 @@ public class ChildrenController
         return null;
     }
 
-    @PutMapping("/{childId}/avatar")
-    public ResponseEntity<?> putAvatar(@PathVariable Integer childId)
-    {
-        return null;
+    @Operation(summary = "Set or replace child avatar")
+    @PutMapping(value = "/{childId}/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<FileInfoDto> putAvatar(
+        @PathVariable Integer childId,
+        @RequestParam("file") MultipartFile file,
+        @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        return ResponseEntity.ok(childrenService.putAvatar(childId, user.id(), file));
     }
 
     @DeleteMapping("/{childId}/avatar")

@@ -5,12 +5,17 @@ import lombok.RequiredArgsConstructor;
 import org.example.backend.children.dto.request.ChildCreateRequest;
 import org.example.backend.children.dto.request.ChildUpdateRequest;
 import org.example.backend.children.dto.response.ChildResponse;
+import org.example.backend.core.dto.response.FileInfoDto;
 import org.example.backend.core.entity.Child;
+import org.example.backend.core.entity.File;
 import org.example.backend.core.entity.User;
 import org.example.backend.core.repository.ChildRepository;
+import org.example.backend.core.repository.FileRepository;
 import org.example.backend.core.repository.UserRepository;
+import org.example.backend.core.utils.FileProcessor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
@@ -22,6 +27,8 @@ public class ChildrenService
 {
     private final ChildRepository childRepository;
     private final UserRepository userRepository;
+    private final FileRepository fileRepository;
+    private final FileProcessor fileProcessor;
 
     @Transactional
     public ChildResponse create(ChildCreateRequest request, Integer parentId)
@@ -111,6 +118,24 @@ public class ChildrenService
         child.setAvatarFile(null);
 
         childRepository.save(child);
+    }
+
+    @Transactional
+    public FileInfoDto putAvatar(Integer childId, Integer parentId, MultipartFile avatar)
+    {
+        findParent(parentId);
+        Child child = findChild(childId, parentId);
+
+        FileInfoDto saved = fileProcessor.save(avatar);
+        File oldAvatar = child.getAvatarFile();
+        child.setAvatarFile(fileRepository.getReferenceById(saved.id()));
+
+        if(oldAvatar != null)
+        {
+            fileRepository.delete(oldAvatar);
+        }
+
+        return saved;
     }
 
     private User findParent(Integer id)
