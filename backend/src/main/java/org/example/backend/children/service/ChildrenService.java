@@ -39,7 +39,7 @@ public class ChildrenService
 
     public List<ChildResponse> getAll(Integer parentId)
     {
-        List<Child> children = childRepository.findByParentId(parentId);
+        List<Child> children = childRepository.findByParentIdAndActive(parentId, true);
         return children.stream().map(ChildResponse::from).toList();
     }
 
@@ -58,7 +58,7 @@ public class ChildrenService
 
     private Child findChild(Integer childId, Integer parentId)
     {
-        return childRepository.findByIdAndParentId(childId, parentId)
+        return childRepository.findByIdAndParentIdAndActive(childId, parentId, true)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Child with id " + childId + " not found"));
     }
 }

@@ -8,5 +8,7 @@ import java.util.Optional;
 
 public interface ChildRepository extends JpaRepository<Child, Integer> {
     List<Child> findByParentId(Integer parentId);
+    List<Child> findByParentIdAndActive(Integer parentId, Boolean active);
     Optional<Child> findByIdAndParentId(Integer childId, Integer parentId);
+    Optional<Child> findByIdAndParentIdAndActive(Integer childId, Integer parentId, Boolean active);
 }
