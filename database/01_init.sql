@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS "children" (
     "last_name"         TEXT NOT NULL,
     "birth_date"        DATE NOT NULL,
     "avatar_file_id"    INTEGER,
+    "active"            BOOLEAN NOT NULL DEFAULT TRUE,
     "created_at"        TIMESTAMP NOT NULL DEFAULT now(),
     "updated_at"        TIMESTAMP NOT NULL DEFAULT now(),
 

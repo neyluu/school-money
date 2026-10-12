@@ -42,6 +42,11 @@ public class Child {
     @JoinColumn(name = "avatar_file_id")
     private File avatarFile;
 
+    @NotNull
+    @ColumnDefault("TRUE")
+    @Column(name = "active", nullable = false)
+    private Boolean active = true;
+
     @ColumnDefault("now()")
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp
