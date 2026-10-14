@@ -47,19 +47,32 @@ type ResponsiveRootProps = {
   onOpenChange?: (open: boolean) => void
 }
 
+const ResponsiveDialogContext =
+  React.createContext<boolean | null>(null)
+
+function useResponsiveIsMobile(): boolean {
+  const fromRoot = React.useContext(ResponsiveDialogContext)
+  const standalone = useIsMobile()
+  return fromRoot ?? standalone
+}
+
 function ResponsiveDialog({ children, ...props }: ResponsiveRootProps) {
   const isMobile = useIsMobile()
-  return isMobile ? (
-    <Drawer showSwipeHandle swipeDirection="down" {...props}>
-      {children}
-    </Drawer>
-  ) : (
-    <Dialog {...props}>{children}</Dialog>
+  return (
+    <ResponsiveDialogContext.Provider value={isMobile}>
+      {isMobile ? (
+        <Drawer showSwipeHandle swipeDirection="down" {...props}>
+          {children}
+        </Drawer>
+      ) : (
+        <Dialog {...props}>{children}</Dialog>
+      )}
+    </ResponsiveDialogContext.Provider>
   )
 }
 
 function ResponsiveDialogTrigger({ children }: { children: React.ReactNode }) {
-  const isMobile = useIsMobile()
+  const isMobile = useResponsiveIsMobile()
   return isMobile ? (
     <DrawerTrigger>{children}</DrawerTrigger>
   ) : (
@@ -73,7 +86,7 @@ function ResponsiveDialogContent({
   showCloseButton = true,
   ...props
 }: React.ComponentProps<"div"> & { showCloseButton?: boolean }) {
-  const isMobile = useIsMobile()
+  const isMobile = useResponsiveIsMobile()
 
   if (isMobile) {
     return (
@@ -112,7 +125,7 @@ function ResponsiveDialogHeader({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const isMobile = useIsMobile()
+  const isMobile = useResponsiveIsMobile()
   return isMobile ? (
     <DrawerHeader className={className} {...props} />
   ) : (
@@ -125,7 +138,7 @@ function ResponsiveDialogTitle({
   children,
   ...props
 }: React.ComponentProps<"h2">) {
-  const isMobile = useIsMobile()
+  const isMobile = useResponsiveIsMobile()
   return isMobile ? (
     <DrawerTitle className={className} {...props}>
       {children}
@@ -142,7 +155,7 @@ function ResponsiveDialogDescription({
   children,
   ...props
 }: React.ComponentProps<"p">) {
-  const isMobile = useIsMobile()
+  const isMobile = useResponsiveIsMobile()
   return isMobile ? (
     <DrawerDescription className={className} {...props}>
       {children}

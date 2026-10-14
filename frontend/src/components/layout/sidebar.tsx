@@ -76,7 +76,7 @@ function Sidebar({
       </nav>
       <div className="border-t p-3">
         <a
-          href="/ustawienia"
+          href="/settings"
           onClick={
             onNavigate
               ? (event) => {
@@ -85,7 +85,7 @@ function Sidebar({
                     id: "settings",
                     label: "Ustawienia",
                     icon: <Settings />,
-                    href: "/ustawienia",
+                    href: "/settings",
                   })
                 }
               : undefined
