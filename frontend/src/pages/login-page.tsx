@@ -51,7 +51,7 @@ function LoginPage() {
         title: "Zalogowano pomyślnie.",
         type: "success",
       })
-      navigate("/", { replace: true })
+      navigate("/dashboard", { replace: true })
     } catch (error) {
       if (error instanceof ApiError && error.status === 400) {
         const fieldErrors: LoginErrors = {}

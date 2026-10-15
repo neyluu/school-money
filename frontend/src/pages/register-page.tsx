@@ -120,7 +120,7 @@ function RegisterPage() {
         title: "Konto zostało utworzone.",
         type: "success",
       })
-      navigate("/", { replace: true })
+      navigate("/dashboard", { replace: true })
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         setErrors((prev) => ({

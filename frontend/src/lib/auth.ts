@@ -1,4 +1,4 @@
-import { apiRequest } from "@/lib/api-client"
+import { ApiError, apiRequest } from "@/lib/api-client"
 import { clearToken, getToken, saveToken } from "@/lib/auth-store"
 
 export type AuthUser = {
@@ -28,6 +28,21 @@ async function lookupClass(code: string): Promise<ClassInfo> {
   return apiRequest<ClassInfo>(
     `/classes/lookup?code=${encodeURIComponent(code)}`
   )
+}
+
+async function me(): Promise<AuthUser> {
+  const token = getToken()
+  if (token == null) {
+    throw new ApiError(401, "Missing access token")
+  }
+  try {
+    return await apiRequest<AuthUser>("/auth/me", { token })
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      clearToken()
+    }
+    throw error
+  }
 }
 
 async function register(input: {
@@ -62,4 +77,4 @@ function logout(): void {
   window.location.assign("/login")
 }
 
-export { getToken, login, logout, lookupClass, register }
+export { getToken, login, logout, lookupClass, me, register }
