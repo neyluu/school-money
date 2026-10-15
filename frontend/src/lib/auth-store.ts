@@ -1,7 +1,3 @@
-// Token persistence. Only the opaque access token is stored here — never
-// credentials. "Remember me" keeps the token in localStorage, otherwise it
-// lives in sessionStorage and disappears when the tab closes.
-
 const TOKEN_KEY = "sm.accessToken"
 
 function getToken(): string | null {

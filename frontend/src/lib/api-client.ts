@@ -1,10 +1,3 @@
-// Single HTTP entry point for backend calls.
-//
-// Security notes (fintech): credentials and tokens are never logged, tokens
-// travel only in the Authorization header (never in URLs), and the API base
-// URL defaults to the same-origin /api proxy (nginx) so tokens are never
-// sent to third-party origins.
-
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ?? "/api"
 
