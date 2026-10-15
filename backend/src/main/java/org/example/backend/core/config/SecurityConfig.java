@@ -51,6 +51,7 @@ public class SecurityConfig
                     ).permitAll()
                     .requestMatchers("/test/**").permitAll()
                     .requestMatchers("/auth/register", "/auth/login").permitAll()
+                    .requestMatchers("/classes/lookup").permitAll()
                     .requestMatchers("/error").permitAll()
                     .requestMatchers("/admin/**").hasRole("ADMIN")
                     .anyRequest().authenticated()
