@@ -17,6 +17,33 @@ type AuthResponse = {
   user: AuthUser
 }
 
+export type ClassInfo = {
+  id: number
+  name: string
+  school: string
+  city: string
+}
+
+async function lookupClass(code: string): Promise<ClassInfo> {
+  return apiRequest<ClassInfo>(
+    `/classes/lookup?code=${encodeURIComponent(code)}`
+  )
+}
+
+async function register(input: {
+  firstName: string
+  lastName: string
+  email: string
+  password: string
+}): Promise<AuthUser> {
+  const response = await apiRequest<AuthResponse>("/auth/register", {
+    method: "POST",
+    body: input,
+  })
+  saveToken(response.accessToken, true)
+  return response.user
+}
+
 async function login(
   email: string,
   password: string,
@@ -35,4 +62,4 @@ function logout(): void {
   window.location.assign("/login")
 }
 
-export { getToken, login, logout }
+export { getToken, login, logout, lookupClass, register }
