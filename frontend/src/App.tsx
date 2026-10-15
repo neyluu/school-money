@@ -1,4 +1,5 @@
 import { Badge } from "./components/ui/badge";
+import { AppShell } from "@/components/layout/app-shell";
 import type { PaletteItem } from "./components/command-palette";
 import { CommandPalette } from "./components/command-palette";
 import { EmptyState } from "./components/empty-state";
@@ -98,7 +99,8 @@ function DemoSection({
 
 function App() {
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-col gap-8 p-6">
+    <AppShell>
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 p-6">
       <h1 className="text-2xl">Demo komponentów UI</h1>
 
       <DemoSection title="Przyciski">
@@ -354,7 +356,8 @@ function App() {
       </DemoSection>
       <Separator />
 
-    </main>
+      </div>
+    </AppShell>
   );
 }
 
