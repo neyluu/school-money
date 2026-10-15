@@ -79,10 +79,6 @@ function DashboardPage() {
                   <dt className="text-muted-foreground">E-mail:</dt>
                   <dd className="font-medium">{user.email}</dd>
                 </div>
-                <div className="flex gap-2">
-                  <dt className="text-muted-foreground">Rola:</dt>
-                  <dd className="font-medium">{user.role}</dd>
-                </div>
               </dl>
             ) : (
               <p className="text-sm text-muted-foreground">

@@ -23,10 +23,10 @@ export const defaultNavigationItems: NavigationItem[] = [
     href: "/",
   },
   {
-    id: "collections",
+    id: "fundraisers",
     label: "Zbiórki",
     icon: <HandCoins />,
-    href: "/collections",
+    href: "/fundraisers",
   },
   {
     id: "class",

@@ -37,7 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { CollectionCard } from "@/components/collection-card";
+import { FundraiserCard } from "@/components/fundraiser-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -233,7 +233,7 @@ function Demo() {
       <Separator />
 
       <DemoSection title="Karty zbiórek">
-        <CollectionCard
+        <FundraiserCard
           icon={<Drama />}
           title="Wyjście do teatru „Pinokio”"
           dueDate="2026-05-15"
@@ -241,7 +241,7 @@ function Demo() {
           target={2000}
           status="active"
         />
-        <CollectionCard
+        <FundraiserCard
           icon={<Tent />}
           title="Zielona szkoła"
           dueDate="2026-03-20"

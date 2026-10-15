@@ -22,6 +22,7 @@ export type ClassInfo = {
   name: string
   school: string
   city: string
+  ownerId: number
 }
 
 async function lookupClass(code: string): Promise<ClassInfo> {

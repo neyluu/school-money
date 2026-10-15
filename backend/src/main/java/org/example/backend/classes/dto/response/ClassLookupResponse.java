@@ -6,7 +6,8 @@ public record ClassLookupResponse(
     Integer id,
     String name,
     String school,
-    String city
+    String city,
+    Integer ownerId
 ) {
     public static ClassLookupResponse from(SchoolClass schoolClass)
     {
@@ -14,7 +15,8 @@ public record ClassLookupResponse(
             schoolClass.getId(),
             schoolClass.getName(),
             schoolClass.getSchool(),
-            schoolClass.getCity()
+            schoolClass.getCity(),
+            schoolClass.getOwner().getId()
         );
     }
 }
