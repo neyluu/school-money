@@ -15,7 +15,7 @@ import {
   ProgressTrack,
 } from "@/components/ui/progress"
 
-export type CollectionStatus = "active" | "closed"
+export type FundraiserStatus = "active" | "closed"
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", {
   day: "numeric",
@@ -26,7 +26,7 @@ const targetFormatter = new Intl.NumberFormat("pl-PL", {
   maximumFractionDigits: 0,
 })
 
-function CollectionCard({
+function FundraiserCard({
   icon,
   imageUrl,
   title,
@@ -44,7 +44,7 @@ function CollectionCard({
   dueDate: string | number | Date
   collected: number
   target: number
-  status: CollectionStatus
+  status: FundraiserStatus
   currency?: string
 }) {
   const percent = target > 0 ? Math.min(100, (collected / target) * 100) : 0
@@ -103,4 +103,4 @@ function CollectionCard({
   )
 }
 
-export { CollectionCard }
+export { FundraiserCard }
