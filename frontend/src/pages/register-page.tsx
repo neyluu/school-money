@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Link, useNavigate, useSearchParams } from "react-router"
+import { Link, useNavigate } from "react-router"
 import { AuthLayout, AuthLogo } from "@/components/auth-layout"
 import { SegmentedControl } from "@/components/segmented-control"
 import { Button } from "@/components/ui/button"
@@ -7,7 +7,7 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { toast } from "@/components/ui/toast"
 import { ApiError } from "@/lib/api-client"
-import { lookupClass, register } from "@/lib/auth"
+import { register } from "@/lib/auth"
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const MIN_PASSWORD_LENGTH = 8
@@ -20,7 +20,6 @@ type RegisterErrors = {
   email?: string
   password?: string
   confirmPassword?: string
-  classCode?: string
 }
 
 function splitName(value: string): { firstName: string; lastName: string } {
@@ -33,24 +32,16 @@ function splitName(value: string): { firstName: string; lastName: string } {
 
 function RegisterPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const initialCode = searchParams.get("code") ?? ""
 
   const [role, setRole] = React.useState<Role>("parent")
   const [fullName, setFullName] = React.useState("")
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
   const [confirmPassword, setConfirmPassword] = React.useState("")
-  const [classCode, setClassCode] = React.useState(initialCode)
   const [errors, setErrors] = React.useState<RegisterErrors>({})
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
-  const isParent = initialCode !== "" ? true : role === "parent"
-
-  function handleRoleChange(nextRole: Role) {
-    setRole(nextRole)
-    setErrors((prev) => ({ ...prev, classCode: undefined }))
-  }
+  const isParent = role === "parent"
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -80,9 +71,6 @@ function RegisterPage() {
     } else if (confirmPassword !== password) {
       nextErrors.confirmPassword = "Hasła muszą być takie same."
     }
-    if (isParent && classCode.trim() === "") {
-      nextErrors.classCode = "Podaj kod dostępu do klasy."
-    }
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) {
       return
@@ -90,25 +78,6 @@ function RegisterPage() {
 
     setIsSubmitting(true)
     try {
-      if (isParent) {
-        try {
-          await lookupClass(classCode.trim())
-        } catch (lookupError) {
-          if (
-            lookupError instanceof ApiError &&
-            lookupError.status === 404
-          ) {
-            setErrors((prev) => ({
-              ...prev,
-              classCode:
-                "Nie znaleziono klasy o tym kodzie. Poproś Skarbnika o nowy.",
-            }))
-            return
-          }
-          throw lookupError
-        }
-      }
-
       const { firstName, lastName: splitLastName } = splitName(fullName)
       await register({
         firstName,
@@ -168,7 +137,7 @@ function RegisterPage() {
             { value: "treasurer", label: "Skarbnik klasy" },
           ]}
           value={isParent ? "parent" : "treasurer"}
-          onChange={handleRoleChange}
+          onChange={setRole}
         />
         <form
           onSubmit={handleSubmit}
@@ -239,23 +208,9 @@ function RegisterPage() {
             ) : null}
           </Field>
           {isParent ? (
-            <Field data-invalid={errors.classCode != null}>
-              <FieldLabel htmlFor="register-code">
-                Mam kod dostępu do klasy
-              </FieldLabel>
-              <Input
-                id="register-code"
-                type="text"
-                autoComplete="off"
-                placeholder="np. 3B-X7KQ2"
-                value={classCode}
-                onChange={(event) => setClassCode(event.target.value)}
-                aria-invalid={errors.classCode != null}
-              />
-              {errors.classCode != null ? (
-                <FieldError>{errors.classCode}</FieldError>
-              ) : null}
-            </Field>
+            <p className="text-sm text-muted-foreground">
+              Po założeniu konta dodasz dziecko do klasy w panelu.
+            </p>
           ) : null}
           <Button
             type="submit"
