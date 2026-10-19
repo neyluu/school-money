@@ -20,13 +20,13 @@ const FEATURES = [
     icon: <ReceiptText />,
     title: "Wpłaty bez gotówki",
     description:
-      "Rodzice płacą online, a Ty widzisz każdą wpłatę od razu — bez liczenia kopert.",
+      "Rodzice płacą online, a Ty widzisz każdą wpłatę od razu - bez liczenia kopert.",
   },
   {
     icon: <UsersRound />,
     title: "Przejrzystość dla rodziców",
     description:
-      "Każdy widzi cel, zebraną kwotę i historię — zero nieporozumień na zebraniach.",
+      "Każdy widzi cel, zebraną kwotę i historię - zero nieporozumień na zebraniach.",
   },
 ];
 
