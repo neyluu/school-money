@@ -4,4 +4,5 @@ import org.example.backend.core.entity.Fundraising;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface FundraisingRepository extends JpaRepository<Fundraising, Integer> {
+    boolean existsBySchoolClassId(Integer classId);
 }
