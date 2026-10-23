@@ -1,6 +1,7 @@
 package org.example.backend.payments.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
@@ -10,6 +11,7 @@ import org.example.backend.payments.dto.request.FundraisePaymentRequest;
 import org.example.backend.payments.dto.request.FundraiseWithdrawRequest;
 import org.example.backend.payments.dto.request.WithdrawRequest;
 import org.example.backend.payments.dto.response.WalletResponse;
+import org.example.backend.payments.service.PaymentsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -17,13 +19,18 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/payments")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class PaymentsController
 {
+    private final PaymentsService paymentsService;
+
     @Operation(summary = "Get personal wallet information")
     @GetMapping("/wallet")
     public ResponseEntity<WalletResponse> getWallet(@AuthenticationPrincipal AuthenticatedUser user)
     {
-        throw new NotImplementedException();
+        return ResponseEntity.ok(
+            paymentsService.getWallet(user.id())
+        );
     }
 
 
