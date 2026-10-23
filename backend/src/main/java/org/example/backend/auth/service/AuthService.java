@@ -13,6 +13,7 @@ import org.example.backend.auth.security.JwtService;
 import org.example.backend.core.entity.User;
 import org.example.backend.core.entity.types.UserRole;
 import org.example.backend.core.repository.UserRepository;
+import org.example.backend.payments.service.WalletService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import java.util.Locale;
 public class AuthService {
     private static final String TOKEN_TYPE = "Bearer";
 
+    private final WalletService walletService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -83,11 +85,14 @@ public class AuthService {
         user.setUpdatedAt(now);
 
         try {
-            return userRepository.saveAndFlush(user);
+            userRepository.saveAndFlush(user);
         }
         catch (DataIntegrityViolationException ex) {
             throw new EmailAlreadyInUseException();
         }
+
+        walletService.createWallet(user);
+        return user;
     }
 
     private AuthResponse buildAuthResponse(User user) {
