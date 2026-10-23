@@ -14,7 +14,7 @@ import java.security.SecureRandom;
 
 @Service
 @RequiredArgsConstructor
-public class WalletService
+public class WalletCreationService
 {
     private final static int MAX_IBAN_ATTEMPTS = 10;
     private final static String DIGITS = "0123456789";
