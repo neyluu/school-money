@@ -10,6 +10,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -42,11 +43,11 @@ public class Fundraising {
 
     @NotNull
     @Column(name = "start_at", nullable = false)
-    private Instant startAt;
+    private LocalDate startAt;
 
     @NotNull
     @Column(name = "end_at", nullable = false)
-    private Instant endAt;
+    private LocalDate endAt;
 
     @NotNull
     @Column(name = "amount_per_child", nullable = false, precision = 12, scale = 2)
@@ -59,9 +60,11 @@ public class Fundraising {
     @Column(name = "status", nullable = false, columnDefinition = "fundraising_status")
     private FundraisingStatus status;
 
+    @ColumnDefault("NULL")
     @Column(name = "cancelled_at")
     private Instant cancelledAt;
 
+    @ColumnDefault("NULL")
     @Column(name = "closed_at")
     private Instant closedAt;
 
