@@ -62,6 +62,9 @@ public class Fundraising {
     @Column(name = "cancelled_at")
     private Instant cancelledAt;
 
+    @Column(name = "closed_at")
+    private Instant closedAt;
+
     @NotNull
     @ColumnDefault("false")
     @Column(name = "is_blocked", nullable = false)
