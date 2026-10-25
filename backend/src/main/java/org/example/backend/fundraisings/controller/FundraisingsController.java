@@ -62,12 +62,14 @@ public class FundraisingsController
 
     @Operation(summary = "Find fundraise by id")
     @GetMapping("/{fundraiseId}")
-    public ResponseEntity<?> getFundraise(
+    public ResponseEntity<FundraiseResponse> getFundraise(
         @AuthenticationPrincipal AuthenticatedUser user,
         @PathVariable Integer fundraiseId
     )
     {
-        throw new NotImplementedException();
+        return ResponseEntity.ok(
+            fundraisingsService.findById(user.id(), fundraiseId)
+        );
     }
 
     @Operation(summary = "Update a fundraise [OWNER ONLY]")

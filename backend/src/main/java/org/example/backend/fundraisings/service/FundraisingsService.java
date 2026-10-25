@@ -62,6 +62,15 @@ public class FundraisingsService
                 .toList();
     }
 
+    public FundraiseResponse findById(Integer userId, Integer fundraiseId)
+    {
+        Fundraising fundraising = fundraisingRepository
+                .findByIdAndUserId(fundraiseId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Fundraising not found"));
+
+        return FundraiseResponse.from(fundraising, userId);
+    }
+
     private SchoolClass getClassIfUserIsOwner(Integer userId, Integer classId)
     {
         SchoolClass schoolClass = getSchoolClass(classId);
