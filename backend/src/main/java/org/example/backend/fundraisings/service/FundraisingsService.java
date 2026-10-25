@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -42,12 +43,28 @@ public class FundraisingsService
 
         return FundraiseResponse.from(fundraising, userId);
     }
+
+    public List<FundraiseResponse> findAll(Integer userId, Integer classId)
+    {
+        List<Fundraising> fundraises;
+
+        if(classId == null)
+        {
+            fundraises = fundraisingRepository.findAllByUserId(userId);
+        }
+        else
+        {
+            fundraises = fundraisingRepository.findAllByUserIdAndClassId(userId, classId);
+        }
+
+        return fundraises.stream()
+                .map(fundraise -> FundraiseResponse.from(fundraise, userId))
+                .toList();
     }
 
     private SchoolClass getClassIfUserIsOwner(Integer userId, Integer classId)
     {
-        SchoolClass schoolClass = schoolClassRepository.findById(classId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Class not found"));
+        SchoolClass schoolClass = getSchoolClass(classId);
 
         if( ! Objects.equals(schoolClass.getOwner().getId(), userId))
         {
@@ -55,5 +72,11 @@ public class FundraisingsService
         }
 
         return schoolClass;
+    }
+
+    private SchoolClass getSchoolClass(Integer id)
+    {
+        return schoolClassRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Class not found"));
     }
 }

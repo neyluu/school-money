@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/fundraisings")
 @RequiredArgsConstructor
@@ -40,12 +42,14 @@ public class FundraisingsController
 
     @Operation(summary = "Find all fundraisings that belongs to given class")
     @GetMapping
-    public ResponseEntity<?> findFundraisings(
+    public ResponseEntity<List<FundraiseResponse>> findFundraisings(
         @AuthenticationPrincipal AuthenticatedUser user,
-        @RequestParam Integer classId
+        @RequestParam(required = false) Integer classId
     )
     {
-        throw new NotImplementedException();
+        return ResponseEntity.ok(
+            fundraisingsService.findAll(user.id(), classId)
+        );
     }
 
     @Operation(summary = "Find fundraise by id")
