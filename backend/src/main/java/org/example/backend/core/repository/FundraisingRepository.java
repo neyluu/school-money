@@ -11,37 +11,52 @@ public interface FundraisingRepository extends JpaRepository<Fundraising, Intege
     boolean existsBySchoolClassId(Integer classId);
 
     @Query(
-            value = """
-            SELECT DISTINCT f.*
+        value = """
+            SELECT f.*
             FROM fundraisings f
-                 JOIN classes c             ON c.id = f.class_id
-                 JOIN class_memberships cm  ON cm.class_id = c.id
-                 JOIN children ch           ON ch.id = cm.child_id
+                JOIN classes c ON c.id = f.class_id
             WHERE
-                ch.parent_id = :userId
-                AND cm.status = 'ACCEPTED'
-                AND c.is_blocked = false
+                c.is_blocked = false
                 AND f.is_blocked = false
+                AND (
+                    c.owner_id = :userId
+                    OR EXISTS (
+                        SELECT 1
+                        FROM class_memberships cm
+                            JOIN children ch ON ch.id = cm.child_id
+                        WHERE cm.class_id = c.id
+                            AND cm.status = 'ACCEPTED'
+                            AND ch.parent_id = :userId
+                    )
+                )
+            ORDER BY f.created_at DESC
         """,
-            nativeQuery = true
+        nativeQuery = true
     )
     List<Fundraising> findAllByUserId(Integer userId);
 
     @Query(
-            value = """
-            SELECT DISTINCT f.*
+        value = """
+            SELECT f.*
             FROM fundraisings f
-                 JOIN classes c             ON c.id = f.class_id
-                 JOIN class_memberships cm  ON cm.class_id = c.id
-                 JOIN children ch           ON ch.id = cm.child_id
-            WHERE
-                ch.parent_id = :userId
-                AND c.id = :classId
-                AND cm.status = 'ACCEPTED'
+                JOIN classes c ON c.id = f.class_id
+            WHERE 
+                c.id = :classId
                 AND c.is_blocked = false
                 AND f.is_blocked = false
+                AND (
+                    c.owner_id = :userId
+                    OR EXISTS (
+                        SELECT 1
+                        FROM class_memberships cm
+                            JOIN children ch ON ch.id = cm.child_id
+                        WHERE cm.class_id = c.id
+                            AND cm.status = 'ACCEPTED'
+                            AND ch.parent_id = :userId
+                    )
+                )
+            ORDER BY f.created_at DESC
         """,
-            nativeQuery = true
-    )
+        nativeQuery = true)
     List<Fundraising> findAllByUserIdAndClassId(Integer userId, Integer classId);
 }
