@@ -40,7 +40,8 @@ public class FundraisingsService
 
         fundraisingRepository.save(fundraising);
 
-        return FundraiseResponse.from(fundraising);
+        return FundraiseResponse.from(fundraising, userId);
+    }
     }
 
     private SchoolClass getClassIfUserIsOwner(Integer userId, Integer classId)

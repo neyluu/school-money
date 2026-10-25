@@ -6,10 +6,12 @@ import org.example.backend.core.entity.types.FundraisingStatus;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Objects;
 
 public record FundraiseResponse(
     Integer id,
     Integer classId,
+    Boolean isOwner,
     String name,
     String description,
     LocalDate startDate,
@@ -19,11 +21,12 @@ public record FundraiseResponse(
     Instant cancelledAt,
     Instant closedAt
 ) {
-    public static FundraiseResponse from(Fundraising fundraising)
+    public static FundraiseResponse from(Fundraising fundraising, Integer userId)
     {
         return new FundraiseResponse(
             fundraising.getId(),
             fundraising.getSchoolClass().getId(),
+            Objects.equals(fundraising.getSchoolClass().getOwner().getId(), userId),
             fundraising.getName(),
             fundraising.getDescription(),
             fundraising.getStartAt(),
