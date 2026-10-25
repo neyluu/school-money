@@ -83,6 +83,16 @@ public class FundraisingsController
         throw new NotImplementedException();
     }
 
+    @Operation(summary = "Get fundraise logo")
+    @GetMapping("/{fundraiseId}/logo")
+    public ResponseEntity<?> getLogo(
+        @AuthenticationPrincipal AuthenticatedUser user,
+        @PathVariable Integer fundraiseId
+    )
+    {
+        throw new NotImplementedException();
+    }
+
     @Operation(summary = "Upload fundraise logo [OWNER ONLY]")
     @PutMapping("/{fundraiseId}/logo")
     public ResponseEntity<?> uploadLogo(
