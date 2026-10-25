@@ -56,9 +56,8 @@ public class Fundraising {
     @NotNull
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @ColumnDefault("'ACTIVE'")
     @Column(name = "status", nullable = false, columnDefinition = "fundraising_status")
-    private FundraisingStatus status;
+    private FundraisingStatus status = FundraisingStatus.ACTIVE;
 
     @ColumnDefault("NULL")
     @Column(name = "cancelled_at")
@@ -69,9 +68,8 @@ public class Fundraising {
     private Instant closedAt;
 
     @NotNull
-    @ColumnDefault("false")
     @Column(name = "is_blocked", nullable = false)
-    private Boolean isBlocked;
+    private Boolean isBlocked = false;
 
     @ColumnDefault("now()")
     @Column(name = "created_at", nullable = false, updatable = false)
