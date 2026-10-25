@@ -2,9 +2,13 @@ package org.example.backend.fundraisings.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
 import org.example.backend.auth.security.AuthenticatedUser;
+import org.example.backend.fundraisings.dto.request.CreateFundraiseRequest;
+import org.example.backend.fundraisings.dto.response.FundraiseResponse;
+import org.example.backend.fundraisings.service.FundraisingsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -15,16 +19,23 @@ import org.springframework.web.bind.annotation.*;
 @SecurityRequirement(name = "bearerAuth")
 public class FundraisingsController
 {
+    private final FundraisingsService fundraisingsService;
+
     @Operation(
         summary = "Create new fundraise, creator became fundraise OWNER",
         description = """
             Only owner of class can create new fundraise
-        """
+            """
     )
     @PostMapping
-    public ResponseEntity<?> createFundraise(@AuthenticationPrincipal AuthenticatedUser user)
+    public ResponseEntity<FundraiseResponse> createFundraise(
+        @AuthenticationPrincipal AuthenticatedUser user,
+        @Valid @RequestBody CreateFundraiseRequest request
+    )
     {
-        throw new NotImplementedException();
+        return ResponseEntity.ok(
+            fundraisingsService.createFundraise(user.id(), request)
+        );
     }
 
     @Operation(summary = "Find all fundraisings that belongs to given class")
@@ -62,7 +73,7 @@ public class FundraisingsController
         description = """
             Closing a fundraise requires all money to be withdraw from fundraise wallet
             or fundraise to be refunded
-        """
+            """
     )
     @PostMapping("/{fundraiseId}/close")
     public ResponseEntity<?> closeFundraise(
