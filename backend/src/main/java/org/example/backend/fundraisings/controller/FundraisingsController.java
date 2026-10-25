@@ -40,7 +40,15 @@ public class FundraisingsController
         );
     }
 
-    @Operation(summary = "Find all fundraisings that belongs to given class")
+    @Operation(
+        summary = "Find all fundraisings",
+        description = """
+            If no classId is passed via param then all fundraisings got returned.
+            If classId is given then all fundraisings from given class got returned
+            
+            Only fundraisings from classes where user is owner or have children got returned.
+            """
+    )
     @GetMapping
     public ResponseEntity<List<FundraiseResponse>> findFundraisings(
         @AuthenticationPrincipal AuthenticatedUser user,

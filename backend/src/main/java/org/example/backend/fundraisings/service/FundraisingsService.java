@@ -46,18 +46,18 @@ public class FundraisingsService
 
     public List<FundraiseResponse> findAll(Integer userId, Integer classId)
     {
-        List<Fundraising> fundraises;
+        List<Fundraising> fundraisings;
 
         if(classId == null)
         {
-            fundraises = fundraisingRepository.findAllByUserId(userId);
+            fundraisings = fundraisingRepository.findAllByUserId(userId);
         }
         else
         {
-            fundraises = fundraisingRepository.findAllByUserIdAndClassId(userId, classId);
+            fundraisings = fundraisingRepository.findAllByUserIdAndClassId(userId, classId);
         }
 
-        return fundraises.stream()
+        return fundraisings.stream()
                 .map(fundraise -> FundraiseResponse.from(fundraise, userId))
                 .toList();
     }
