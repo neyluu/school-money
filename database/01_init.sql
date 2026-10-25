@@ -10,7 +10,8 @@ CREATE TYPE "membership_status" AS ENUM (
 
 CREATE TYPE "fundraising_status" AS ENUM (
 	'ACTIVE',
-	'CANCELLED'
+	'CANCELLED',
+    'CLOSED'
 );
 
 CREATE TYPE "transaction_type" AS ENUM (
@@ -109,6 +110,7 @@ CREATE TABLE IF NOT EXISTS "fundraisings" (
     "amount_per_child"  NUMERIC(12,2) NOT NULL,
     "status"            FUNDRAISING_STATUS NOT NULL DEFAULT 'ACTIVE',
     "cancelled_at"      TIMESTAMP,
+    "closed_at"         TIMESTAMP,
     "is_blocked"        BOOLEAN NOT NULL DEFAULT false,
     "created_at"        TIMESTAMP NOT NULL DEFAULT now(),
     "updated_at"        TIMESTAMP NOT NULL DEFAULT now(),
