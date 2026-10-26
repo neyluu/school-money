@@ -3,11 +3,13 @@ package org.example.backend.payments.service;
 import lombok.RequiredArgsConstructor;
 import org.example.backend.core.entity.Transaction;
 import org.example.backend.core.entity.Wallet;
+import org.example.backend.core.repository.FundraisingContributionRepository;
 import org.example.backend.core.repository.TransactionRepository;
 import org.example.backend.core.repository.WalletRepository;
 import org.example.backend.payments.dto.request.DepositRequest;
 import org.example.backend.payments.dto.request.WithdrawRequest;
 import org.example.backend.payments.dto.response.TransactionResponse;
+import org.example.backend.payments.dto.response.WalletContributionResponse;
 import org.example.backend.payments.dto.response.WalletResponse;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -28,6 +30,7 @@ public class PaymentsService
 
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
+    private final FundraisingContributionRepository contributionRepository;
     private final LedgerService ledgerService;
 
     @Transactional(readOnly = true)
@@ -71,6 +74,16 @@ public class PaymentsService
 
         return transactionRepository.findAllByWalletId(walletId, pageRequest).stream()
                 .map(transaction -> TransactionResponse.from(transaction, walletId))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<WalletContributionResponse> getContributions(Integer userId, int page, int size)
+    {
+        PageRequest pageRequest = PageRequest.of(Math.max(page, 0), Math.clamp(size, 1, MAX_PAGE_SIZE));
+
+        return contributionRepository.findAllByPayerId(userId, pageRequest).stream()
+                .map(WalletContributionResponse::from)
                 .toList();
     }
 

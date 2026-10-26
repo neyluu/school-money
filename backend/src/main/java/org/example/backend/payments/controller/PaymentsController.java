@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.NotImplementedException;
 import org.example.backend.auth.security.AuthenticatedUser;
 import org.example.backend.payments.dto.request.DepositRequest;
 import org.example.backend.payments.dto.request.FundraisePaymentRequest;
@@ -16,6 +15,7 @@ import org.example.backend.payments.dto.response.ContributionResponse;
 import org.example.backend.payments.dto.response.FundraisingTransferResponse;
 import org.example.backend.payments.dto.response.RefundSummaryResponse;
 import org.example.backend.payments.dto.response.TransactionResponse;
+import org.example.backend.payments.dto.response.WalletContributionResponse;
 import org.example.backend.payments.dto.response.WalletResponse;
 import org.example.backend.payments.service.FundraisingFundsService;
 import org.example.backend.payments.service.FundraisingPaymentsService;
@@ -63,11 +63,20 @@ public class PaymentsController
     }
 
 
-    @Operation(summary = "Get contributions from fundraises")
+    @Operation(
+        summary = "Get contributions from fundraises made by the user, newest first",
+        description = "Includes contributions made for other parents' children"
+    )
     @GetMapping("/wallet/contributions")
-    public ResponseEntity<?> getContributions(@AuthenticationPrincipal AuthenticatedUser user)
+    public ResponseEntity<List<WalletContributionResponse>> getContributions(
+        @AuthenticationPrincipal AuthenticatedUser user,
+        @Parameter(description = "Page number starting from 0")
+        @RequestParam(defaultValue = "0") int page,
+        @Parameter(description = "Page size, default 20, max 100")
+        @RequestParam(defaultValue = "20") int size
+    )
     {
-        throw new NotImplementedException();
+        return ResponseEntity.ok(paymentsService.getContributions(user.id(), page, size));
     }
 
 
