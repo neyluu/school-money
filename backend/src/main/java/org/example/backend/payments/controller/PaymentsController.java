@@ -9,11 +9,14 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.example.backend.auth.security.AuthenticatedUser;
 import org.example.backend.payments.dto.request.DepositRequest;
 import org.example.backend.payments.dto.request.FundraisePaymentRequest;
+import org.example.backend.payments.dto.request.FundraiseReplenishRequest;
 import org.example.backend.payments.dto.request.FundraiseWithdrawRequest;
 import org.example.backend.payments.dto.request.WithdrawRequest;
 import org.example.backend.payments.dto.response.ContributionResponse;
+import org.example.backend.payments.dto.response.FundraisingTransferResponse;
 import org.example.backend.payments.dto.response.TransactionResponse;
 import org.example.backend.payments.dto.response.WalletResponse;
+import org.example.backend.payments.service.FundraisingFundsService;
 import org.example.backend.payments.service.FundraisingPaymentsService;
 import org.example.backend.payments.service.PaymentsService;
 import org.springframework.http.HttpStatus;
@@ -31,6 +34,7 @@ public class PaymentsController
 {
     private final PaymentsService paymentsService;
     private final FundraisingPaymentsService fundraisingPaymentsService;
+    private final FundraisingFundsService fundraisingFundsService;
 
     @Operation(summary = "Get personal wallet information")
     @GetMapping("/wallet")
@@ -100,26 +104,63 @@ public class PaymentsController
     }
 
 
-    @Operation(summary = "Withdraw money from fundraise wallet to personal wallet")
+    @Operation(
+        summary = "Withdraw money from fundraise wallet to personal wallet",
+        description = "Only class owner can withdraw, fundraising must be active and not blocked"
+    )
     @PostMapping("/fundraisings/{id}/withdrawals")
-    public ResponseEntity<?> withdrawFromFundraising(
+    public ResponseEntity<FundraisingTransferResponse> withdrawFromFundraising(
         @PathVariable Integer id,
         @AuthenticationPrincipal AuthenticatedUser user,
         @Valid @RequestBody FundraiseWithdrawRequest request
     )
     {
-        throw new NotImplementedException();
+        return ResponseEntity.status(HttpStatus.CREATED).body(fundraisingFundsService.withdraw(id, user.id(), request));
     }
 
 
-    @Operation(summary = "Get all fundraise withdraws")
+    @Operation(summary = "Get all fundraise withdraws, newest first")
     @GetMapping("/fundraisings/{id}/withdrawals")
-    public ResponseEntity<?> getAllFundraiseWithdraws(
+    public ResponseEntity<List<FundraisingTransferResponse>> getAllFundraiseWithdraws(
         @PathVariable Integer id,
-        @AuthenticationPrincipal AuthenticatedUser user
+        @AuthenticationPrincipal AuthenticatedUser user,
+        @Parameter(description = "Page number starting from 0")
+        @RequestParam(defaultValue = "0") int page,
+        @Parameter(description = "Page size, default 20, max 100")
+        @RequestParam(defaultValue = "20") int size
     )
     {
-        throw new NotImplementedException();
+        return ResponseEntity.ok(fundraisingFundsService.getWithdrawals(id, user.id(), page, size));
+    }
+
+
+    @Operation(
+        summary = "Return previously withdrawn money to fundraise wallet",
+        description = "Only class owner can replenish, total replenished amount cannot exceed total withdrawn amount"
+    )
+    @PostMapping("/fundraisings/{id}/replenishments")
+    public ResponseEntity<FundraisingTransferResponse> replenishFundraising(
+        @PathVariable Integer id,
+        @AuthenticationPrincipal AuthenticatedUser user,
+        @Valid @RequestBody FundraiseReplenishRequest request
+    )
+    {
+        return ResponseEntity.status(HttpStatus.CREATED).body(fundraisingFundsService.replenish(id, user.id(), request));
+    }
+
+
+    @Operation(summary = "Get all fundraise replenishments, newest first")
+    @GetMapping("/fundraisings/{id}/replenishments")
+    public ResponseEntity<List<FundraisingTransferResponse>> getAllFundraiseReplenishments(
+        @PathVariable Integer id,
+        @AuthenticationPrincipal AuthenticatedUser user,
+        @Parameter(description = "Page number starting from 0")
+        @RequestParam(defaultValue = "0") int page,
+        @Parameter(description = "Page size, default 20, max 100")
+        @RequestParam(defaultValue = "20") int size
+    )
+    {
+        return ResponseEntity.ok(fundraisingFundsService.getReplenishments(id, user.id(), page, size));
     }
 
 

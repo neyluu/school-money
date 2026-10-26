@@ -45,9 +45,9 @@ public class LedgerService
     @Transactional(propagation = Propagation.MANDATORY)
     public Transaction transfer(Integer fromWalletId, Integer toWalletId, BigDecimal amount, TransactionType type, String title)
     {
-        if(type != TransactionType.PAYMENT && type != TransactionType.REFUND)
+        if(type == TransactionType.DEPOSIT || type == TransactionType.WITHDRAWAL)
         {
-            throw new IllegalArgumentException("Transfer must be of type PAYMENT or REFUND");
+            throw new IllegalArgumentException("Transfer cannot be of type DEPOSIT or WITHDRAWAL");
         }
         if(fromWalletId.equals(toWalletId))
         {
