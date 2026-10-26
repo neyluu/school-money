@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
 import org.example.backend.auth.security.AuthenticatedUser;
 import org.example.backend.fundraisings.dto.request.CreateFundraiseRequest;
+import org.example.backend.fundraisings.dto.request.UpdateFundraiseRequest;
 import org.example.backend.fundraisings.dto.response.FundraiseResponse;
 import org.example.backend.fundraisings.service.FundraisingsService;
 import org.springframework.http.ResponseEntity;
@@ -74,12 +75,15 @@ public class FundraisingsController
 
     @Operation(summary = "Update a fundraise [OWNER ONLY]")
     @PatchMapping("/{fundraiseId}")
-    public ResponseEntity<?> updateFundraise(
+    public ResponseEntity<FundraiseResponse> updateFundraise(
         @AuthenticationPrincipal AuthenticatedUser user,
-        @PathVariable Integer fundraiseId
+        @PathVariable Integer fundraiseId,
+        @Valid @RequestBody UpdateFundraiseRequest request
     )
     {
-        throw new NotImplementedException();
+        return ResponseEntity.ok(
+            fundraisingsService.updateFundraise(user.id(), fundraiseId, request)
+        );
     }
 
     @Operation(

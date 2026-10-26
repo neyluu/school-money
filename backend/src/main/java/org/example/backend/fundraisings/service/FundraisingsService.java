@@ -1,11 +1,14 @@
 package org.example.backend.fundraisings.service;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.example.backend.auth.security.AuthenticatedUser;
 import org.example.backend.core.entity.Fundraising;
 import org.example.backend.core.entity.SchoolClass;
 import org.example.backend.core.repository.FundraisingRepository;
 import org.example.backend.core.repository.SchoolClassRepository;
 import org.example.backend.fundraisings.dto.request.CreateFundraiseRequest;
+import org.example.backend.fundraisings.dto.request.UpdateFundraiseRequest;
 import org.example.backend.fundraisings.dto.response.FundraiseResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -41,6 +44,8 @@ public class FundraisingsService
 
         fundraisingRepository.save(fundraising);
 
+        // TODO Create wallet
+
         return FundraiseResponse.from(fundraising, userId);
     }
 
@@ -69,6 +74,11 @@ public class FundraisingsService
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Fundraising not found"));
 
         return FundraiseResponse.from(fundraising, userId);
+    }
+
+    public FundraiseResponse updateFundraise(Integer userId, Integer fundraiseId, UpdateFundraiseRequest request)
+    {
+        return null;
     }
 
     private SchoolClass getClassIfUserIsOwner(Integer userId, Integer classId)
