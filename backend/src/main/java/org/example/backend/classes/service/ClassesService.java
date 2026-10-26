@@ -169,7 +169,7 @@ public class ClassesService
     public MembershipResponse acceptMembership(Integer classId, Integer childId, Integer userId)
     {
         findOwnedClass(classId, userId);
-        ClassMembership membership = findMembership(classId, childId);
+        ClassMembership membership = findMembership(classId, childId, MembershipStatus.ACTIVE);
 
         if(membership.getStatus() == MembershipStatus.ACCEPTED)
         {
@@ -183,17 +183,34 @@ public class ClassesService
     }
 
     @Transactional
+    public MembershipResponse rejectMembership(Integer classId, Integer childId, Integer userId)
+    {
+        findOwnedClass(classId, userId);
+        ClassMembership membership = findMembership(classId, childId, MembershipStatus.ACTIVE);
+
+        if(membership.getStatus() == MembershipStatus.ACCEPTED)
+        {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Child is already accepted to this class, remove the child instead");
+        }
+
+        membership.setStatus(MembershipStatus.REJECTED);
+        membership.setDecidedAt(Instant.now());
+
+        return MembershipResponse.from(membership);
+    }
+
+    @Transactional
     public void removeMembership(Integer classId, Integer childId, Integer userId)
     {
         findOwnedClass(classId, userId);
-        membershipRepository.delete(findMembership(classId, childId));
+        membershipRepository.delete(findMembership(classId, childId, MembershipStatus.ACTIVE));
     }
 
     @Transactional
     public void removeChild(Integer classId, Integer childId, Integer userId)
     {
         SchoolClass schoolClass = findClass(classId);
-        ClassMembership membership = findMembership(classId, childId);
+        ClassMembership membership = findMembership(classId, childId, List.of(MembershipStatus.values()));
 
         boolean isParent = membership.getChild().getParent().getId().equals(userId);
         if(!isParent && !isOwner(schoolClass, userId))
@@ -224,7 +241,7 @@ public class ClassesService
         SchoolClass schoolClass = schoolClassRepository.findByAccessCodeAndIsBlocked(normalizeAccessCode(request.accessCode()), false)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Class not found"));
 
-        if(membershipRepository.existsByChildId(child.getId()))
+        if(membershipRepository.existsByChildIdAndStatusIn(child.getId(), MembershipStatus.ACTIVE))
         {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Child is already assigned to a class or has a pending request");
         }
@@ -232,7 +249,9 @@ public class ClassesService
         Instant now = Instant.now();
         boolean isOwner = isOwner(schoolClass, userId);
 
-        ClassMembership membership = new ClassMembership();
+        ClassMembership membership = membershipRepository
+                .findByClassIdAndChildId(schoolClass.getId(), child.getId(), List.of(MembershipStatus.REJECTED))
+                .orElseGet(ClassMembership::new);
         membership.setSchoolClass(schoolClass);
         membership.setChild(child);
         membership.setStatus(isOwner ? MembershipStatus.ACCEPTED : MembershipStatus.PENDING);
@@ -273,9 +292,9 @@ public class ClassesService
         return schoolClass;
     }
 
-    private ClassMembership findMembership(Integer classId, Integer childId)
+    private ClassMembership findMembership(Integer classId, Integer childId, List<MembershipStatus> statuses)
     {
-        return membershipRepository.findByClassIdAndChildId(classId, childId)
+        return membershipRepository.findByClassIdAndChildId(classId, childId, statuses)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Child is not a member of this class"));
     }
 

@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ClassMembershipRepository extends JpaRepository<ClassMembership, Integer> {
-    boolean existsByChildId(Integer childId);
+    boolean existsByChildIdAndStatusIn(Integer childId, Collection<MembershipStatus> statuses);
 
     boolean existsBySchoolClassIdAndChildParentIdAndChildActiveAndStatus(
         Integer classId,
@@ -25,9 +25,13 @@ public interface ClassMembershipRepository extends JpaRepository<ClassMembership
         SELECT m FROM ClassMembership m
         JOIN FETCH m.child c
         JOIN FETCH c.parent
-        WHERE m.schoolClass.id = :classId AND c.id = :childId AND c.active = true
+        WHERE m.schoolClass.id = :classId AND c.id = :childId AND c.active = true AND m.status IN :statuses
         """)
-    Optional<ClassMembership> findByClassIdAndChildId(@Param("classId") Integer classId, @Param("childId") Integer childId);
+    Optional<ClassMembership> findByClassIdAndChildId(
+        @Param("classId") Integer classId,
+        @Param("childId") Integer childId,
+        @Param("statuses") Collection<MembershipStatus> statuses
+    );
 
     @Query("""
         SELECT m FROM ClassMembership m
