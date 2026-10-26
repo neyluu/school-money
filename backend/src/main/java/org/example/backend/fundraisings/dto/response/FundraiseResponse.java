@@ -6,6 +6,7 @@ import org.example.backend.core.entity.types.FundraisingStatus;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Objects;
 
 public record FundraiseResponse(
@@ -29,7 +30,7 @@ public record FundraiseResponse(
             Objects.equals(fundraising.getSchoolClass().getOwner().getId(), userId),
             fundraising.getName(),
             fundraising.getDescription(),
-            fundraising.getStartAt(),
+            LocalDate.ofInstant(fundraising.getCreatedAt(), ZoneId.systemDefault()),
             fundraising.getEndAt(),
             fundraising.getAmountPerChild(),
             fundraising.getStatus(),

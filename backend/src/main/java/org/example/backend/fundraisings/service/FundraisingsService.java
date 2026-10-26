@@ -28,17 +28,11 @@ public class FundraisingsService
     {
         SchoolClass schoolClass = getClassIfUserIsOwner(userId, request.classId());
 
-        if( ! request.startDate().isBefore(request.endDate()))
-        {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "StartDate must be before EndDate");
-        }
-
         Fundraising fundraising = new Fundraising();
         fundraising.setSchoolClass(schoolClass);
         fundraising.setLogoFile(null);
         fundraising.setName(request.name());
         fundraising.setDescription(request.description() == null ? "" : request.description());
-        fundraising.setStartAt(request.startDate());
         fundraising.setEndAt(request.endDate());
         fundraising.setAmountPerChild(request.perChildAmount());
 

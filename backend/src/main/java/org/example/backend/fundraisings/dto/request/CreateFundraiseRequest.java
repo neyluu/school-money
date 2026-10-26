@@ -16,9 +16,6 @@ public record CreateFundraiseRequest(
     @Size(max = 500, message = "Description cannot exceed 500 characters")
     String description,
 
-    @NotNull(message = "StartDate is required")
-    LocalDate startDate,
-
     @Future(message = "EndDate must be in the future")
     @NotNull(message = "EndDate is required")
     LocalDate endDate,
