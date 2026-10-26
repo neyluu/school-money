@@ -1,8 +1,6 @@
 package org.example.backend.fundraisings.service;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.backend.auth.security.AuthenticatedUser;
 import org.example.backend.core.entity.Fundraising;
 import org.example.backend.core.entity.SchoolClass;
 import org.example.backend.core.repository.FundraisingRepository;
@@ -12,6 +10,7 @@ import org.example.backend.fundraisings.dto.request.UpdateFundraiseRequest;
 import org.example.backend.fundraisings.dto.response.FundraiseResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -70,9 +69,35 @@ public class FundraisingsService
         return FundraiseResponse.from(fundraising, userId);
     }
 
+    @Transactional
     public FundraiseResponse updateFundraise(Integer userId, Integer fundraiseId, UpdateFundraiseRequest request)
     {
-        return null;
+        Fundraising fundraising = getFundraisingIfOwner(userId, fundraiseId);
+
+        if(request.name() != null)
+        {
+            fundraising.setName(request.name().trim());
+        }
+        if(request.description() != null)
+        {
+            fundraising.setDescription(request.description().trim());
+        }
+        if(request.endDate() != null)
+        {
+            fundraising.setEndAt(request.endDate());
+        }
+        if(request.perChildAmount() != null)
+        {
+            if(request.perChildAmount().compareTo(fundraising.getAmountPerChild()) < 0)
+            {
+                // TODO handle refunding overpayments
+            }
+
+            fundraising.setAmountPerChild(request.perChildAmount());
+        }
+
+        fundraisingRepository.save(fundraising);
+        return FundraiseResponse.from(fundraising, userId);
     }
 
     private SchoolClass getClassIfUserIsOwner(Integer userId, Integer classId)
@@ -91,5 +116,11 @@ public class FundraisingsService
     {
         return schoolClassRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Class not found"));
+    }
+
+    private Fundraising getFundraisingIfOwner(Integer userId, Integer fundraisingsId)
+    {
+        return fundraisingRepository.findByIdAndSchoolClassOwnerId(fundraisingsId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Fundraising not found"));
     }
 }

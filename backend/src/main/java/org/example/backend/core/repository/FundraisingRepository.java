@@ -10,6 +10,7 @@ import java.util.Optional;
 public interface FundraisingRepository extends JpaRepository<Fundraising, Integer>
 {
     boolean existsBySchoolClassId(Integer classId);
+    Optional<Fundraising> findByIdAndSchoolClassOwnerId(Integer id, Integer ownerId);
 
     @Query(
         value = """
