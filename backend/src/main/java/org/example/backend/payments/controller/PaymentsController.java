@@ -1,6 +1,7 @@
 package org.example.backend.payments.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -10,11 +11,15 @@ import org.example.backend.payments.dto.request.DepositRequest;
 import org.example.backend.payments.dto.request.FundraisePaymentRequest;
 import org.example.backend.payments.dto.request.FundraiseWithdrawRequest;
 import org.example.backend.payments.dto.request.WithdrawRequest;
+import org.example.backend.payments.dto.response.TransactionResponse;
 import org.example.backend.payments.dto.response.WalletResponse;
 import org.example.backend.payments.service.PaymentsService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/payments")
@@ -34,11 +39,17 @@ public class PaymentsController
     }
 
 
-    @Operation(summary = "Get all transactions related to wallet")
+    @Operation(summary = "Get all transactions related to wallet, newest first")
     @GetMapping("/wallet/transactions")
-    public ResponseEntity<?> getTransactions(@AuthenticationPrincipal AuthenticatedUser user)
+    public ResponseEntity<List<TransactionResponse>> getTransactions(
+        @AuthenticationPrincipal AuthenticatedUser user,
+        @Parameter(description = "Page number starting from 0")
+        @RequestParam(defaultValue = "0") int page,
+        @Parameter(description = "Page size, default 20, max 100")
+        @RequestParam(defaultValue = "20") int size
+    )
     {
-        throw new NotImplementedException();
+        return ResponseEntity.ok(paymentsService.getTransactions(user.id(), page, size));
     }
 
 
@@ -52,23 +63,23 @@ public class PaymentsController
 
     @Operation(summary = "Deposit money on personal wallet")
     @PostMapping("/wallet/deposits")
-    public ResponseEntity<?> deposit(
+    public ResponseEntity<TransactionResponse> deposit(
         @AuthenticationPrincipal AuthenticatedUser user,
         @Valid @RequestBody DepositRequest request
     )
     {
-        throw new NotImplementedException();
+        return ResponseEntity.status(HttpStatus.CREATED).body(paymentsService.deposit(user.id(), request));
     }
 
 
-    @Operation(summary = "Withdraw money from personal wallet")
+    @Operation(summary = "Withdraw money from personal wallet to external account")
     @PostMapping("/wallet/withdrawals")
-    public ResponseEntity<?> withdraw(
+    public ResponseEntity<TransactionResponse> withdraw(
         @AuthenticationPrincipal AuthenticatedUser user,
         @Valid @RequestBody WithdrawRequest request
     )
     {
-        throw new NotImplementedException();
+        return ResponseEntity.status(HttpStatus.CREATED).body(paymentsService.withdraw(user.id(), request));
     }
 
 
