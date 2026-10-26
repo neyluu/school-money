@@ -39,18 +39,20 @@ export async function apiRequest<T>(
     token?: string | null
   }
 ): Promise<T> {
+  const isFormData = options?.body instanceof FormData
+
   let response: Response
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       method: options?.method ?? "GET",
       headers: {
-        "Content-Type": "application/json",
+        ...(isFormData ? {} : { "Content-Type": "application/json" }),
         ...(options?.token != null
           ? { Authorization: `Bearer ${options.token}` }
           : {}),
       },
       ...(options?.body !== undefined
-        ? { body: JSON.stringify(options.body) }
+        ? { body: isFormData ? (options.body as FormData) : JSON.stringify(options.body) }
         : {}),
     })
   } catch {
