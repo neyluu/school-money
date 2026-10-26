@@ -9,7 +9,11 @@ ALTER TABLE children
 
 ALTER TABLE class_memberships
     ADD CONSTRAINT chk_class_memberships_decided
-        CHECK ((status = 'ACCEPTED') = (decided_at IS NOT NULL));
+        CHECK ((status IN ('ACCEPTED', 'REJECTED')) = (decided_at IS NOT NULL));
+
+CREATE UNIQUE INDEX "uq_class_memberships_active_child"
+    ON "class_memberships" ("child_id")
+    WHERE status IN ('PENDING', 'ACCEPTED');
 
 ALTER TABLE fundraisings
     ADD CONSTRAINT chk_fundraisings_period CHECK (end_at > start_at),
