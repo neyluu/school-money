@@ -33,16 +33,19 @@ public class PaymentsService
     @Transactional(readOnly = true)
     public WalletResponse getWallet(Integer userId)
     {
-        return WalletResponse.from(findUserWallet(userId));
+        Wallet wallet = walletRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Wallet not found"));
+
+        return WalletResponse.from(wallet);
     }
 
     @Transactional
     public TransactionResponse deposit(Integer userId, DepositRequest request)
     {
-        Wallet wallet = findUserWallet(userId);
-        Transaction transaction = ledgerService.deposit(wallet.getId(), request.amount(), DEPOSIT_TITLE);
+        Integer walletId = findUserWalletId(userId);
+        Transaction transaction = ledgerService.deposit(walletId, request.amount(), DEPOSIT_TITLE);
 
-        return TransactionResponse.from(transaction, wallet.getId());
+        return TransactionResponse.from(transaction, walletId);
     }
 
     @Transactional
@@ -54,26 +57,26 @@ public class PaymentsService
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Withdrawals are allowed only to external accounts");
         }
 
-        Wallet wallet = findUserWallet(userId);
-        Transaction transaction = ledgerService.withdraw(wallet.getId(), request.amount(), WITHDRAWAL_TITLE_PREFIX + iban);
+        Integer walletId = findUserWalletId(userId);
+        Transaction transaction = ledgerService.withdraw(walletId, request.amount(), WITHDRAWAL_TITLE_PREFIX + iban);
 
-        return TransactionResponse.from(transaction, wallet.getId());
+        return TransactionResponse.from(transaction, walletId);
     }
 
     @Transactional(readOnly = true)
     public List<TransactionResponse> getTransactions(Integer userId, int page, int size)
     {
-        Wallet wallet = findUserWallet(userId);
+        Integer walletId = findUserWalletId(userId);
         PageRequest pageRequest = PageRequest.of(Math.max(page, 0), Math.clamp(size, 1, MAX_PAGE_SIZE));
 
-        return transactionRepository.findAllByWalletId(wallet.getId(), pageRequest).stream()
-                .map(transaction -> TransactionResponse.from(transaction, wallet.getId()))
+        return transactionRepository.findAllByWalletId(walletId, pageRequest).stream()
+                .map(transaction -> TransactionResponse.from(transaction, walletId))
                 .toList();
     }
 
-    private Wallet findUserWallet(Integer userId)
+    private Integer findUserWalletId(Integer userId)
     {
-        return walletRepository.findByUserId(userId)
+        return walletRepository.findIdByUserId(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Wallet not found"));
     }
 }

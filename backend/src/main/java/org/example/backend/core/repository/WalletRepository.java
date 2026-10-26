@@ -15,6 +15,12 @@ public interface WalletRepository extends JpaRepository<Wallet, Integer>
     Optional<Wallet> findByFundraisingId(Integer id);
     boolean existsByIban(String iban);
 
+    @Query("SELECT w.id FROM Wallet w WHERE w.user.id = :userId")
+    Optional<Integer> findIdByUserId(@Param("userId") Integer userId);
+
+    @Query("SELECT w.id FROM Wallet w WHERE w.fundraising.id = :fundraisingId")
+    Optional<Integer> findIdByFundraisingId(@Param("fundraisingId") Integer fundraisingId);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT w FROM Wallet w WHERE w.id = :id")
     Optional<Wallet> findByIdForUpdate(@Param("id") Integer id);

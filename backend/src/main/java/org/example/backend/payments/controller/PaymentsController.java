@@ -11,8 +11,10 @@ import org.example.backend.payments.dto.request.DepositRequest;
 import org.example.backend.payments.dto.request.FundraisePaymentRequest;
 import org.example.backend.payments.dto.request.FundraiseWithdrawRequest;
 import org.example.backend.payments.dto.request.WithdrawRequest;
+import org.example.backend.payments.dto.response.ContributionResponse;
 import org.example.backend.payments.dto.response.TransactionResponse;
 import org.example.backend.payments.dto.response.WalletResponse;
+import org.example.backend.payments.service.FundraisingPaymentsService;
 import org.example.backend.payments.service.PaymentsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +30,7 @@ import java.util.List;
 public class PaymentsController
 {
     private final PaymentsService paymentsService;
+    private final FundraisingPaymentsService fundraisingPaymentsService;
 
     @Operation(summary = "Get personal wallet information")
     @GetMapping("/wallet")
@@ -93,7 +96,7 @@ public class PaymentsController
         @AuthenticationPrincipal AuthenticatedUser user
     )
     {
-        throw new NotImplementedException();
+        return ResponseEntity.ok(fundraisingPaymentsService.getWallet(id, user.id()));
     }
 
 
@@ -131,25 +134,32 @@ public class PaymentsController
     }
 
 
-    @Operation(summary = "Pay on a fundraise")
+    @Operation(
+        summary = "Pay on a fundraise",
+        description = "Payer can pay for any accepted child of the class and can pay in parts, total paid for a child cannot exceed amount per child"
+    )
     @PostMapping("/fundraisings/{id}/contributions")
-    public ResponseEntity<?> payForFundraise(
+    public ResponseEntity<ContributionResponse> payForFundraise(
         @PathVariable Integer id,
         @AuthenticationPrincipal AuthenticatedUser user,
         @Valid @RequestBody FundraisePaymentRequest request
     )
     {
-        throw new NotImplementedException();
+        return ResponseEntity.status(HttpStatus.CREATED).body(fundraisingPaymentsService.pay(id, user.id(), request));
     }
 
 
-    @Operation(summary = "Get all fundraise contributions")
+    @Operation(summary = "Get all fundraise contributions, newest first")
     @GetMapping("/fundraisings/{id}/contributions")
-    public ResponseEntity<?> getFundraiseContributions(
+    public ResponseEntity<List<ContributionResponse>> getFundraiseContributions(
         @PathVariable Integer id,
-        @AuthenticationPrincipal AuthenticatedUser user
+        @AuthenticationPrincipal AuthenticatedUser user,
+        @Parameter(description = "Page number starting from 0")
+        @RequestParam(defaultValue = "0") int page,
+        @Parameter(description = "Page size, default 20, max 100")
+        @RequestParam(defaultValue = "20") int size
     )
     {
-        throw new NotImplementedException();
+        return ResponseEntity.ok(fundraisingPaymentsService.getContributions(id, user.id(), page, size));
     }
 }
