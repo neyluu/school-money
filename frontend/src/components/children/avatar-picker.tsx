@@ -7,13 +7,14 @@ function AvatarPicker({
   id,
   file,
   fallback,
+  currentImageUrl = null,
   invalid,
   onChange,
 }: {
   id: string;
   file: File | null;
-  // Shown when no image is selected, e.g. child's initials
   fallback: string;
+  currentImageUrl?: string | null;
   invalid?: boolean;
   onChange: (file: File | null) => void;
 }) {
@@ -22,6 +23,7 @@ function AvatarPicker({
     () => (file != null ? URL.createObjectURL(file) : null),
     [file],
   );
+  const shownImageUrl = previewUrl ?? currentImageUrl;
 
   React.useEffect(() => {
     return () => {
@@ -37,8 +39,8 @@ function AvatarPicker({
         aria-hidden
         className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-lg font-semibold text-primary"
       >
-        {previewUrl != null ? (
-          <img src={previewUrl} alt="" className="size-full object-cover" />
+        {shownImageUrl != null ? (
+          <img src={shownImageUrl} alt="" className="size-full object-cover" />
         ) : (
           fallback
         )}
@@ -52,7 +54,7 @@ function AvatarPicker({
             aria-invalid={invalid}
           >
             <ImagePlus data-icon="inline-start" />
-            {file != null ? "Zmień zdjęcie" : "Wybierz zdjęcie"}
+            {shownImageUrl != null ? "Zmień zdjęcie" : "Wybierz zdjęcie"}
           </Button>
           {file != null ? (
             <Button

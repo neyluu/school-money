@@ -21,11 +21,10 @@ import { ApiError } from "@/lib/api-client";
 import { lookupClass } from "@/lib/auth";
 import type { ClassInfo } from "@/lib/auth";
 import {
-  AVATAR_MAX_BYTES,
-  AVATAR_TYPES,
   createChild,
   joinClass,
   uploadChildAvatar,
+  validateAvatar,
 } from "@/lib/children";
 import type { Child } from "@/lib/children";
 
@@ -76,11 +75,7 @@ function validate(values: {
   }
 
   if (values.avatar != null) {
-    if (!AVATAR_TYPES.includes(values.avatar.type)) {
-      errors.avatar = "Wybierz zdjęcie w formacie PNG lub JPG.";
-    } else if (values.avatar.size > AVATAR_MAX_BYTES) {
-      errors.avatar = "Zdjęcie może mieć maks. 5 MB.";
-    }
+    errors.avatar = validateAvatar(values.avatar);
   }
 
   return Object.fromEntries(

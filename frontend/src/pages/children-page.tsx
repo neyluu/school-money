@@ -2,6 +2,8 @@ import * as React from "react";
 import { useNavigate } from "react-router";
 import { UserRound } from "lucide-react";
 import { AddChildDialog } from "@/components/children/add-child-dialog";
+import { ChangeAvatarDialog } from "@/components/children/change-avatar-dialog";
+import { ChildAvatar } from "@/components/children/child-avatar";
 import { EmptyState } from "@/components/empty-state";
 import { AppShell } from "@/components/layout/app-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -83,13 +85,8 @@ function ChildrenPage() {
                     key={child.id}
                     className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"
                   >
-                    <span
-                      aria-hidden
-                      className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary"
-                    >
-                      {`${child.firstname.charAt(0)}${child.lastname.charAt(0)}`.toUpperCase()}
-                    </span>
-                    <div className="flex min-w-0 flex-col">
+                    <ChildAvatar child={child} />
+                    <div className="flex min-w-0 flex-1 flex-col">
                       <span className="truncate text-sm font-semibold">
                         {child.firstname} {child.lastname}
                       </span>
@@ -97,6 +94,10 @@ function ChildrenPage() {
                         ur. {formatBirthDate(child.birthDate)}
                       </span>
                     </div>
+                    <ChangeAvatarDialog
+                      child={child}
+                      onChanged={loadChildren}
+                    />
                   </li>
                 ))}
               </ul>
