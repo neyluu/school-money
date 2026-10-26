@@ -26,6 +26,15 @@ public interface FundraisingContributionRepository extends JpaRepository<Fundrai
     );
 
     @Query("""
+        SELECT c FROM FundraisingContribution c
+        JOIN FETCH c.payer
+        JOIN FETCH c.transaction
+        WHERE c.fundraising.id = :fundraisingId AND c.refundTransaction IS NULL
+        ORDER BY c.id
+        """)
+    List<FundraisingContribution> findAllActiveByFundraisingId(@Param("fundraisingId") Integer fundraisingId);
+
+    @Query("""
         SELECT SUM(c.transaction.amount) FROM FundraisingContribution c
         WHERE c.fundraising.id = :fundraisingId AND c.child.id = :childId AND c.refundTransaction IS NULL
         """)

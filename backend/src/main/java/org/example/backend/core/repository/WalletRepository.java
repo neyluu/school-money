@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 public interface WalletRepository extends JpaRepository<Wallet, Integer>
@@ -20,6 +21,9 @@ public interface WalletRepository extends JpaRepository<Wallet, Integer>
 
     @Query("SELECT w.id FROM Wallet w WHERE w.fundraising.id = :fundraisingId")
     Optional<Integer> findIdByFundraisingId(@Param("fundraisingId") Integer fundraisingId);
+
+    @Query("SELECT w.balance FROM Wallet w WHERE w.fundraising.id = :fundraisingId")
+    Optional<BigDecimal> findBalanceByFundraisingId(@Param("fundraisingId") Integer fundraisingId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT w FROM Wallet w WHERE w.id = :id")
