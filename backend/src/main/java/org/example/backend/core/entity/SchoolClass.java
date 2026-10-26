@@ -52,6 +52,9 @@ public class SchoolClass {
     @Column(name = "is_blocked", nullable = false)
     private Boolean isBlocked;
 
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
     @ColumnDefault("now()")
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -59,9 +60,17 @@ public interface ClassMembershipRepository extends JpaRepository<ClassMembership
         @Param("status") MembershipStatus status
     );
 
-    @Modifying
-    @Query("DELETE FROM ClassMembership m WHERE m.schoolClass.id = :classId")
-    void deleteAllByClassId(@Param("classId") Integer classId);
+    @Modifying(clearAutomatically = true)
+    @Query("""
+        UPDATE ClassMembership m SET m.status = :newStatus, m.decidedAt = :decidedAt
+        WHERE m.schoolClass.id = :classId AND m.status IN :statuses
+        """)
+    void updateStatusByClassId(
+        @Param("classId") Integer classId,
+        @Param("statuses") Collection<MembershipStatus> statuses,
+        @Param("newStatus") MembershipStatus newStatus,
+        @Param("decidedAt") Instant decidedAt
+    );
 
     interface ClassMembershipCount {
         Integer getClassId();

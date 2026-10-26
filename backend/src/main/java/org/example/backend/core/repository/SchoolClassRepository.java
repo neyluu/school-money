@@ -9,16 +9,21 @@ import java.util.List;
 import java.util.Optional;
 
 public interface SchoolClassRepository extends JpaRepository<SchoolClass, Integer> {
-    Optional<SchoolClass> findByAccessCodeAndIsBlocked(String accessCode, Boolean isBlocked);
+    Optional<SchoolClass> findByAccessCodeAndIsBlockedAndDeletedAtIsNull(String accessCode, Boolean isBlocked);
 
     boolean existsByAccessCode(String accessCode);
 
-    @Query("SELECT c FROM SchoolClass c JOIN FETCH c.owner WHERE c.id = :id")
+    boolean existsByIdAndDeletedAtIsNull(Integer id);
+
+    @Query("SELECT c FROM SchoolClass c JOIN FETCH c.owner WHERE c.id = :id AND c.deletedAt IS NULL")
     Optional<SchoolClass> findByIdWithOwner(@Param("id") Integer id);
+
+    @Query("SELECT c FROM SchoolClass c JOIN FETCH c.owner WHERE c.id = :id")
+    Optional<SchoolClass> findByIdWithOwnerIncludingDeleted(@Param("id") Integer id);
 
     @Query("""
         SELECT c FROM SchoolClass c JOIN FETCH c.owner
-        WHERE c.owner.id = :userId
+        WHERE (c.owner.id = :userId AND c.deletedAt IS NULL)
            OR EXISTS (
                SELECT m.id FROM ClassMembership m
                WHERE m.schoolClass = c AND m.child.parent.id = :userId AND m.child.active = true

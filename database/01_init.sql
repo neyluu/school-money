@@ -6,7 +6,8 @@ CREATE TYPE "user_role" AS ENUM (
 CREATE TYPE "membership_status" AS ENUM (
 	'PENDING',
 	'ACCEPTED',
-	'REJECTED'
+	'REJECTED',
+	'CLASS_DELETED'
 );
 
 CREATE TYPE "fundraising_status" AS ENUM (
@@ -82,6 +83,7 @@ CREATE TABLE IF NOT EXISTS "classes" (
     "access_code"   VARCHAR(16) NOT NULL UNIQUE,
     "logo_file_id"  INTEGER,
     "is_blocked"    BOOLEAN NOT NULL DEFAULT false,
+    "deleted_at"    TIMESTAMP,
     "created_at"    TIMESTAMP NOT NULL DEFAULT now(),
     "updated_at"    TIMESTAMP NOT NULL DEFAULT now(),
 

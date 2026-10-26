@@ -6,7 +6,8 @@ public enum MembershipStatus
 {
     PENDING,
     ACCEPTED,
-    REJECTED;
+    REJECTED,
+    CLASS_DELETED;
 
     public static final List<MembershipStatus> ACTIVE = List.of(PENDING, ACCEPTED);
 }
