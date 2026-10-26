@@ -8,6 +8,12 @@ type BackendErrorBody = {
   fieldErrors?: FieldErrors | null
 }
 
+export type RequestOptions = {
+  method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE"
+  body?: unknown
+  token?: string | null
+}
+
 export class ApiError extends Error {
   status: number
   fieldErrors: FieldErrors | null
@@ -31,37 +37,41 @@ function readErrorBody(response: Response): Promise<BackendErrorBody> {
     .catch(() => ({}))
 }
 
-export async function apiRequest<T>(
-  path: string,
-  options?: {
-    method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE"
-    body?: unknown
-    token?: string | null
+function buildHeaders(options?: RequestOptions): Record<string, string> {
+  const headers: Record<string, string> = {}
+
+  if (options?.body !== undefined && !(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json"
   }
-): Promise<T> {
+  if (options?.token != null) {
+    headers.Authorization = `Bearer ${options.token}`
+  }
+
+  return headers
+}
+
+function buildBody(body: unknown): BodyInit | undefined {
+  if (body === undefined) {
+    return undefined
+  }
+
+  return body instanceof FormData ? body : JSON.stringify(body)
+}
+
+async function send(path: string, options?: RequestOptions): Promise<Response> {
   let response: Response
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       method: options?.method ?? "GET",
-      headers: {
-        "Content-Type": "application/json",
-        ...(options?.token != null
-          ? { Authorization: `Bearer ${options.token}` }
-          : {}),
-      },
-      ...(options?.body !== undefined
-        ? { body: JSON.stringify(options.body) }
-        : {}),
+      headers: buildHeaders(options),
+      body: buildBody(options?.body),
     })
   } catch {
     throw new ApiError(0, "Network request failed")
   }
 
   if (response.ok) {
-    if (response.status === 204) {
-      return undefined as T
-    }
-    return (await response.json()) as T
+    return response
   }
 
   const errorBody = await readErrorBody(response)
@@ -70,4 +80,24 @@ export async function apiRequest<T>(
     errorBody.message ?? `Request failed with status ${response.status}`,
     errorBody.fieldErrors ?? null
   )
+}
+
+export async function apiRequest<T>(
+  path: string,
+  options?: RequestOptions
+): Promise<T> {
+  const response = await send(path, options)
+
+  if (response.status === 204) {
+    return undefined as T
+  }
+  return (await response.json()) as T
+}
+
+export async function apiBlob(
+  path: string,
+  options?: RequestOptions
+): Promise<Blob> {
+  const response = await send(path, options)
+  return response.blob()
 }

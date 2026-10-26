@@ -26,7 +26,7 @@ public class PaymentsService
 {
     private static final int MAX_PAGE_SIZE = 100;
     private static final String DEPOSIT_TITLE = "Virtual deposit";
-    private static final String WITHDRAWAL_TITLE_PREFIX = "Withdrawal to external account ";
+    private static final String WITHDRAWAL_TITLE_PREFIX = "Withdrawal to ";
 
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
@@ -61,7 +61,8 @@ public class PaymentsService
         }
 
         Integer walletId = findUserWalletId(userId);
-        Transaction transaction = ledgerService.withdraw(walletId, request.amount(), WITHDRAWAL_TITLE_PREFIX + iban);
+        String title = WITHDRAWAL_TITLE_PREFIX + request.recipientName().trim() + ", " + iban;
+        Transaction transaction = ledgerService.withdraw(walletId, request.amount(), title);
 
         return TransactionResponse.from(transaction, walletId);
     }
