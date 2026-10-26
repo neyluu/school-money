@@ -53,7 +53,7 @@ public class ClassesService
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Access code cannot be empty");
         }
 
-        SchoolClass schoolClass = schoolClassRepository.findByAccessCodeAndIsBlocked(normalized, false)
+        SchoolClass schoolClass = schoolClassRepository.findByAccessCodeAndIsBlockedAndDeletedAtIsNull(normalized, false)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Class not found"));
 
         return ClassLookupResponse.from(schoolClass);
@@ -151,8 +151,11 @@ public class ClassesService
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Class has fundraisings and cannot be deleted");
         }
 
-        membershipRepository.deleteAllByClassId(classId);
-        schoolClassRepository.delete(schoolClass);
+        Instant now = Instant.now();
+        schoolClass.setDeletedAt(now);
+        schoolClassRepository.saveAndFlush(schoolClass);
+
+        membershipRepository.updateStatusByClassId(classId, MembershipStatus.ACTIVE, MembershipStatus.CLASS_DELETED, now);
     }
 
     @Transactional(readOnly = true)
@@ -209,7 +212,8 @@ public class ClassesService
     @Transactional
     public void removeChild(Integer classId, Integer childId, Integer userId)
     {
-        SchoolClass schoolClass = findClass(classId);
+        SchoolClass schoolClass = schoolClassRepository.findByIdWithOwnerIncludingDeleted(classId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Class with id " + classId + " not found"));
         ClassMembership membership = findMembership(classId, childId, List.of(MembershipStatus.values()));
 
         boolean isParent = membership.getChild().getParent().getId().equals(userId);
@@ -238,7 +242,7 @@ public class ClassesService
         Child child = childRepository.findByIdAndParentIdAndActive(request.childId(), userId, true)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Child with id " + request.childId() + " not found"));
 
-        SchoolClass schoolClass = schoolClassRepository.findByAccessCodeAndIsBlocked(normalizeAccessCode(request.accessCode()), false)
+        SchoolClass schoolClass = schoolClassRepository.findByAccessCodeAndIsBlockedAndDeletedAtIsNull(normalizeAccessCode(request.accessCode()), false)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Class not found"));
 
         if(membershipRepository.existsByChildIdAndStatusIn(child.getId(), MembershipStatus.ACTIVE))

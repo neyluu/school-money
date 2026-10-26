@@ -3,6 +3,7 @@ package org.example.backend.classes.dto.response;
 import org.example.backend.core.entity.ClassMembership;
 import org.example.backend.core.entity.SchoolClass;
 
+import java.time.Instant;
 import java.util.List;
 
 public record ClassSummaryResponse(
@@ -13,7 +14,8 @@ public record ClassSummaryResponse(
     boolean isOwner,
     PersonResponse owner,
     long childrenCount,
-    List<MembershipResponse> myChildren
+    List<MembershipResponse> myChildren,
+    Instant deletedAt
 ) {
     public static ClassSummaryResponse from(
         SchoolClass schoolClass,
@@ -29,7 +31,8 @@ public record ClassSummaryResponse(
             isOwner,
             PersonResponse.from(schoolClass.getOwner()),
             childrenCount,
-            myMemberships.stream().map(MembershipResponse::from).toList()
+            myMemberships.stream().map(MembershipResponse::from).toList(),
+            schoolClass.getDeletedAt()
         );
     }
 }

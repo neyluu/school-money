@@ -67,7 +67,7 @@ public class ChatService
     @Transactional
     public ChatResponse getClassChat(Integer classId, Integer userId)
     {
-        if(!schoolClassRepository.existsById(classId))
+        if(!schoolClassRepository.existsByIdAndDeletedAtIsNull(classId))
         {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Class with id " + classId + " not found");
         }
