@@ -37,18 +37,20 @@ public interface ConversationRepository extends JpaRepository<Conversation, Inte
 
     @Query("""
         SELECT sc.id FROM SchoolClass sc
-        WHERE sc.owner.id = :userId
+        WHERE sc.deletedAt IS NULL
+          AND (sc.owner.id = :userId
            OR EXISTS (
                SELECT m.id FROM ClassMembership m
                WHERE m.schoolClass = sc AND m.status = :accepted
                  AND m.child.active = true AND m.child.parent.id = :userId
-           )
+           ))
         """)
     List<Integer> findClassIdsForMember(@Param("userId") Integer userId, @Param("accepted") MembershipStatus accepted);
 
     @Query("""
         SELECT CASE WHEN COUNT(sc) > 0 THEN true ELSE false END FROM SchoolClass sc
-        WHERE (sc.owner.id = :userAId OR EXISTS (
+        WHERE sc.deletedAt IS NULL
+          AND (sc.owner.id = :userAId OR EXISTS (
                   SELECT m.id FROM ClassMembership m
                   WHERE m.schoolClass = sc AND m.status = :accepted
                     AND m.child.active = true AND m.child.parent.id = :userAId))
@@ -63,10 +65,13 @@ public interface ConversationRepository extends JpaRepository<Conversation, Inte
         @Param("accepted") MembershipStatus accepted
     );
 
-    @Query("SELECT CASE WHEN COUNT(sc) > 0 THEN true ELSE false END FROM SchoolClass sc WHERE sc.owner.id = :userId")
+    @Query("""
+        SELECT CASE WHEN COUNT(sc) > 0 THEN true ELSE false END FROM SchoolClass sc
+        WHERE sc.owner.id = :userId AND sc.deletedAt IS NULL
+        """)
     boolean isClassOwner(@Param("userId") Integer userId);
 
-    @Query("SELECT DISTINCT sc.owner FROM SchoolClass sc WHERE sc.owner.isBlocked = false")
+    @Query("SELECT DISTINCT sc.owner FROM SchoolClass sc WHERE sc.owner.isBlocked = false AND sc.deletedAt IS NULL")
     List<User> findClassOwners();
 
     @Query("""

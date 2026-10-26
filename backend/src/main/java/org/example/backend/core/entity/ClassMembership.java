@@ -30,7 +30,7 @@ public class ClassMembership {
     private SchoolClass schoolClass;
 
     @NotNull
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "child_id", nullable = false)
     private Child child;
