@@ -7,6 +7,7 @@ import { Demo } from './components/demo.tsx'
 import { RequireAuth } from './components/require-auth.tsx'
 import { DashboardPage } from './pages/dashboard-page.tsx'
 import { LoginPage } from './pages/login-page.tsx'
+import { PaymentsPage } from './pages/payments-page.tsx'
 import { RegisterPage } from './pages/register-page.tsx'
 
 createRoot(document.getElementById('root')!).render(
@@ -17,6 +18,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/register" element={<RegisterPage />} />
         <Route element={<RequireAuth />}>
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/payments" element={<PaymentsPage />} />
         </Route>
         <Route path="/demo" element={<Demo />} />
         <Route path="/" element={<App />} />
