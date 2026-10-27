@@ -2,6 +2,7 @@ import { authorizedRequest } from "@/lib/authorized-client"
 import { normalizeIban } from "@/lib/iban"
 
 const DEFAULT_PAGE_SIZE = 20
+const DEFAULT_SUMMARY_DAYS = 30
 
 export type Wallet = {
   id: number
@@ -28,6 +29,19 @@ export type Transaction = {
   incoming: boolean
   createdAt: string
   completedAt: string | null
+}
+
+export type DailyFlow = {
+  date: string
+  income: number
+  expense: number
+}
+
+export type WalletSummary = {
+  days: number
+  income: number
+  expense: number
+  daily: DailyFlow[]
 }
 
 export type WalletContribution = {
@@ -64,6 +78,12 @@ function getTransactions(
   )
 }
 
+function getSummary(days = DEFAULT_SUMMARY_DAYS): Promise<WalletSummary> {
+  return authorizedRequest<WalletSummary>(
+    `/payments/wallet/summary?days=${days}`
+  )
+}
+
 function getContributions(
   page = 0,
   size = DEFAULT_PAGE_SIZE
@@ -91,4 +111,11 @@ function withdraw(input: WithdrawInput): Promise<Transaction> {
   })
 }
 
-export { deposit, getContributions, getTransactions, getWallet, withdraw }
+export {
+  deposit,
+  getContributions,
+  getSummary,
+  getTransactions,
+  getWallet,
+  withdraw,
+}

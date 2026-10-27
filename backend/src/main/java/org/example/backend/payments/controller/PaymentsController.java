@@ -17,6 +17,7 @@ import org.example.backend.payments.dto.response.RefundSummaryResponse;
 import org.example.backend.payments.dto.response.TransactionResponse;
 import org.example.backend.payments.dto.response.WalletContributionResponse;
 import org.example.backend.payments.dto.response.WalletResponse;
+import org.example.backend.payments.dto.response.WalletSummaryResponse;
 import org.example.backend.payments.service.FundraisingFundsService;
 import org.example.backend.payments.service.FundraisingPaymentsService;
 import org.example.backend.payments.service.FundraisingRefundService;
@@ -60,6 +61,21 @@ public class PaymentsController
     )
     {
         return ResponseEntity.ok(paymentsService.getTransactions(user.id(), page, size));
+    }
+
+
+    @Operation(
+        summary = "Get income and expense of wallet for the last days",
+        description = "Counts completed transactions only, days are in UTC, days without transactions are returned with zeros"
+    )
+    @GetMapping("/wallet/summary")
+    public ResponseEntity<WalletSummaryResponse> getSummary(
+        @AuthenticationPrincipal AuthenticatedUser user,
+        @Parameter(description = "Number of days including today, default 30, max 90")
+        @RequestParam(defaultValue = "30") int days
+    )
+    {
+        return ResponseEntity.ok(paymentsService.getSummary(user.id(), days));
     }
 
 

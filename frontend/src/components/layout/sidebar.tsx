@@ -1,3 +1,4 @@
+import { Link } from "react-router"
 import { cn } from "cn"
 import { Settings } from "lucide-react"
 import { defaultNavigationItems } from "@/components/layout/navigation"
@@ -39,8 +40,8 @@ function Sidebar({
             const isActive = item.id === activeId
             return (
               <li key={item.id}>
-                <a
-                  href={item.href}
+                <Link
+                  to={item.href}
                   aria-current={isActive ? "page" : undefined}
                   onClick={
                     onNavigate
@@ -68,15 +69,15 @@ function Sidebar({
                       {item.badge}
                     </span>
                   ) : null}
-                </a>
+                </Link>
               </li>
             )
           })}
         </ul>
       </nav>
       <div className="border-t p-3">
-        <a
-          href="/settings"
+        <Link
+          to="/dashboard/settings"
           onClick={
             onNavigate
               ? (event) => {
@@ -85,7 +86,7 @@ function Sidebar({
                     id: "settings",
                     label: "Ustawienia",
                     icon: <Settings />,
-                    href: "/settings",
+                    href: "/dashboard/settings",
                   })
                 }
               : undefined
@@ -94,7 +95,7 @@ function Sidebar({
         >
           <Settings />
           Ustawienia
-        </a>
+        </Link>
       </div>
     </aside>
   )

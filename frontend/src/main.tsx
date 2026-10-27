@@ -16,9 +16,10 @@ createRoot(document.getElementById('root')!).render(
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route element={<RequireAuth />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/payments" element={<PaymentsPage />} />
+        <Route path="/dashboard" element={<RequireAuth />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="payments" element={<PaymentsPage />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
         <Route path="/demo" element={<Demo />} />
         <Route path="/" element={<App />} />
