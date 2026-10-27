@@ -56,4 +56,24 @@ public interface FundraisingContributionRepository extends JpaRepository<Fundrai
         @Param("fundraisingId") Integer fundraisingId,
         @Param("childId") Integer childId
     );
+
+    @Query("""
+        SELECT SUM(c.transaction.amount) FROM FundraisingContribution c
+        WHERE c.fundraising.id = :fundraisingId AND c.refundTransaction IS NULL
+        """)
+    Optional<BigDecimal> sumActiveAmountByFundraisingId(@Param("fundraisingId") Integer fundraisingId);
+
+    @Query("""
+        SELECT c.child.id AS childId, SUM(c.transaction.amount) AS amount
+        FROM FundraisingContribution c
+        WHERE c.fundraising.id = :fundraisingId AND c.refundTransaction IS NULL
+        GROUP BY c.child.id
+        """)
+    List<ChildPaidAmount> sumActiveAmountsByChild(@Param("fundraisingId") Integer fundraisingId);
+
+    interface ChildPaidAmount {
+        Integer getChildId();
+
+        BigDecimal getAmount();
+    }
 }
