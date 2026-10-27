@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,8 +55,8 @@ public class FundraisingOverviewService
             fundraising.getId(),
             fundraising.getName(),
             fundraising.getDescription(),
-            fundraising.getStartAt(),
-            fundraising.getEndAt(),
+            Instant.from(fundraising.getStartAt()),
+            Instant.from(fundraising.getEndAt()),
             fundraising.getAmountPerChild(),
             fundraising.getStatus(),
             fundraising.getIsBlocked(),
