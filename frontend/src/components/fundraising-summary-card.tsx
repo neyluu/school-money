@@ -34,7 +34,13 @@ function Stat({ label, amount }: { label: string; amount: number }) {
   )
 }
 
-function FundraisingSummaryCard({ summary }: { summary: FundraisingSummary }) {
+function FundraisingSummaryCard({
+  summary,
+  actions,
+}: {
+  summary: FundraisingSummary
+  actions?: React.ReactNode
+}) {
   const percent =
     summary.totalChildren > 0
       ? (summary.paidChildren / summary.totalChildren) * 100
@@ -54,6 +60,9 @@ function FundraisingSummaryCard({ summary }: { summary: FundraisingSummary }) {
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <p className="text-sm">{summary.description}</p>
+        {actions != null ? (
+          <div className="flex flex-wrap gap-2">{actions}</div>
+        ) : null}
         <Progress value={percent}>
           <ProgressTrack className="h-5">
             <ProgressIndicator />

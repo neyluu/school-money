@@ -118,6 +118,28 @@ function getInvoiceFile(fundraisingId: number, invoiceId: number): Promise<Blob>
   )
 }
 
+function payForFundraising(
+  fundraisingId: number,
+  childId: number,
+  amount: number
+): Promise<Contribution> {
+  return authorizedRequest<Contribution>(
+    `/payments/fundraisings/${fundraisingId}/contributions`,
+    { method: "POST", body: { childId, amount } }
+  )
+}
+
+function withdrawFromFundraising(
+  fundraisingId: number,
+  amount: number,
+  title: string
+): Promise<FundraisingTransfer> {
+  return authorizedRequest<FundraisingTransfer>(
+    `/payments/fundraisings/${fundraisingId}/withdrawals`,
+    { method: "POST", body: { amount, title: title.trim() } }
+  )
+}
+
 function addInvoice(
   fundraisingId: number,
   file: File,
@@ -143,4 +165,6 @@ export {
   getFundraisingSummary,
   getFundraisingWithdrawals,
   getInvoiceFile,
+  payForFundraising,
+  withdrawFromFundraising,
 }

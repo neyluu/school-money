@@ -10,4 +10,8 @@ function parseAmount(value: string): number | null {
   return amount > 0 ? amount : null
 }
 
-export { parseAmount }
+function formatAmountInput(amount: number): string {
+  return amount.toFixed(2).replace(".", ",")
+}
+
+export { formatAmountInput, parseAmount }
