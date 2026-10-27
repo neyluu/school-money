@@ -129,7 +129,18 @@ public class ClassesController
     }
 
 
-    @Operation(summary = "Reject request or remove child from class (owner only)")
+    @Operation(summary = "Reject pending request, it stays visible with REJECTED status (owner only)")
+    @PostMapping("/{id}/membership/{childId}/reject")
+    public ResponseEntity<MembershipResponse> rejectMembership(
+        @PathVariable Integer id,
+        @PathVariable Integer childId,
+        @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        return ResponseEntity.ok(classesService.rejectMembership(id, childId, user.id()));
+    }
+
+
+    @Operation(summary = "Remove child or pending request from class without trace (owner only)")
     @DeleteMapping("/{id}/membership/{childId}")
     public ResponseEntity<Void> removeMembership(
         @PathVariable Integer id,
