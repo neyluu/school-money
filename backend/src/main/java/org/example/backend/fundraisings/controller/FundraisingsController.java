@@ -6,13 +6,16 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
 import org.example.backend.auth.security.AuthenticatedUser;
+import org.example.backend.core.dto.response.FileInfoDto;
 import org.example.backend.fundraisings.dto.request.CreateFundraiseRequest;
 import org.example.backend.fundraisings.dto.request.UpdateFundraiseRequest;
 import org.example.backend.fundraisings.dto.response.FundraiseResponse;
 import org.example.backend.fundraisings.service.FundraisingsService;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -114,32 +117,34 @@ public class FundraisingsController
 
     @Operation(summary = "Get fundraise logo")
     @GetMapping("/{fundraiseId}/logo")
-    public ResponseEntity<?> getLogo(
+    public ResponseEntity<byte[]> getLogo(
         @AuthenticationPrincipal AuthenticatedUser user,
         @PathVariable Integer fundraiseId
     )
     {
-        throw new NotImplementedException();
+        return fundraisingsService.getLogo(user.id(), fundraiseId);
     }
 
     @Operation(summary = "Upload fundraise logo [OWNER ONLY]")
-    @PutMapping("/{fundraiseId}/logo")
-    public ResponseEntity<?> uploadLogo(
+    @PutMapping(value = "/{fundraiseId}/logo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<FileInfoDto> uploadLogo(
         @AuthenticationPrincipal AuthenticatedUser user,
-        @PathVariable Integer fundraiseId
+        @PathVariable Integer fundraiseId,
+        @RequestParam MultipartFile file
     )
     {
-        throw new NotImplementedException();
+        return ResponseEntity.ok(fundraisingsService.putLogo(user.id(), fundraiseId, file));
     }
 
     @Operation(summary = "Remove fundraise logo [OWNER ONLY]")
     @DeleteMapping("/{fundraiseId}/logo")
-    public ResponseEntity<?> deleteLogo(
+    public ResponseEntity<Void> deleteLogo(
         @AuthenticationPrincipal AuthenticatedUser user,
         @PathVariable Integer fundraiseId
     )
     {
-        throw new NotImplementedException();
+        fundraisingsService.deleteLogo(user.id(), fundraiseId);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Get all contributions for given fundraise")

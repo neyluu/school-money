@@ -104,7 +104,7 @@ public class FundraisingPaymentsService
         accessService.requireActive(fundraising);
 
         Instant now = Instant.now();
-        boolean isWithinPeriod = !now.isBefore(Instant.from(fundraising.getStartAt())) && now.isBefore(Instant.from(fundraising.getEndAt()));
+        boolean isWithinPeriod = !now.isBefore(Instant.from(fundraising.getCreatedAt())) && now.isBefore(Instant.from(fundraising.getEndAt()));
 
         if(!isWithinPeriod)
         {
