@@ -1,30 +1,49 @@
 import * as React from "react"
 import { useNavigate } from "react-router"
+import { LayoutDashboard } from "lucide-react"
+import { CashFlowChart } from "@/components/cash-flow-chart"
+import { EmptyState } from "@/components/empty-state"
+import { KpiCards } from "@/components/kpi-cards"
 import { AppShell } from "@/components/layout/app-shell"
+import { RecentTransactions } from "@/components/recent-transactions"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { toast, Toaster } from "@/components/ui/toast"
+import { Toaster } from "@/components/ui/toast"
 import { ApiError } from "@/lib/api-client"
 import { logout, me } from "@/lib/auth"
 import type { AuthUser } from "@/lib/auth"
+import { getSummary, getTransactions, getWallet } from "@/lib/wallet"
+import type { Transaction, Wallet, WalletSummary } from "@/lib/wallet"
+
+const SUMMARY_DAYS = 30
+const RECENT_TRANSACTIONS_LIMIT = 50
+
+type DashboardData = {
+  user: AuthUser
+  wallet: Wallet
+  summary: WalletSummary
+  transactions: Transaction[]
+}
 
 function DashboardPage() {
   const navigate = useNavigate()
-  const [user, setUser] = React.useState<AuthUser | null>(null)
+  const [data, setData] = React.useState<DashboardData | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
+  const [loadFailed, setLoadFailed] = React.useState(false)
+  const [reloadKey, setReloadKey] = React.useState(0)
 
   React.useEffect(() => {
     let ignored = false
-    me()
-      .then((currentUser) => {
+    Promise.all([
+      me(),
+      getWallet(),
+      getSummary(SUMMARY_DAYS),
+      getTransactions(0, RECENT_TRANSACTIONS_LIMIT),
+    ])
+      .then(([user, wallet, summary, transactions]) => {
         if (!ignored) {
-          setUser(currentUser)
+          setData({ user, wallet, summary, transactions })
           setIsLoading(false)
         }
       })
@@ -36,60 +55,79 @@ function DashboardPage() {
           navigate("/login", { replace: true })
           return
         }
+        setLoadFailed(true)
         setIsLoading(false)
-        toast.add({
-          title: "Nie udało się wczytać profilu.",
-          type: "error",
-        })
       })
     return () => {
       ignored = true
     }
-  }, [navigate])
+  }, [navigate, reloadKey])
+
+  function reload() {
+    setLoadFailed(false)
+    setIsLoading(true)
+    setReloadKey((current) => current + 1)
+  }
 
   return (
     <AppShell activeId="dashboard">
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between gap-2">
-          <h1 className="text-2xl font-bold">Pulpit</h1>
+          <div className="flex flex-col gap-1">
+            <h1 className="text-2xl font-bold">Pulpit</h1>
+            {data != null ? (
+              <p className="text-sm text-muted-foreground">
+                Cześć, {data.user.firstName}!
+              </p>
+            ) : null}
+          </div>
           <Button variant="outline" onClick={logout}>
             Wyloguj się
           </Button>
         </div>
-        <Card>
-          <CardHeader>
-            <CardTitle>Mój profil</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex flex-col gap-2">
-                <Skeleton className="h-4 w-48" />
-                <Skeleton className="h-4 w-64" />
-                <Skeleton className="h-4 w-32" />
-              </div>
-            ) : user != null ? (
-              <dl className="flex flex-col gap-2 text-sm">
-                <div className="flex gap-2">
-                  <dt className="text-muted-foreground">Imię i nazwisko:</dt>
-                  <dd className="font-medium">
-                    {user.firstName} {user.lastName}
-                  </dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="text-muted-foreground">E-mail:</dt>
-                  <dd className="font-medium">{user.email}</dd>
-                </div>
-              </dl>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Brak danych profilu.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+        {isLoading ? (
+          <DashboardSkeleton />
+        ) : data != null ? (
+          <>
+            <KpiCards
+              balance={data.wallet.balance}
+              income={data.summary.income}
+              expense={data.summary.expense}
+              days={data.summary.days}
+            />
+            <CashFlowChart daily={data.summary.daily} />
+            <RecentTransactions transactions={data.transactions} />
+          </>
+        ) : loadFailed ? (
+          <Card>
+            <CardContent>
+              <EmptyState
+                icon={<LayoutDashboard />}
+                title="Nie udało się wczytać pulpitu"
+                description="Sprawdź połączenie i spróbuj ponownie."
+                action={<Button onClick={reload}>Spróbuj ponownie</Button>}
+              />
+            </CardContent>
+          </Card>
+        ) : null}
       </div>
       <Toaster />
     </AppShell>
+  )
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Skeleton className="h-28 rounded-xl" />
+        <Skeleton className="h-28 rounded-xl" />
+        <Skeleton className="h-28 rounded-xl" />
+        <Skeleton className="h-28 rounded-xl" />
+      </div>
+      <Skeleton className="h-80 rounded-xl" />
+      <Skeleton className="h-72 rounded-xl" />
+    </div>
   )
 }
 
