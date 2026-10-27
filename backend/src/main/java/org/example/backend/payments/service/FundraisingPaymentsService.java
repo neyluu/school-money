@@ -104,7 +104,7 @@ public class FundraisingPaymentsService
         accessService.requireActive(fundraising);
 
         Instant now = Instant.now();
-        boolean isWithinPeriod = !now.isBefore(fundraising.getStartAt()) && now.isBefore(fundraising.getEndAt());
+        boolean isWithinPeriod = !now.isBefore(Instant.from(fundraising.getStartAt())) && now.isBefore(Instant.from(fundraising.getEndAt()));
 
         if(!isWithinPeriod)
         {
@@ -114,7 +114,7 @@ public class FundraisingPaymentsService
 
     private Child findAcceptedChild(Integer classId, Integer childId)
     {
-        return membershipRepository.findByClassIdAndChildId(classId, childId)
+        return membershipRepository.findByClassIdAndChildId(classId, childId, List.of(MembershipStatus.ACCEPTED))
                 .filter(membership -> membership.getStatus() == MembershipStatus.ACCEPTED)
                 .map(ClassMembership::getChild)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Child is not an accepted member of this class"));
