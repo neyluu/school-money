@@ -1,3 +1,4 @@
+import { Link } from "react-router"
 import { cn } from "cn"
 import { defaultNavigationItems } from "@/components/layout/navigation"
 import type { NavigationItem } from "@/components/layout/navigation"
@@ -27,8 +28,8 @@ function BottomNavigation({
           const isActive = item.id === activeId
           return (
             <li key={item.id}>
-              <a
-                href={item.href}
+              <Link
+                to={item.href}
                 aria-current={isActive ? "page" : undefined}
                 onClick={
                   onNavigate
@@ -58,7 +59,7 @@ function BottomNavigation({
                     {item.badge}
                   </span>
                 ) : null}
-              </a>
+              </Link>
             </li>
           )
         })}

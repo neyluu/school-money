@@ -36,7 +36,7 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "type", nullable = false, columnDefinition = "transaction_type")
-    private TransactionType TransactionType;
+    private TransactionType type;
 
     @NotNull
     @Column(name = "amount", nullable = false, precision = 12, scale = 2)

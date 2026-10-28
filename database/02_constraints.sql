@@ -16,7 +16,6 @@ CREATE UNIQUE INDEX "uq_class_memberships_active_child"
     WHERE status IN ('PENDING', 'ACCEPTED');
 
 ALTER TABLE fundraisings
-    ADD CONSTRAINT chk_fundraisings_period CHECK (end_at > start_at),
     ADD CONSTRAINT chk_fundraisings_amount CHECK (amount_per_child > 0),
     ADD CONSTRAINT chk_fundraisings_cancelled
         CHECK ((status = 'CANCELLED') = (cancelled_at IS NOT NULL));

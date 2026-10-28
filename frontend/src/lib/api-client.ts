@@ -8,6 +8,12 @@ type BackendErrorBody = {
   fieldErrors?: FieldErrors | null
 }
 
+export type RequestOptions = {
+  method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE"
+  body?: unknown
+  token?: string | null
+}
+
 export class ApiError extends Error {
   status: number
   fieldErrors: FieldErrors | null
@@ -31,13 +37,54 @@ function readErrorBody(response: Response): Promise<BackendErrorBody> {
     .catch(() => ({}))
 }
 
-export async function apiRequest<T>(
-  path: string,
-  options?: {
-    method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE"
-    body?: unknown
-    token?: string | null
+function buildHeaders(options?: RequestOptions): Record<string, string> {
+  const headers: Record<string, string> = {}
+
+  if (options?.body !== undefined && !(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json"
   }
+  if (options?.token != null) {
+    headers.Authorization = `Bearer ${options.token}`
+  }
+
+  return headers
+}
+
+function buildBody(body: unknown): BodyInit | undefined {
+  if (body === undefined) {
+    return undefined
+  }
+
+  return body instanceof FormData ? body : JSON.stringify(body)
+}
+
+async function send(path: string, options?: RequestOptions): Promise<Response> {
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      method: options?.method ?? "GET",
+      headers: buildHeaders(options),
+      body: buildBody(options?.body),
+    })
+  } catch {
+    throw new ApiError(0, "Network request failed")
+  }
+
+  if (response.ok) {
+    return response
+  }
+
+  const errorBody = await readErrorBody(response)
+  throw new ApiError(
+      response.status,
+      errorBody.message ?? `Request failed with status ${response.status}`,
+      errorBody.fieldErrors ?? null
+  )
+}
+
+export async function apiRequest<T>(
+    path: string,
+    options?: RequestOptions
 ): Promise<T> {
   const isFormData = options?.body instanceof FormData
 
@@ -45,15 +92,8 @@ export async function apiRequest<T>(
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       method: options?.method ?? "GET",
-      headers: {
-        ...(isFormData ? {} : { "Content-Type": "application/json" }),
-        ...(options?.token != null
-          ? { Authorization: `Bearer ${options.token}` }
-          : {}),
-      },
-      ...(options?.body !== undefined
-        ? { body: isFormData ? (options.body as FormData) : JSON.stringify(options.body) }
-        : {}),
+      headers: buildHeaders(options),
+      body: buildBody(options?.body),
     })
   } catch {
     throw new ApiError(0, "Network request failed")
@@ -72,4 +112,12 @@ export async function apiRequest<T>(
     errorBody.message ?? `Request failed with status ${response.status}`,
     errorBody.fieldErrors ?? null
   )
+}
+
+export async function apiBlob(
+    path: string,
+    options?: RequestOptions
+): Promise<Blob> {
+  const response = await send(path, options)
+  return response.blob()
 }
