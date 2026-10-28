@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.tsx'
 import { Demo } from './components/demo.tsx'
 import { RequireAuth } from './components/require-auth.tsx'
+import { ChildrenPage } from './pages/children-page.tsx'
 import { DashboardPage } from './pages/dashboard-page.tsx'
 import { FundraisingDetailsPage } from './pages/fundraising-details-page.tsx'
 import { LoginPage } from './pages/login-page.tsx'
@@ -24,6 +25,7 @@ createRoot(document.getElementById('root')!).render(
             path="fundraisers/:fundraisingId"
             element={<FundraisingDetailsPage />}
           />
+          <Route path="children" element={<ChildrenPage />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
         <Route path="/demo" element={<Demo />} />

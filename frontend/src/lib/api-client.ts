@@ -1,4 +1,4 @@
-const API_BASE_URL =
+export const API_BASE_URL =
   import.meta.env.VITE_API_URL ?? "/api"
 
 export type FieldErrors = Record<string, string>
@@ -76,27 +76,47 @@ async function send(path: string, options?: RequestOptions): Promise<Response> {
 
   const errorBody = await readErrorBody(response)
   throw new ApiError(
+      response.status,
+      errorBody.message ?? `Request failed with status ${response.status}`,
+      errorBody.fieldErrors ?? null
+  )
+}
+
+export async function apiRequest<T>(
+    path: string,
+    options?: RequestOptions
+): Promise<T> {
+  const isFormData = options?.body instanceof FormData
+
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      method: options?.method ?? "GET",
+      headers: buildHeaders(options),
+      body: buildBody(options?.body),
+    })
+  } catch {
+    throw new ApiError(0, "Network request failed")
+  }
+
+  if (response.ok) {
+    if (response.status === 204) {
+      return undefined as T
+    }
+    return (await response.json()) as T
+  }
+
+  const errorBody = await readErrorBody(response)
+  throw new ApiError(
     response.status,
     errorBody.message ?? `Request failed with status ${response.status}`,
     errorBody.fieldErrors ?? null
   )
 }
 
-export async function apiRequest<T>(
-  path: string,
-  options?: RequestOptions
-): Promise<T> {
-  const response = await send(path, options)
-
-  if (response.status === 204) {
-    return undefined as T
-  }
-  return (await response.json()) as T
-}
-
 export async function apiBlob(
-  path: string,
-  options?: RequestOptions
+    path: string,
+    options?: RequestOptions
 ): Promise<Blob> {
   const response = await send(path, options)
   return response.blob()
