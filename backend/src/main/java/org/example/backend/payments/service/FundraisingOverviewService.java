@@ -55,7 +55,7 @@ public class FundraisingOverviewService
             fundraising.getId(),
             fundraising.getName(),
             fundraising.getDescription(),
-            Instant.from(fundraising.getStartAt()),
+            Instant.from(fundraising.getCreatedAt()),
             Instant.from(fundraising.getEndAt()),
             fundraising.getAmountPerChild(),
             fundraising.getStatus(),

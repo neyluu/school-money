@@ -42,10 +42,6 @@ public class Fundraising {
     private String description;
 
     @NotNull
-    @Column(name = "start_at", nullable = false)
-    private LocalDate startAt;
-
-    @NotNull
     @Column(name = "end_at", nullable = false)
     private LocalDate endAt;
 

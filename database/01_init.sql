@@ -108,7 +108,6 @@ CREATE TABLE IF NOT EXISTS "fundraisings" (
     "logo_file_id"      INTEGER,
     "name"              TEXT NOT NULL,
     "description"       TEXT NOT NULL,
-    "start_at"          DATE NOT NULL,
     "end_at"            DATE NOT NULL,
     "amount_per_child"  NUMERIC(12,2) NOT NULL,
     "status"            FUNDRAISING_STATUS NOT NULL DEFAULT 'ACTIVE',
