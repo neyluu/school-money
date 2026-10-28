@@ -25,7 +25,7 @@ createRoot(document.getElementById('root')!).render(
             path="fundraisers/:fundraisingId"
             element={<FundraisingDetailsPage />}
           />
-          <Route path="/children" element={<ChildrenPage />} />
+          <Route path="children" element={<ChildrenPage />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
         <Route path="/demo" element={<Demo />} />
