@@ -1,12 +1,14 @@
 import * as React from "react";
 import { useNavigate } from "react-router";
 import {
-  BellRing,
+  ImageMinus,
+  ImagePlus,
   MoreHorizontal,
   Pencil,
   UserMinus,
   UserRound,
 } from "lucide-react";
+import { DeleteAvatarDialog } from "@/components/children/delete-avatar-dialog";
 import { AddChildDialog } from "@/components/children/add-child-dialog";
 import { ChangeAvatarDialog } from "@/components/children/change-avatar-dialog";
 import { ChildAvatar } from "@/components/children/child-avatar";
@@ -70,6 +72,12 @@ function ChildrenPage() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [editingId, setEditingId] = React.useState<number | null>(null);
   const [deletingId, setDeletingId] = React.useState<number | null>(null);
+  const [avatarEditingId, setAvatarEditingId] = React.useState<number | null>(
+    null,
+  );
+  const [avatarDeletingId, setAvatarDeletingId] = React.useState<number | null>(
+    null,
+  );
 
   const loadData = React.useCallback(() => {
     Promise.all([getChildren(), getClasses()])
@@ -188,10 +196,12 @@ function ChildrenPage() {
                         ) : (
                           <JoinClassDialog child={child} onChanged={loadData} />
                         )}
-                        <ChangeAvatarDialog
-                          child={child}
-                          onChanged={loadData}
-                        />
+                        <>
+                          {/*<ChangeAvatarDialog*/}
+                          {/*  child={child}*/}
+                          {/*  onChanged={loadData}*/}
+                          {/*/>*/}
+                        </>
                         <DropdownMenu>
                           <DropdownMenuTrigger
                             render={
@@ -204,28 +214,64 @@ function ChildrenPage() {
                           >
                             <MoreHorizontal />
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
+
+                          <DropdownMenuContent
+                            align="end"
+                            className="w-34"
+                          >
                             <DropdownMenuItem
                               onClick={() => setEditingId(child.id)}
                             >
                               <Pencil />
                               Edytuj
                             </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => setAvatarEditingId(child.id)}
+                            >
+                              <ImagePlus />
+                              Zmień zdjęcie
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
+                            {child.avatarId != null ? (
+                              <DropdownMenuItem
+                                variant="destructive"
+                                onClick={() => setAvatarDeletingId(child.id)}
+                              >
+                                <ImageMinus />
+                                Usuń zdjęcie
+                              </DropdownMenuItem>
+                            ) : null}
                             <DropdownMenuItem
                               variant="destructive"
                               onClick={() => setDeletingId(child.id)}
                             >
                               <UserMinus />
-                              Usuń
+                              Usuń dziecko
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
+
                         <EditChildDialog
                           child={child}
                           open={editingId === child.id}
                           onOpenChange={(next) =>
                             setEditingId(next ? child.id : null)
+                          }
+                          onChanged={loadData}
+                        />
+                        <ChangeAvatarDialog
+                          child={child}
+                          open={avatarEditingId === child.id}
+                          onOpenChange={(next) =>
+                            setAvatarEditingId(next ? child.id : null)
+                          }
+                          onChanged={loadData}
+                        />
+                        <DeleteAvatarDialog
+                          child={child}
+                          open={avatarDeletingId === child.id}
+                          onOpenChange={(next) =>
+                            setAvatarDeletingId(next ? child.id : null)
                           }
                           onChanged={loadData}
                         />
@@ -236,7 +282,7 @@ function ChildrenPage() {
                             setDeletingId(next ? child.id : null)
                           }
                           onChanged={loadData}
-                        />{" "}
+                        />
                       </div>
                     </li>
                   );
