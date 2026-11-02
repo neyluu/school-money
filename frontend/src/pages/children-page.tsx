@@ -1,6 +1,12 @@
 import * as React from "react";
 import { useNavigate } from "react-router";
-import { UserRound } from "lucide-react";
+import {
+  BellRing,
+  MoreHorizontal,
+  Pencil,
+  UserMinus,
+  UserRound,
+} from "lucide-react";
 import { AddChildDialog } from "@/components/children/add-child-dialog";
 import { ChangeAvatarDialog } from "@/components/children/change-avatar-dialog";
 import { ChildAvatar } from "@/components/children/child-avatar";
@@ -17,6 +23,16 @@ import { getChildren } from "@/lib/children";
 import type { Child } from "@/lib/children";
 import { getClasses, groupClassesByChild, STATUS_LABELS } from "@/lib/classes";
 import type { ChildClassInfo, MembershipStatus } from "@/lib/classes";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu.tsx";
+import { Button } from "@/components/ui/button.tsx";
+import { EditChildDialog } from "@/components/children/edit-child-dialog.tsx";
+import { DeleteChildDialog } from "@/components/children/delete-child-dialog.tsx";
 
 const STATUS_VARIANTS: Record<
   MembershipStatus,
@@ -52,6 +68,8 @@ function ChildrenPage() {
     Map<number, ChildClassInfo[]>
   >(new Map());
   const [isLoading, setIsLoading] = React.useState(true);
+  const [editingId, setEditingId] = React.useState<number | null>(null);
+  const [deletingId, setDeletingId] = React.useState<number | null>(null);
 
   const loadData = React.useCallback(() => {
     Promise.all([getChildren(), getClasses()])
@@ -174,6 +192,51 @@ function ChildrenPage() {
                           child={child}
                           onChanged={loadData}
                         />
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label={`Akcje: ${child.firstname} ${child.lastname}`}
+                              />
+                            }
+                          >
+                            <MoreHorizontal />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => setEditingId(child.id)}
+                            >
+                              <Pencil />
+                              Edytuj
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              variant="destructive"
+                              onClick={() => setDeletingId(child.id)}
+                            >
+                              <UserMinus />
+                              Usuń
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <EditChildDialog
+                          child={child}
+                          open={editingId === child.id}
+                          onOpenChange={(next) =>
+                            setEditingId(next ? child.id : null)
+                          }
+                          onChanged={loadData}
+                        />
+                        <DeleteChildDialog
+                          child={child}
+                          open={deletingId === child.id}
+                          onOpenChange={(next) =>
+                            setDeletingId(next ? child.id : null)
+                          }
+                          onChanged={loadData}
+                        />{" "}
                       </div>
                     </li>
                   );

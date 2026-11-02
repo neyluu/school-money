@@ -55,6 +55,24 @@ async function createChild(input: {
   });
 }
 
+async function updateChild(
+  childId: number,
+  input: { firstname?: string; lastname?: string; birthDate?: string },
+): Promise<Child> {
+  return apiRequest<Child>(`/children/${childId}`, {
+    method: "PATCH",
+    body: input,
+    token: getToken(),
+  });
+}
+
+async function deleteChild(childId: number): Promise<void> {
+  await apiRequest<void>(`/children/${childId}`, {
+    method: "DELETE",
+    token: getToken(),
+  });
+}
+
 async function uploadChildAvatar(childId: number, file: File): Promise<void> {
   const body = new FormData();
   body.append("file", file);
@@ -97,10 +115,12 @@ async function joinClass(
 export {
   childInitials,
   createChild,
+  deleteChild,
   deleteChildAvatar,
   fetchChildAvatar,
   getChildren,
   joinClass,
+  updateChild,
   uploadChildAvatar,
   validateAvatar,
 };
