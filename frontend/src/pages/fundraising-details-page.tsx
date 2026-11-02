@@ -21,16 +21,6 @@ import type { FundraisingSummary } from "@/lib/fundraising"
 
 type ActiveDialog = "pay" | "withdraw" | null
 
-function isOpenForPayments(summary: FundraisingSummary): boolean {
-  const now = Date.now()
-  return (
-    summary.status === "ACTIVE" &&
-    !summary.isBlocked &&
-    now >= new Date(summary.startAt).getTime() &&
-    now < new Date(summary.endAt).getTime()
-  )
-}
-
 function FundraisingDetailsPage() {
   const params = useParams()
   const fundraisingId = Number(params.fundraisingId)
@@ -56,7 +46,7 @@ function FundraisingDetailsPage() {
   }
 
   function renderActions(summary: FundraisingSummary) {
-    const canPay = isOpenForPayments(summary)
+    const canPay = summary.acceptsPayments
     const canWithdraw =
       summary.isOwner && summary.status === "ACTIVE" && !summary.isBlocked
 

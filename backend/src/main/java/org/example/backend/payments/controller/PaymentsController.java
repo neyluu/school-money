@@ -13,14 +13,12 @@ import org.example.backend.payments.dto.request.FundraiseWithdrawRequest;
 import org.example.backend.payments.dto.request.WithdrawRequest;
 import org.example.backend.payments.dto.response.ContributionResponse;
 import org.example.backend.payments.dto.response.FundraisingTransferResponse;
-import org.example.backend.payments.dto.response.RefundSummaryResponse;
 import org.example.backend.payments.dto.response.TransactionResponse;
 import org.example.backend.payments.dto.response.WalletContributionResponse;
 import org.example.backend.payments.dto.response.WalletResponse;
 import org.example.backend.payments.dto.response.WalletSummaryResponse;
 import org.example.backend.payments.service.FundraisingFundsService;
 import org.example.backend.payments.service.FundraisingPaymentsService;
-import org.example.backend.payments.service.FundraisingRefundService;
 import org.example.backend.payments.service.PaymentsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +36,6 @@ public class PaymentsController
     private final PaymentsService paymentsService;
     private final FundraisingPaymentsService fundraisingPaymentsService;
     private final FundraisingFundsService fundraisingFundsService;
-    private final FundraisingRefundService fundraisingRefundService;
 
     @Operation(summary = "Get personal wallet information")
     @GetMapping("/wallet")
@@ -189,20 +186,6 @@ public class PaymentsController
     )
     {
         return ResponseEntity.ok(fundraisingFundsService.getReplenishments(id, user.id(), page, size));
-    }
-
-
-    @Operation(
-        summary = "Close fundraise and refund all payments to payers",
-        description = "Only class owner can close, wallet of fundraising must contain all contributed money, so previously withdrawn money has to be replenished first"
-    )
-    @PostMapping("/fundraisings/{id}/refunds")
-    public ResponseEntity<RefundSummaryResponse> refundFundraise(
-        @PathVariable Integer id,
-        @AuthenticationPrincipal AuthenticatedUser user
-    )
-    {
-        return ResponseEntity.ok(fundraisingRefundService.refund(id, user.id()));
     }
 
 

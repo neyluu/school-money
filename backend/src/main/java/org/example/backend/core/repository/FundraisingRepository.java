@@ -78,13 +78,16 @@ public interface FundraisingRepository extends JpaRepository<Fundraising, Intege
                 f.id = :fundraisingId
                 AND c.is_blocked = false
                 AND f.is_blocked = false
-                AND EXISTS (
-                    SELECT 1
-                    FROM class_memberships cm
-                         JOIN children ch ON ch.id = cm.child_id
-                    WHERE cm.class_id = c.id
-                        AND cm.status = 'ACCEPTED'
-                        AND ch.parent_id = :userId
+                AND (
+                    c.owner_id = :userId
+                    OR EXISTS (
+                        SELECT 1
+                        FROM class_memberships cm
+                             JOIN children ch ON ch.id = cm.child_id
+                        WHERE cm.class_id = c.id
+                            AND cm.status = 'ACCEPTED'
+                            AND ch.parent_id = :userId
+                    )
                 )
         """,
         nativeQuery = true

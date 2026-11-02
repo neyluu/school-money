@@ -13,14 +13,18 @@ const dateFormatter = new Intl.DateTimeFormat("pl-PL", {
   day: "numeric",
   month: "long",
   year: "numeric",
+  timeZone: "UTC",
 })
 
 function StatusBadge({ summary }: { summary: FundraisingSummary }) {
   if (summary.isBlocked) {
     return <Badge variant="danger">Zablokowana</Badge>
   }
-  if (summary.status === "CANCELLED") {
+  if (summary.status === "CLOSED") {
     return <Badge variant="neutral">Zamknięta</Badge>
+  }
+  if (summary.status === "CANCELLED") {
+    return <Badge variant="neutral">Zamknięta ze zwrotem</Badge>
   }
   return <Badge variant="success">Aktywna</Badge>
 }
@@ -54,8 +58,8 @@ function FundraisingSummaryCard({
           <StatusBadge summary={summary} />
         </div>
         <p className="text-sm text-muted-foreground">
-          Klasa {summary.className} · {dateFormatter.format(new Date(summary.startAt))} –{" "}
-          {dateFormatter.format(new Date(summary.endAt))}
+          Klasa {summary.className} · {dateFormatter.format(new Date(summary.startDate))} –{" "}
+          {dateFormatter.format(new Date(summary.endDate))}
         </p>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">

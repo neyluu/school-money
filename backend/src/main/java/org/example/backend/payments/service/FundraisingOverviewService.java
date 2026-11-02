@@ -3,6 +3,7 @@ package org.example.backend.payments.service;
 import lombok.RequiredArgsConstructor;
 import org.example.backend.core.entity.ClassMembership;
 import org.example.backend.core.entity.Fundraising;
+import org.example.backend.core.entity.types.FundraisingStatus;
 import org.example.backend.core.entity.types.MembershipStatus;
 import org.example.backend.core.entity.types.TransactionType;
 import org.example.backend.core.repository.ClassMembershipRepository;
@@ -18,7 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -51,15 +53,21 @@ public class FundraisingOverviewService
         List<FundraisingChildResponse> children = findChildren(fundraising, userId);
         int paidChildren = (int) children.stream().filter(FundraisingChildResponse::isPaid).count();
 
+        boolean acceptsPayments = fundraising.getStatus() == FundraisingStatus.ACTIVE
+                && !fundraising.getIsBlocked()
+                && !fundraising.getSchoolClass().getIsBlocked()
+                && !accessService.hasEnded(fundraising);
+
         return new FundraisingSummaryResponse(
             fundraising.getId(),
             fundraising.getName(),
             fundraising.getDescription(),
-            Instant.from(fundraising.getCreatedAt()),
-            Instant.from(fundraising.getEndAt()),
+            LocalDate.ofInstant(fundraising.getCreatedAt(), ZoneOffset.UTC),
+            fundraising.getEndAt(),
             fundraising.getAmountPerChild(),
             fundraising.getStatus(),
             fundraising.getIsBlocked(),
+            acceptsPayments,
             fundraising.getSchoolClass().getId(),
             fundraising.getSchoolClass().getName(),
             fundraising.getSchoolClass().getOwner().getId().equals(userId),
