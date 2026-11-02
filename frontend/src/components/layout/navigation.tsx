@@ -5,6 +5,7 @@ import {
   MessageCircle,
   ReceiptText,
   UsersRound,
+  Baby
 } from "lucide-react"
 
 export type NavigationItem = {
@@ -27,6 +28,12 @@ export const defaultNavigationItems: NavigationItem[] = [
     label: "Zbiórki",
     icon: <HandCoins />,
     href: "/dashboard/fundraisers",
+  },
+  {
+    id: "children",
+    label: "Moje dzieci",
+    icon: <Baby/>,
+    href: "/dashboard/children",
   },
   {
     id: "class",
