@@ -96,7 +96,7 @@ function JoinClassDialog({
               <FieldLabel htmlFor={inputId}>Kod klasy</FieldLabel>
               <Input
                 id={inputId}
-                placeholder="3B-X7KQ2"
+                placeholder="3BTX7KQ2"
                 value={code}
                 aria-invalid={error != null}
                 onChange={(event) => {

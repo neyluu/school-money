@@ -121,39 +121,43 @@ function ChildrenPage() {
                   return (
                     <li
                       key={child.id}
-                      className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-3 py-3 first:pt-0 last:pb-0 md:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto]"
+                      className="flex justify-between py-3 first:pt-0 last:pb-0 md:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto]"
                     >
-                      <ChildAvatar child={child} />
+                      <div className="flex gap-15">
+                        <div className="flex gap-3">
+                          <ChildAvatar child={child} />
 
-                      <div className="flex min-w-0 flex-col">
-                        <span className="truncate text-sm font-semibold">
-                          {child.firstname} {child.lastname}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          ur. {formatBirthDate(child.birthDate)}
-                        </span>
-                      </div>
+                          <div className="flex min-w-24 flex-col ">
+                            <span className="truncate text-sm font-semibold">
+                              {child.firstname} {child.lastname}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              ur. {formatBirthDate(child.birthDate)}
+                            </span>
+                          </div>
+                        </div>
 
-                      <div className="col-span-2 flex min-w-0 items-center gap-2 md:col-span-1">
-                        {info != null ? (
-                          <>
-                            <div className="flex min-w-0 flex-1 flex-col">
-                              <span className="truncate text-sm font-medium">
-                                {info.className}
-                              </span>
-                              <span className="truncate text-xs text-muted-foreground">
-                                {info.school}
-                              </span>
-                            </div>
-                            <Badge variant={STATUS_VARIANTS[info.status]}>
-                              {STATUS_LABELS[info.status]}
-                            </Badge>
-                          </>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">
-                            Brak klasy
-                          </span>
-                        )}
+                        <div className="col-span-2 flex min-w-0 items-center gap-2 md:col-span-1">
+                          {info != null ? (
+                            <>
+                              <div className="flex min-w-36 flex-1 flex-col">
+                                <span className="truncate text-sm font-medium">
+                                  {info.className}
+                                </span>
+                                <span className="truncate text-xs text-muted-foreground">
+                                  {info.school}
+                                </span>
+                              </div>
+                              <Badge variant={STATUS_VARIANTS[info.status]}>
+                                {STATUS_LABELS[info.status]}
+                              </Badge>
+                            </>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              Brak klasy
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="col-span-2 flex items-center justify-end gap-2 md:col-span-1">
