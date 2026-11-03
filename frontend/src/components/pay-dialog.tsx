@@ -28,6 +28,8 @@ import { getFundraisingChildren, payForFundraising } from "@/lib/fundraising"
 import type { FundraisingChild } from "@/lib/fundraising"
 import { getWallet } from "@/lib/wallet"
 
+export type PayPreselect = number | "others"
+
 type PayErrors = {
   child?: string
   amount?: string
@@ -41,22 +43,46 @@ function studentLabel(student: FundraisingChild): string {
   return student.isMine ? `${name} (Twoje dziecko)` : name
 }
 
+function pickInitialStudent(
+  students: FundraisingChild[],
+  preselect: PayPreselect | undefined
+): FundraisingChild | undefined {
+  const unpaid = students.filter((student) => !student.isPaid)
+
+  if (typeof preselect === "number") {
+    const chosen = unpaid.find((student) => student.id === preselect)
+    if (chosen != null) {
+      return chosen
+    }
+  }
+  if (preselect === "others") {
+    const other = unpaid.find((student) => !student.isMine)
+    if (other != null) {
+      return other
+    }
+  }
+
+  return unpaid.find((student) => student.isMine) ?? unpaid[0]
+}
+
 function PayForm({
   fundraisingId,
   students,
   balance,
+  preselect,
   onClose,
   onCompleted,
 }: {
   fundraisingId: number
   students: FundraisingChild[]
   balance: number
+  preselect: PayPreselect | undefined
   onClose: () => void
   onCompleted: () => void
 }) {
   const navigate = useNavigate()
   const unpaid = students.filter((student) => !student.isPaid)
-  const initial = unpaid.find((student) => student.isMine) ?? unpaid[0]
+  const initial = pickInitialStudent(students, preselect)
 
   const [childId, setChildId] = React.useState(
     initial != null ? String(initial.id) : ""
@@ -245,10 +271,12 @@ function PayForm({
 
 function PayLoader({
   fundraisingId,
+  preselect,
   onClose,
   onCompleted,
 }: {
   fundraisingId: number
+  preselect: PayPreselect | undefined
   onClose: () => void
   onCompleted: () => void
 }) {
@@ -272,6 +300,7 @@ function PayLoader({
           fundraisingId={fundraisingId}
           students={data[0]}
           balance={data[1].balance}
+          preselect={preselect}
           onClose={onClose}
           onCompleted={onCompleted}
         />
@@ -285,12 +314,14 @@ function PayDialog({
   onOpenChange,
   fundraisingId,
   fundraisingName,
+  preselect,
   onCompleted,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   fundraisingId: number
   fundraisingName: string
+  preselect?: PayPreselect
   onCompleted: () => void
 }) {
   return (
@@ -305,6 +336,7 @@ function PayDialog({
         </ResponsiveDialogHeader>
         <PayLoader
           fundraisingId={fundraisingId}
+          preselect={preselect}
           onClose={() => onOpenChange(false)}
           onCompleted={onCompleted}
         />

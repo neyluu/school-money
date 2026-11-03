@@ -1,4 +1,5 @@
 import { authorizedBlob, authorizedRequest } from "@/lib/authorized-client"
+import type { Wallet } from "@/lib/wallet"
 
 const DEFAULT_PAGE_SIZE = 100
 
@@ -100,6 +101,12 @@ function getFundraisingSummary(fundraisingId: number): Promise<FundraisingSummar
   )
 }
 
+function getFundraisingWallet(fundraisingId: number): Promise<Wallet> {
+  return authorizedRequest<Wallet>(
+    `/payments/fundraisings/${fundraisingId}/wallet`
+  )
+}
+
 function getFundraisingChildren(fundraisingId: number): Promise<FundraisingChild[]> {
   return authorizedRequest<FundraisingChild[]>(
     `/payments/fundraisings/${fundraisingId}/children`
@@ -184,6 +191,7 @@ export {
   getFundraisingInvoices,
   getFundraisings,
   getFundraisingSummary,
+  getFundraisingWallet,
   getFundraisingWithdrawals,
   getInvoiceFile,
   payForFundraising,
