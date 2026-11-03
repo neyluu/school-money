@@ -219,6 +219,7 @@ function FundraisingDetailsContent({
         onOpenChange={handleDialogChange("pay")}
         fundraisingId={summary.id}
         fundraisingName={summary.name}
+        amountPerChild={summary.amountPerChild}
         preselect={payPreselect}
         onCompleted={onCompleted}
       />
