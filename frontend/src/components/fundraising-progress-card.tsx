@@ -9,10 +9,12 @@ function FundraisingProgressCard({
   title,
   paidChildren,
   totalChildren,
+  action,
 }: {
   title: string
   paidChildren: number
   totalChildren: number
+  action?: React.ReactNode
 }) {
   const percent = totalChildren > 0 ? (paidChildren / totalChildren) * 100 : 0
   const waiting = totalChildren - paidChildren
@@ -36,6 +38,7 @@ function FundraisingProgressCard({
             ? `Czeka na wpłatę: ${waiting}`
             : "Wszystkie dzieci mają opłaconą zbiórkę."}
         </p>
+        {action != null ? action : null}
       </CardContent>
     </Card>
   )

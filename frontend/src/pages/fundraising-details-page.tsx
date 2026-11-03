@@ -1,7 +1,8 @@
 import * as React from "react"
 import { Link, useParams } from "react-router"
-import { HandCoins, Pencil, UsersRound } from "lucide-react"
+import { HandCoins, Pencil, Plus, UsersRound } from "lucide-react"
 import { AddInvoiceDialog } from "@/components/add-invoice-dialog"
+import { CloseFundraisingDialog } from "@/components/close-fundraising-dialog"
 import { DataState } from "@/components/data-state"
 import { EmptyState } from "@/components/empty-state"
 import { FundraisingAccountCard } from "@/components/fundraising-account-card"
@@ -16,6 +17,7 @@ import { FundraisingWithdrawDialog } from "@/components/fundraising-withdraw-dia
 import { AppShell } from "@/components/layout/app-shell"
 import { PayDialog } from "@/components/pay-dialog"
 import type { PayPreselect } from "@/components/pay-dialog"
+import { ReplenishDialog } from "@/components/replenish-dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -30,7 +32,7 @@ import {
 import type { FundraisingChild, FundraisingSummary } from "@/lib/fundraising"
 import type { Wallet } from "@/lib/wallet"
 
-type ActiveDialog = "pay" | "withdraw" | "invoice" | null
+type ActiveDialog = "pay" | "withdraw" | "invoice" | "close" | "replenish" | null
 
 function FundraisingDetailsContent({
   summary,
@@ -55,6 +57,7 @@ function FundraisingDetailsContent({
     canPay && students.some((student) => !student.isMine && !student.isPaid)
   const canManage =
     summary.isOwner && summary.status === "ACTIVE" && !summary.isBlocked
+  const canReplenish = canManage && summary.withdrawnAmount > 0
   const waitingStudents = students.filter((student) => !student.isPaid)
 
   function openPay(preselect?: PayPreselect) {
@@ -80,6 +83,9 @@ function FundraisingDetailsContent({
             </Button>
             <Button variant="outline" onClick={() => setActiveDialog("withdraw")}>
               Wypłać środki
+            </Button>
+            <Button variant="outline" onClick={() => setActiveDialog("close")}>
+              Zamknij zbiórkę
             </Button>
           </>
         ) : null}
@@ -166,6 +172,17 @@ function FundraisingDetailsContent({
             title={summary.isOwner ? "Postęp" : "Postęp klasy"}
             paidChildren={summary.paidChildren}
             totalChildren={summary.totalChildren}
+            action={
+              canReplenish ? (
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveDialog("replenish")}
+                >
+                  <Plus />
+                  Wpłać z powrotem po wypłacie
+                </Button>
+              ) : undefined
+            }
           />
           {summary.isOwner ? (
             <FundraisingAccountCard wallet={wallet} />
@@ -216,6 +233,22 @@ function FundraisingDetailsContent({
         open={activeDialog === "invoice"}
         onOpenChange={handleDialogChange("invoice")}
         fundraisingId={summary.id}
+        onCompleted={onCompleted}
+      />
+      <CloseFundraisingDialog
+        open={activeDialog === "close"}
+        onOpenChange={handleDialogChange("close")}
+        fundraisingId={summary.id}
+        walletBalance={summary.walletBalance}
+        collectedAmount={summary.collectedAmount}
+        onReplenish={() => setActiveDialog("replenish")}
+        onCompleted={onCompleted}
+      />
+      <ReplenishDialog
+        open={activeDialog === "replenish"}
+        onOpenChange={handleDialogChange("replenish")}
+        fundraisingId={summary.id}
+        outstanding={summary.withdrawnAmount}
         onCompleted={onCompleted}
       />
     </div>
