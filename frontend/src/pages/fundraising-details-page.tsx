@@ -1,6 +1,6 @@
 import * as React from "react"
-import { useParams } from "react-router"
-import { HandCoins } from "lucide-react"
+import { Link, useParams } from "react-router"
+import { HandCoins, Pencil } from "lucide-react"
 import { DataState } from "@/components/data-state"
 import { EmptyState } from "@/components/empty-state"
 import { FundraisingInvoicesTab } from "@/components/fundraising-invoices-tab"
@@ -47,10 +47,10 @@ function FundraisingDetailsPage() {
 
   function renderActions(summary: FundraisingSummary) {
     const canPay = summary.acceptsPayments
-    const canWithdraw =
+    const canManage =
       summary.isOwner && summary.status === "ACTIVE" && !summary.isBlocked
 
-    if (!canPay && !canWithdraw) {
+    if (!canPay && !canManage) {
       return undefined
     }
 
@@ -59,10 +59,24 @@ function FundraisingDetailsPage() {
         {canPay ? (
           <Button onClick={() => setActiveDialog("pay")}>Zapłać</Button>
         ) : null}
-        {canWithdraw ? (
-          <Button variant="outline" onClick={() => setActiveDialog("withdraw")}>
-            Wypłać ze zbiórki
-          </Button>
+        {canManage ? (
+          <>
+            <Button
+              variant="outline"
+              onClick={() => setActiveDialog("withdraw")}
+            >
+              Wypłać ze zbiórki
+            </Button>
+            <Button
+              variant="outline"
+              render={
+                <Link to={`/dashboard/fundraisers/${summary.id}/edit`} />
+              }
+            >
+              <Pencil />
+              Edytuj
+            </Button>
+          </>
         ) : null}
       </>
     )

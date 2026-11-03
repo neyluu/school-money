@@ -7,6 +7,8 @@ import { Demo } from './components/demo.tsx'
 import { RequireAuth } from './components/require-auth.tsx'
 import { DashboardPage } from './pages/dashboard-page.tsx'
 import { FundraisingDetailsPage } from './pages/fundraising-details-page.tsx'
+import { FundraisingEditPage } from './pages/fundraising-edit-page.tsx'
+import { FundraisingNewPage } from './pages/fundraising-new-page.tsx'
 import { FundraisingsPage } from './pages/fundraisings-page.tsx'
 import { LoginPage } from './pages/login-page.tsx'
 import { PaymentsPage } from './pages/payments-page.tsx'
@@ -22,9 +24,14 @@ createRoot(document.getElementById('root')!).render(
           <Route index element={<DashboardPage />} />
           <Route path="payments" element={<PaymentsPage />} />
           <Route path="fundraisers" element={<FundraisingsPage />} />
+          <Route path="fundraisers/new" element={<FundraisingNewPage />} />
           <Route
             path="fundraisers/:fundraisingId"
             element={<FundraisingDetailsPage />}
+          />
+          <Route
+            path="fundraisers/:fundraisingId/edit"
+            element={<FundraisingEditPage />}
           />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
