@@ -1,101 +1,88 @@
 import * as React from "react"
-import { useNavigate } from "react-router"
-import { Wallet as WalletIcon } from "lucide-react"
+import { ArrowUpRight, Wallet as WalletIcon } from "lucide-react"
+import { DataState } from "@/components/data-state"
 import { EmptyState } from "@/components/empty-state"
 import { AppShell } from "@/components/layout/app-shell"
-import { TopUpDialog } from "@/components/top-up-dialog"
+import { TopUpForm } from "@/components/top-up-form"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Toaster } from "@/components/ui/toast"
 import { WalletCard } from "@/components/wallet-card"
+import { WalletHistory } from "@/components/wallet-history"
 import { WithdrawDialog } from "@/components/withdraw-dialog"
-import { ApiError } from "@/lib/api-client"
+import { WithdrawForm } from "@/components/withdraw-form"
+import { useAsyncData } from "@/hooks/use-async-data"
 import { getWallet } from "@/lib/wallet"
-import type { Wallet } from "@/lib/wallet"
-
-type ActiveDialog = "topUp" | "withdraw" | null
 
 function PaymentsPage() {
-  const navigate = useNavigate()
-  const [wallet, setWallet] = React.useState<Wallet | null>(null)
-  const [isLoading, setIsLoading] = React.useState(true)
-  const [loadFailed, setLoadFailed] = React.useState(false)
-  const [reloadKey, setReloadKey] = React.useState(0)
-  const [activeDialog, setActiveDialog] = React.useState<ActiveDialog>(null)
+  const [isWithdrawOpen, setIsWithdrawOpen] = React.useState(false)
+  const [refreshToken, setRefreshToken] = React.useState(0)
+  const { data, error, isLoading, reload } = useAsyncData(getWallet)
 
-  React.useEffect(() => {
-    let ignored = false
-    getWallet()
-      .then((loaded) => {
-        if (!ignored) {
-          setWallet(loaded)
-          setLoadFailed(false)
-          setIsLoading(false)
-        }
-      })
-      .catch((error: unknown) => {
-        if (ignored) {
-          return
-        }
-        if (error instanceof ApiError && error.status === 401) {
-          navigate("/login", { replace: true })
-          return
-        }
-        setLoadFailed(true)
-        setIsLoading(false)
-      })
-    return () => {
-      ignored = true
-    }
-  }, [navigate, reloadKey])
-
-  function reloadWallet() {
-    setReloadKey((current) => current + 1)
-  }
-
-  function handleDialogChange(dialog: Exclude<ActiveDialog, null>) {
-    return (open: boolean) => setActiveDialog(open ? dialog : null)
+  function handleCompleted() {
+    reload()
+    setRefreshToken((current) => current + 1)
   }
 
   return (
     <AppShell activeId="payments">
       <div className="flex flex-col gap-6">
-        <h1 className="text-2xl font-bold">Płatności</h1>
-        {isLoading ? (
-          <Skeleton className="h-52 w-full max-w-xl rounded-xl" />
-        ) : wallet != null ? (
-          <>
-            <WalletCard
-              wallet={wallet}
-              onTopUp={() => setActiveDialog("topUp")}
-              onWithdraw={() => setActiveDialog("withdraw")}
-              className="w-full max-w-xl"
-            />
-            <TopUpDialog
-              open={activeDialog === "topUp"}
-              onOpenChange={handleDialogChange("topUp")}
-              onCompleted={reloadWallet}
-            />
-            <WithdrawDialog
-              open={activeDialog === "withdraw"}
-              onOpenChange={handleDialogChange("withdraw")}
-              balance={wallet.balance}
-              onCompleted={reloadWallet}
-            />
-          </>
-        ) : loadFailed ? (
-          <Card className="w-full max-w-xl">
-            <CardContent>
-              <EmptyState
-                icon={<WalletIcon />}
-                title="Nie udało się wczytać rachunku"
-                description="Sprawdź połączenie i spróbuj ponownie."
-                action={<Button onClick={reloadWallet}>Spróbuj ponownie</Button>}
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-2xl font-bold">Mój rachunek</h1>
+            <p className="text-sm text-muted-foreground">
+              Wirtualne środki w systemie
+            </p>
+          </div>
+          {data != null ? (
+            <Button onClick={() => setIsWithdrawOpen(true)}>
+              <ArrowUpRight />
+              Przelew zewnętrzny
+            </Button>
+          ) : null}
+        </div>
+        <DataState
+          isLoading={isLoading && data == null}
+          hasError={error != null && data == null}
+          isEmpty={false}
+          emptyState={null}
+          onRetry={reload}
+        >
+          {data != null ? (
+            <>
+              <div className="grid gap-4 lg:grid-cols-3 lg:items-start">
+                <WalletCard wallet={data} />
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Doładuj rachunek</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <TopUpForm onCompleted={handleCompleted} />
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Wypłata na konto zewnętrzne</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <WithdrawForm
+                      balance={data.balance}
+                      onCompleted={handleCompleted}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+              <WalletHistory key={refreshToken} />
+              <WithdrawDialog
+                open={isWithdrawOpen}
+                onOpenChange={setIsWithdrawOpen}
+                balance={data.balance}
+                onCompleted={handleCompleted}
               />
-            </CardContent>
-          </Card>
-        ) : null}
+            </>
+          ) : null}
+        </DataState>
+        {error != null && data == null ? null : null}
       </div>
       <Toaster />
     </AppShell>

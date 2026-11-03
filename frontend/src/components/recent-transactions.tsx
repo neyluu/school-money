@@ -4,11 +4,11 @@ import { EmptyState } from "@/components/empty-state"
 import { MoneyAmount } from "@/components/money-amount"
 import { SegmentedControl } from "@/components/segmented-control"
 import type { SegmentedOption } from "@/components/segmented-control"
-import { Badge } from "@/components/ui/badge"
+import { TransactionStatusBadge } from "@/components/transaction-status-badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { matchesFilter } from "@/lib/transaction-filters"
 import type { TransactionFilter } from "@/lib/transaction-filters"
-import type { Transaction, TransactionStatus } from "@/lib/wallet"
+import type { Transaction } from "@/lib/wallet"
 
 const MAX_ROWS = 10
 
@@ -18,15 +18,6 @@ const FILTER_OPTIONS: SegmentedOption<TransactionFilter>[] = [
   { value: "outcome", label: "Wydatki" },
   { value: "refunds", label: "Zwroty" },
 ]
-
-const STATUS_BADGES: Record<
-  TransactionStatus,
-  { variant: "success" | "warning" | "danger"; label: string }
-> = {
-  COMPLETED: { variant: "success", label: "Zakończona" },
-  PENDING: { variant: "warning", label: "Oczekuje" },
-  FAILED: { variant: "danger", label: "Odrzucona" },
-}
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", {
   day: "numeric",
@@ -76,31 +67,28 @@ function RecentTransactions({
                 </tr>
               </thead>
               <tbody>
-                {visible.map((transaction) => {
-                  const status = STATUS_BADGES[transaction.status]
-                  return (
-                    <tr key={transaction.id} className="border-b last:border-0">
-                      <td className="max-w-56 truncate py-3 pr-4">
-                        {transaction.title}
-                      </td>
-                      <td className="py-3 pr-4 whitespace-nowrap text-muted-foreground">
-                        {dateFormatter.format(new Date(transaction.createdAt))}
-                      </td>
-                      <td className="py-3 pr-4">
-                        <Badge variant={status.variant}>{status.label}</Badge>
-                      </td>
-                      <td className="py-3 text-right">
-                        <MoneyAmount
-                          amount={
-                            transaction.incoming
-                              ? transaction.amount
-                              : -transaction.amount
-                          }
-                        />
-                      </td>
-                    </tr>
-                  )
-                })}
+                {visible.map((transaction) => (
+                  <tr key={transaction.id} className="border-b last:border-0">
+                    <td className="max-w-56 truncate py-3 pr-4">
+                      {transaction.title}
+                    </td>
+                    <td className="py-3 pr-4 whitespace-nowrap text-muted-foreground">
+                      {dateFormatter.format(new Date(transaction.createdAt))}
+                    </td>
+                    <td className="py-3 pr-4">
+                      <TransactionStatusBadge status={transaction.status} />
+                    </td>
+                    <td className="py-3 text-right">
+                      <MoneyAmount
+                        amount={
+                          transaction.incoming
+                            ? transaction.amount
+                            : -transaction.amount
+                        }
+                      />
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
