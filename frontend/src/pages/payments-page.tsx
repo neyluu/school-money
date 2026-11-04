@@ -1,7 +1,6 @@
 import * as React from "react"
-import { ArrowUpRight, Wallet as WalletIcon } from "lucide-react"
+import { ArrowUpRight } from "lucide-react"
 import { DataState } from "@/components/data-state"
-import { EmptyState } from "@/components/empty-state"
 import { AppShell } from "@/components/layout/app-shell"
 import { TopUpForm } from "@/components/top-up-form"
 import { Button } from "@/components/ui/button"
@@ -82,7 +81,6 @@ function PaymentsPage() {
             </>
           ) : null}
         </DataState>
-        {error != null && data == null ? null : null}
       </div>
       <Toaster />
     </AppShell>
