@@ -1,6 +1,7 @@
 import { apiRequest } from "@/lib/api-client";
 import { getToken } from "@/lib/auth-store";
 import type { MembershipStatus } from "@/lib/classes";
+import type { FundraisingListItem } from "@/lib/fundraising";
 
 export type ClassBasics = Pick<ClassSummary, "id" | "name" | "school" | "city">;
 
@@ -147,6 +148,14 @@ async function regenerateAccessCode(
   );
 }
 
+async function getClassFundraisings(
+  classId: number,
+): Promise<FundraisingListItem[]> {
+  return apiRequest<FundraisingListItem[]>(`/fundraisings?classId=${classId}`, {
+    token: getToken(),
+  });
+}
+
 export {
   acceptMembership,
   createClass,
@@ -158,4 +167,5 @@ export {
   rejectMembership,
   removeMembership,
   updateClass,
+  getClassFundraisings,
 };

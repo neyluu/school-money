@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router";
 import { ArrowLeft, GraduationCap, Pencil, Trash2 } from "lucide-react";
 import { ClassAccessCodeCard } from "@/components/classes/class-access-code-card";
 import { ClassChildrenCard } from "@/components/classes/class-children-card";
+import { ClassFundraisingsCard } from "@/components/classes/class-fundraisings-card";
 import { ClassRequestsCard } from "@/components/classes/class-requests-card";
 import { DeleteClassDialog } from "@/components/classes/delete-class-dialog";
 import { EditClassDialog } from "@/components/classes/edit-class-dialog";
@@ -15,8 +16,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Toaster } from "@/components/ui/toast";
 import { useAsyncData } from "@/hooks/use-async-data";
 import { ApiError } from "@/lib/api-client";
-import { getClassDetails, getPendingMemberships } from "@/lib/class-management";
+import {
+  getClassDetails,
+  getClassFundraisings,
+  getPendingMemberships,
+} from "@/lib/class-management";
 import type { ClassDetails, PendingMembership } from "@/lib/class-management";
+import type { FundraisingListItem } from "@/lib/fundraising";
 
 const CLASSES_PATH = "/dashboard/class";
 
@@ -25,10 +31,12 @@ type ActiveDialog = "edit" | "delete" | null;
 function ClassDetailsContent({
   details,
   pending,
+  fundraisings,
   onChanged,
 }: {
   details: ClassDetails;
   pending: PendingMembership[];
+  fundraisings: FundraisingListItem[];
   onChanged: () => void;
 }) {
   const navigate = useNavigate();
@@ -59,7 +67,7 @@ function ClassDetailsContent({
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="truncate text-2xl font-bold">{details.name}</h1>
                 {details.isOwner ? (
-                  <Badge variant="warning">Skarbnik</Badge>
+                  <Badge variant="success">Skarbnik</Badge>
                 ) : null}
               </div>
               <p className="text-sm text-muted-foreground">
@@ -115,6 +123,11 @@ function ClassDetailsContent({
         ) : null}
       </div>
 
+      <ClassFundraisingsCard
+        fundraisings={fundraisings}
+        isOwner={details.isOwner}
+      />
+
       <EditClassDialog
         schoolClass={details}
         open={activeDialog === "edit"}
@@ -137,8 +150,13 @@ function ClassDetailsPage() {
 
   const load = React.useCallback(async () => {
     const details = await getClassDetails(classId);
-    const pending = details.isOwner ? await getPendingMemberships(classId) : [];
-    return { details, pending };
+    const [pending, fundraisings] = await Promise.all([
+      details.isOwner
+        ? getPendingMemberships(classId)
+        : Promise.resolve<PendingMembership[]>([]),
+      getClassFundraisings(classId),
+    ]);
+    return { details, pending, fundraisings };
   }, [classId]);
   const { data, error, isLoading, reload } = useAsyncData(load);
 
@@ -159,6 +177,7 @@ function ClassDetailsPage() {
             <ClassDetailsContent
               details={data.details}
               pending={data.pending}
+              fundraisings={data.fundraisings}
               onChanged={reload}
             />
           ) : null}

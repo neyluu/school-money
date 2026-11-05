@@ -46,7 +46,9 @@ function ClassesPage() {
   const load = React.useCallback(() => getClassSummaries(), []);
   const { data, error, isLoading, reload } = useAsyncData(load);
 
-  const visible = (data ?? []).filter((item) => matchesFilter(item, filter));
+  const visible = (data ?? [])
+    .filter(isVisible)
+    .filter((item) => matchesFilter(item, filter));
 
   return (
     <AppShell activeId="classes">
