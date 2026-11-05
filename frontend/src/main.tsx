@@ -13,8 +13,11 @@ import { FundraisingsPage } from './pages/fundraisings-page.tsx'
 import { LoginPage } from './pages/login-page.tsx'
 import { PaymentsPage } from './pages/payments-page.tsx'
 import { RegisterPage } from './pages/register-page.tsx'
+import { ChildrenPage } from './pages/children-page.tsx'
+import { ClassesPage } from "./pages/classes-page.tsx";
+import { ClassDetailsPage } from './pages/class-details-page.tsx'
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
@@ -23,6 +26,9 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/dashboard" element={<RequireAuth />}>
           <Route index element={<DashboardPage />} />
           <Route path="payments" element={<PaymentsPage />} />
+          <Route path="children" element={<ChildrenPage />} />
+          <Route path="class" element={<ClassesPage />} />
+          <Route path="class/:classId" element={<ClassDetailsPage />} />
           <Route path="fundraisers" element={<FundraisingsPage />} />
           <Route path="fundraisers/new" element={<FundraisingNewPage />} />
           <Route
@@ -41,4 +47,4 @@ createRoot(document.getElementById('root')!).render(
       </Routes>
     </BrowserRouter>
   </StrictMode>,
-)
+);
