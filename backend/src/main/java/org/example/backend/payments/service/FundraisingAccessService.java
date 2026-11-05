@@ -11,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+
 @Service
 @RequiredArgsConstructor
 public class FundraisingAccessService
@@ -66,6 +69,11 @@ public class FundraisingAccessService
         {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Fundraising is not active");
         }
+    }
+
+    public boolean hasEnded(Fundraising fundraising)
+    {
+        return LocalDate.now(ZoneOffset.UTC).isAfter(fundraising.getEndAt());
     }
 
     private boolean isOwner(Fundraising fundraising, Integer userId)

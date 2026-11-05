@@ -2,11 +2,13 @@ package org.example.backend.core.repository;
 
 import jakarta.persistence.LockModeType;
 import org.example.backend.core.entity.Fundraising;
+import org.example.backend.core.entity.types.FundraisingStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.List;
 
@@ -18,6 +20,14 @@ public interface FundraisingRepository extends JpaRepository<Fundraising, Intege
     @Query("SELECT f FROM Fundraising f WHERE f.id = :id")
     Optional<Fundraising> findByIdForUpdate(@Param("id") Integer id);
     Optional<Fundraising> findByIdAndSchoolClassOwnerId(Integer id, Integer ownerId);
+
+    List<Fundraising> findAllBySchoolClassIdInAndStatusAndIsBlocked(
+        Collection<Integer> classIds,
+        FundraisingStatus status,
+        Boolean isBlocked
+    );
+
+    List<Fundraising> findAllBySchoolClassOwnerIdOrderByCreatedAtDesc(Integer ownerId);
 
     @Query(
         value = """
@@ -78,13 +88,16 @@ public interface FundraisingRepository extends JpaRepository<Fundraising, Intege
                 f.id = :fundraisingId
                 AND c.is_blocked = false
                 AND f.is_blocked = false
-                AND EXISTS (
-                    SELECT 1
-                    FROM class_memberships cm
-                         JOIN children ch ON ch.id = cm.child_id
-                    WHERE cm.class_id = c.id
-                        AND cm.status = 'ACCEPTED'
-                        AND ch.parent_id = :userId
+                AND (
+                    c.owner_id = :userId
+                    OR EXISTS (
+                        SELECT 1
+                        FROM class_memberships cm
+                             JOIN children ch ON ch.id = cm.child_id
+                        WHERE cm.class_id = c.id
+                            AND cm.status = 'ACCEPTED'
+                            AND ch.parent_id = :userId
+                    )
                 )
         """,
         nativeQuery = true

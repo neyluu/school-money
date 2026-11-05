@@ -1,3 +1,4 @@
+import { Link } from "react-router"
 import { cn } from "cn"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -15,11 +16,18 @@ import {
   ProgressTrack,
 } from "@/components/ui/progress"
 
-export type FundraiserStatus = "active" | "closed"
+export type FundraiserStatus = "active" | "closed" | "cancelled"
+
+const STATUS_LABELS: Record<FundraiserStatus, string> = {
+  active: "Aktywna",
+  closed: "Zamknięta",
+  cancelled: "Zamknięta ze zwrotem",
+}
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", {
   day: "numeric",
   month: "long",
+  timeZone: "UTC",
 })
 
 const targetFormatter = new Intl.NumberFormat("pl-PL", {
@@ -33,7 +41,9 @@ function FundraiserCard({
   dueDate,
   collected,
   target,
+  amountPerChild,
   status,
+  href,
   currency = "zł",
   className,
   ...props
@@ -42,15 +52,26 @@ function FundraiserCard({
   imageUrl?: string
   title: string
   dueDate: string | number | Date
-  collected: number
-  target: number
+  collected?: number
+  target?: number
+  amountPerChild?: number
   status: FundraiserStatus
+  href?: string
   currency?: string
 }) {
-  const percent = target > 0 ? Math.min(100, (collected / target) * 100) : 0
+  const hasProgress = collected != null && target != null
+  const percent =
+    hasProgress && target > 0 ? Math.min(100, (collected / target) * 100) : 0
 
-  return (
-    <Card className={cn("w-80", className)} {...props}>
+  const card = (
+    <Card
+      className={cn(
+        "w-80",
+        href != null && "transition-shadow hover:ring-foreground/25",
+        className
+      )}
+      {...props}
+    >
       <CardHeader>
         <div className="flex min-w-0 items-center gap-3">
           <span
@@ -76,30 +97,53 @@ function FundraiserCard({
         </div>
         <CardAction>
           <Badge variant={status === "active" ? "success" : "neutral"}>
-            {status === "active" ? "Aktywna" : "Zamknięta"}
+            {STATUS_LABELS[status]}
           </Badge>
         </CardAction>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
-        <Progress value={percent}>
-          <ProgressTrack className="h-5">
-            <ProgressIndicator />
-            <ProgressOverlay>
-              {targetFormatter.format(collected)} /{" "}
-              {targetFormatter.format(target)} {currency}
-            </ProgressOverlay>
-          </ProgressTrack>
-        </Progress>
-        <p className="flex items-baseline justify-between text-xs text-muted-foreground">
-          <span>
-            Zebrano <MoneyAmount amount={collected} currency={currency} />
-          </span>
-          <span className="tabular-nums">
-            cel: {targetFormatter.format(target)} {currency}
-          </span>
-        </p>
+        {hasProgress ? (
+          <>
+            <Progress value={percent}>
+              <ProgressTrack className="h-5">
+                <ProgressIndicator />
+                <ProgressOverlay>
+                  {targetFormatter.format(collected)} /{" "}
+                  {targetFormatter.format(target)} {currency}
+                </ProgressOverlay>
+              </ProgressTrack>
+            </Progress>
+            <p className="flex items-baseline justify-between text-xs text-muted-foreground">
+              <span>
+                Zebrano <MoneyAmount amount={collected} currency={currency} />
+              </span>
+              <span className="tabular-nums">
+                cel: {targetFormatter.format(target)} {currency}
+              </span>
+            </p>
+          </>
+        ) : null}
+        {!hasProgress && amountPerChild != null ? (
+          <p className="flex items-baseline justify-between text-xs text-muted-foreground">
+            <span>Kwota od dziecka</span>
+            <MoneyAmount amount={amountPerChild} currency={currency} />
+          </p>
+        ) : null}
       </CardContent>
     </Card>
+  )
+
+  if (href == null) {
+    return card
+  }
+
+  return (
+    <Link
+      to={href}
+      className="block rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+    >
+      {card}
+    </Link>
   )
 }
 

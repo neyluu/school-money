@@ -6,6 +6,8 @@ import { MoneyAmount } from "@/components/money-amount"
 import { Badge } from "@/components/ui/badge"
 import { useAsyncData } from "@/hooks/use-async-data"
 import { getFundraisingContributions } from "@/lib/fundraising"
+import type { FundraisingChild } from "@/lib/fundraising"
+import { formatMoney } from "@/lib/money"
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", {
   day: "numeric",
@@ -15,7 +17,15 @@ const dateFormatter = new Intl.DateTimeFormat("pl-PL", {
   minute: "2-digit",
 })
 
-function FundraisingPaymentsTab({ fundraisingId }: { fundraisingId: number }) {
+function FundraisingPaymentsTab({
+  fundraisingId,
+  amountPerChild,
+  waitingStudents,
+}: {
+  fundraisingId: number
+  amountPerChild: number
+  waitingStudents: FundraisingChild[]
+}) {
   const load = React.useCallback(
     () => getFundraisingContributions(fundraisingId),
     [fundraisingId]
@@ -26,7 +36,7 @@ function FundraisingPaymentsTab({ fundraisingId }: { fundraisingId: number }) {
     <DataState
       isLoading={isLoading}
       hasError={error != null}
-      isEmpty={data != null && data.length === 0}
+      isEmpty={data != null && data.length === 0 && waitingStudents.length === 0}
       onRetry={reload}
       emptyState={
         <EmptyState
@@ -40,31 +50,47 @@ function FundraisingPaymentsTab({ fundraisingId }: { fundraisingId: number }) {
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b text-xs text-muted-foreground">
-              <th className="py-2 pr-4 font-medium">Płacący</th>
-              <th className="py-2 pr-4 font-medium">Za ucznia</th>
+              <th className="py-2 pr-4 font-medium">Dziecko</th>
+              <th className="py-2 pr-4 font-medium">Płatnik</th>
               <th className="py-2 pr-4 font-medium">Data</th>
-              <th className="py-2 text-right font-medium">Kwota</th>
+              <th className="py-2 pr-4 font-medium">Kwota</th>
+              <th className="py-2 font-medium">Status</th>
             </tr>
           </thead>
           <tbody>
             {data?.map((contribution) => (
-              <tr key={contribution.id} className="border-b last:border-0">
-                <td className="py-3 pr-4">
-                  {contribution.payer.firstName} {contribution.payer.lastName}
+              <tr key={`contribution-${contribution.id}`} className="border-b last:border-0">
+                <td className="py-3 pr-4 font-medium">
+                  {contribution.child.firstName} {contribution.child.lastName}
                 </td>
                 <td className="py-3 pr-4">
-                  {contribution.child.firstName} {contribution.child.lastName}
+                  {contribution.payer.firstName} {contribution.payer.lastName}
                 </td>
                 <td className="py-3 pr-4 whitespace-nowrap text-muted-foreground">
                   {dateFormatter.format(new Date(contribution.createdAt))}
                 </td>
-                <td className="py-3 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    {contribution.refunded ? (
-                      <Badge variant="neutral">Zwrócona</Badge>
-                    ) : null}
-                    <MoneyAmount amount={contribution.amount} />
-                  </div>
+                <td className="py-3 pr-4">
+                  <MoneyAmount amount={contribution.amount} />
+                </td>
+                <td className="py-3">
+                  <Badge variant={contribution.refunded ? "neutral" : "success"}>
+                    {contribution.refunded ? "Zwrócona" : "Zaksięgowana"}
+                  </Badge>
+                </td>
+              </tr>
+            ))}
+            {waitingStudents.map((student) => (
+              <tr key={`waiting-${student.id}`} className="border-b last:border-0">
+                <td className="py-3 pr-4 font-medium">
+                  {student.firstName} {student.lastName}
+                </td>
+                <td className="py-3 pr-4 text-muted-foreground">—</td>
+                <td className="py-3 pr-4 text-muted-foreground">—</td>
+                <td className="py-3 pr-4 whitespace-nowrap tabular-nums">
+                  {formatMoney(student.paidAmount)} / {formatMoney(amountPerChild)}
+                </td>
+                <td className="py-3">
+                  <Badge variant="warning">Czeka</Badge>
                 </td>
               </tr>
             ))}

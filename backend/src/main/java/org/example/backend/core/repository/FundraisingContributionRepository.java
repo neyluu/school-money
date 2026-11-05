@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -71,7 +72,33 @@ public interface FundraisingContributionRepository extends JpaRepository<Fundrai
         """)
     List<ChildPaidAmount> sumActiveAmountsByChild(@Param("fundraisingId") Integer fundraisingId);
 
+    @Query("""
+        SELECT c.fundraising.id AS fundraisingId, c.child.id AS childId, SUM(c.transaction.amount) AS amount
+        FROM FundraisingContribution c
+        WHERE c.child.id IN :childIds AND c.refundTransaction IS NULL
+        GROUP BY c.fundraising.id, c.child.id
+        """)
+    List<FundraisingChildPaidAmount> sumActiveAmountsByChildIds(@Param("childIds") Collection<Integer> childIds);
+
+    @Query("""
+        SELECT c.fundraising.id AS fundraisingId, c.child.id AS childId, SUM(c.transaction.amount) AS amount
+        FROM FundraisingContribution c
+        WHERE c.fundraising.id IN :fundraisingIds AND c.refundTransaction IS NULL
+        GROUP BY c.fundraising.id, c.child.id
+        """)
+    List<FundraisingChildPaidAmount> sumActiveAmountsByFundraisingIds(
+        @Param("fundraisingIds") Collection<Integer> fundraisingIds
+    );
+
     interface ChildPaidAmount {
+        Integer getChildId();
+
+        BigDecimal getAmount();
+    }
+
+    interface FundraisingChildPaidAmount {
+        Integer getFundraisingId();
+
         Integer getChildId();
 
         BigDecimal getAmount();

@@ -11,6 +11,8 @@ import org.example.backend.fundraisings.dto.request.CreateFundraiseRequest;
 import org.example.backend.fundraisings.dto.request.UpdateFundraiseRequest;
 import org.example.backend.fundraisings.dto.response.FundraiseResponse;
 import org.example.backend.fundraisings.service.FundraisingsService;
+import org.example.backend.payments.dto.response.RefundSummaryResponse;
+import org.example.backend.payments.service.FundraisingRefundService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,6 +28,7 @@ import java.util.List;
 public class FundraisingsController
 {
     private final FundraisingsService fundraisingsService;
+    private final FundraisingRefundService fundraisingRefundService;
 
     @Operation(
         summary = "Create new fundraise, creator became fundraise OWNER",
@@ -97,22 +100,32 @@ public class FundraisingsController
             """
     )
     @PostMapping("/{fundraiseId}/close")
-    public ResponseEntity<?> closeFundraise(
+    public ResponseEntity<FundraiseResponse> closeFundraise(
         @AuthenticationPrincipal AuthenticatedUser user,
         @PathVariable Integer fundraiseId
     )
     {
-        throw new NotImplementedException();
+        return ResponseEntity.ok(
+            fundraisingsService.closeFundraise(user.id(), fundraiseId)
+        );
     }
 
-    @Operation(summary = "Refund all contributions to given fundraise [OWNER ONLY]")
+    @Operation(
+        summary = "Cancel a fundraise and refund all contributions to payers [OWNER ONLY]",
+        description = """
+            Wallet of fundraise must hold all contributed money,
+            so previously withdrawn money has to be replenished first
+            """
+    )
     @PostMapping("/{fundraiseId}/refund")
-    public ResponseEntity<?> refundFundraise(
+    public ResponseEntity<RefundSummaryResponse> refundFundraise(
         @AuthenticationPrincipal AuthenticatedUser user,
         @PathVariable Integer fundraiseId
     )
     {
-        throw new NotImplementedException();
+        return ResponseEntity.ok(
+            fundraisingRefundService.refund(fundraiseId, user.id())
+        );
     }
 
     @Operation(summary = "Get fundraise logo")

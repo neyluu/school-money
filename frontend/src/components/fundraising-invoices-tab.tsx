@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Download, ExternalLink, FileText } from "lucide-react"
+import { Download, ExternalLink, FileText, Plus } from "lucide-react"
 import { DataState } from "@/components/data-state"
 import { EmptyState } from "@/components/empty-state"
 import { InvoicePreview } from "@/components/invoice-preview"
@@ -78,7 +78,13 @@ function InvoiceRow({
   )
 }
 
-function FundraisingInvoicesTab({ fundraisingId }: { fundraisingId: number }) {
+function FundraisingInvoicesTab({
+  fundraisingId,
+  onAdd,
+}: {
+  fundraisingId: number
+  onAdd?: () => void
+}) {
   const load = React.useCallback(
     () => getFundraisingInvoices(fundraisingId),
     [fundraisingId]
@@ -86,29 +92,39 @@ function FundraisingInvoicesTab({ fundraisingId }: { fundraisingId: number }) {
   const { data, error, isLoading, reload } = useAsyncData(load)
 
   return (
-    <DataState
-      isLoading={isLoading}
-      hasError={error != null}
-      isEmpty={data != null && data.length === 0}
-      onRetry={reload}
-      emptyState={
-        <EmptyState
-          icon={<FileText />}
-          title="Brak faktur"
-          description="Faktury i rachunki za zakupy ze zbiórki pojawią się tutaj."
-        />
-      }
-    >
-      <ul className="flex flex-col gap-2">
-        {data?.map((invoice) => (
-          <InvoiceRow
-            key={invoice.id}
-            fundraisingId={fundraisingId}
-            invoice={invoice}
+    <div className="flex flex-col gap-4">
+      {onAdd != null ? (
+        <div className="flex justify-end">
+          <Button variant="outline" onClick={onAdd}>
+            <Plus />
+            Dodaj fakturę
+          </Button>
+        </div>
+      ) : null}
+      <DataState
+        isLoading={isLoading}
+        hasError={error != null}
+        isEmpty={data != null && data.length === 0}
+        onRetry={reload}
+        emptyState={
+          <EmptyState
+            icon={<FileText />}
+            title="Brak faktur"
+            description="Faktury i rachunki za zakupy ze zbiórki pojawią się tutaj."
           />
-        ))}
-      </ul>
-    </DataState>
+        }
+      >
+        <ul className="flex flex-col gap-2">
+          {data?.map((invoice) => (
+            <InvoiceRow
+              key={invoice.id}
+              fundraisingId={fundraisingId}
+              invoice={invoice}
+            />
+          ))}
+        </ul>
+      </DataState>
+    </div>
   )
 }
 

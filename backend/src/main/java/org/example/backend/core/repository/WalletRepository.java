@@ -8,12 +8,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface WalletRepository extends JpaRepository<Wallet, Integer>
 {
     Optional<Wallet> findByUserId(Integer id);
     Optional<Wallet> findByFundraisingId(Integer id);
+    List<Wallet> findAllByFundraisingIdIn(Collection<Integer> fundraisingIds);
     boolean existsByIban(String iban);
 
     @Query("SELECT w.id FROM Wallet w WHERE w.user.id = :userId")

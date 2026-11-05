@@ -23,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -103,21 +102,20 @@ public class FundraisingPaymentsService
         accessService.requireNotBlocked(fundraising);
         accessService.requireActive(fundraising);
 
-        Instant now = Instant.now();
-        boolean isWithinPeriod = !now.isBefore(Instant.from(fundraising.getCreatedAt())) && now.isBefore(Instant.from(fundraising.getEndAt()));
-
-        if(!isWithinPeriod)
+        if(accessService.hasEnded(fundraising))
         {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Fundraising is outside of its collection period");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Fundraising has ended");
         }
     }
 
     private Child findAcceptedChild(Integer classId, Integer childId)
     {
         return membershipRepository.findByClassIdAndChildId(classId, childId, List.of(MembershipStatus.ACCEPTED))
-                .filter(membership -> membership.getStatus() == MembershipStatus.ACCEPTED)
-                .map(ClassMembership::getChild)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Child is not an accepted member of this class"));
+            .map(membership -> membership.getChild())
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Child is not an accepted member of this class"
+            ));
     }
 
     private void requireWithinRemainingAmount(Fundraising fundraising, Child child, BigDecimal amount)

@@ -1,18 +1,34 @@
 import { authorizedBlob, authorizedRequest } from "@/lib/authorized-client"
+import type { Wallet } from "@/lib/wallet"
 
 const DEFAULT_PAGE_SIZE = 100
 
-export type FundraisingStatus = "ACTIVE" | "CANCELLED"
+export type FundraisingStatus = "ACTIVE" | "CANCELLED" | "CLOSED"
+
+export type FundraisingListItem = {
+  id: number
+  classId: number
+  isOwner: boolean
+  name: string
+  description: string
+  startDate: string
+  endDate: string
+  amountPerChild: number
+  status: FundraisingStatus
+  cancelledAt: string | null
+  closedAt: string | null
+}
 
 export type FundraisingSummary = {
   id: number
   name: string
   description: string
-  startAt: string
-  endAt: string
+  startDate: string
+  endDate: string
   amountPerChild: number
   status: FundraisingStatus
   isBlocked: boolean
+  acceptsPayments: boolean
   classId: number
   className: string
   isOwner: boolean
@@ -74,9 +90,20 @@ export type FundraisingInvoice = {
   createdAt: string
 }
 
+function getFundraisings(classId?: number): Promise<FundraisingListItem[]> {
+  const query = classId != null ? `?classId=${classId}` : ""
+  return authorizedRequest<FundraisingListItem[]>(`/fundraisings${query}`)
+}
+
 function getFundraisingSummary(fundraisingId: number): Promise<FundraisingSummary> {
   return authorizedRequest<FundraisingSummary>(
     `/payments/fundraisings/${fundraisingId}`
+  )
+}
+
+function getFundraisingWallet(fundraisingId: number): Promise<Wallet> {
+  return authorizedRequest<Wallet>(
+    `/payments/fundraisings/${fundraisingId}/wallet`
   )
 }
 
@@ -162,7 +189,9 @@ export {
   getFundraisingChildren,
   getFundraisingContributions,
   getFundraisingInvoices,
+  getFundraisings,
   getFundraisingSummary,
+  getFundraisingWallet,
   getFundraisingWithdrawals,
   getInvoiceFile,
   payForFundraising,

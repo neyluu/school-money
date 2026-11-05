@@ -1,6 +1,7 @@
 import {
   CircleAlert,
   CircleCheck,
+  Hourglass,
   TrendingDown,
   TrendingUp,
 } from "lucide-react"
@@ -56,17 +57,26 @@ function KpiCards({
   income,
   expense,
   days,
+  unpaid,
 }: {
   balance: number
   income: number
   expense: number
   days: number
+  unpaid?: number
 }) {
   const net = Math.round((income - expense) * 100) / 100
   const period = `Ostatnie ${days} dni`
+  const hasUnpaid = unpaid != null
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div
+      className={
+        hasUnpaid
+          ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-5"
+          : "grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+      }
+    >
       <KpiCard
         label="Dostępne środki"
         amount={balance}
@@ -95,6 +105,15 @@ function KpiCards({
         tone={net >= 0 ? "success" : "danger"}
         indicator={net >= 0 ? <TrendingUp /> : <TrendingDown />}
       />
+      {hasUnpaid ? (
+        <KpiCard
+          label="Niezapłacone"
+          amount={unpaid}
+          hint="Oczekiwane wpłaty do zbiórek"
+          tone={unpaid > 0 ? "warning" : "success"}
+          indicator={unpaid > 0 ? <Hourglass /> : <CircleCheck />}
+        />
+      ) : null}
     </div>
   )
 }

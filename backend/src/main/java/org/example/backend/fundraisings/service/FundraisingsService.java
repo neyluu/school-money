@@ -6,13 +6,17 @@ import org.example.backend.core.dto.response.FileInfoDto;
 import org.example.backend.core.entity.File;
 import org.example.backend.core.entity.Fundraising;
 import org.example.backend.core.entity.SchoolClass;
+import org.example.backend.core.entity.types.FundraisingStatus;
 import org.example.backend.core.repository.FileRepository;
 import org.example.backend.core.repository.FundraisingRepository;
 import org.example.backend.core.repository.SchoolClassRepository;
+import org.example.backend.core.repository.WalletRepository;
 import org.example.backend.core.utils.FileProcessor;
 import org.example.backend.fundraisings.dto.request.CreateFundraiseRequest;
 import org.example.backend.fundraisings.dto.request.UpdateFundraiseRequest;
 import org.example.backend.fundraisings.dto.response.FundraiseResponse;
+import org.example.backend.payments.service.FundraisingAccessService;
+import org.example.backend.payments.service.WalletCreationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -20,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -32,9 +38,13 @@ public class FundraisingsService
     private final FileProcessor fileProcessor;
     private final SchoolClassRepository schoolClassRepository;
     private final FundraisingRepository fundraisingRepository;
+    private final WalletRepository walletRepository;
+    private final WalletCreationService walletCreationService;
+    private final FundraisingAccessService accessService;
 
     private static final Set<String> ALLOWED_LOGO_TYPES = Set.of("image/png", "image/jpeg");
 
+    @Transactional
     public FundraiseResponse createFundraise(Integer userId, CreateFundraiseRequest request)
     {
         SchoolClass schoolClass = getClassIfUserIsOwner(userId, request.classId());
@@ -48,8 +58,7 @@ public class FundraisingsService
         fundraising.setAmountPerChild(request.perChildAmount());
 
         fundraisingRepository.save(fundraising);
-
-        // TODO Create wallet
+        walletCreationService.createWallet(fundraising);
 
         return FundraiseResponse.from(fundraising, userId);
     }
@@ -109,6 +118,31 @@ public class FundraisingsService
         }
 
         fundraisingRepository.save(fundraising);
+        return FundraiseResponse.from(fundraising, userId);
+    }
+
+    @Transactional
+    public FundraiseResponse closeFundraise(Integer userId, Integer fundraiseId)
+    {
+        Fundraising fundraising = accessService.findForUpdate(fundraiseId);
+        accessService.requireOwner(fundraising, userId);
+        accessService.requireNotBlocked(fundraising);
+        accessService.requireActive(fundraising);
+
+        BigDecimal balance = walletRepository.findBalanceByFundraisingId(fundraiseId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Fundraising wallet not found"));
+
+        if(balance.signum() > 0)
+        {
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Fundraising wallet still holds " + balance.toPlainString() + ", withdraw it or refund contributions before closing"
+            );
+        }
+
+        fundraising.setStatus(FundraisingStatus.CLOSED);
+        fundraising.setClosedAt(Instant.now());
+
         return FundraiseResponse.from(fundraising, userId);
     }
 
