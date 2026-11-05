@@ -42,7 +42,9 @@ function ClassRow({ item, href }: { item: ClassSummary; href: string }) {
 
       <div className="flex flex-wrap items-center justify-end gap-2">
         {!item.isOwner
-          ? item.myChildren.map((membership) => (
+          ? item.myChildren
+            .filter((membership) => membership.status === "ACCEPTED")
+            .map((membership) => (
               <div
                 key={membership.childId}
                 className="flex items-center gap-1.5"

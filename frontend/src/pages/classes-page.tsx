@@ -34,6 +34,13 @@ function matchesFilter(item: ClassSummary, filter: ClassFilter): boolean {
   }
 }
 
+function isVisible(item: ClassSummary): boolean {
+  return (
+    item.isOwner ||
+    item.myChildren.some((membership) => membership.status === "ACCEPTED")
+  );
+}
+
 function ClassesPage() {
   const [filter, setFilter] = React.useState<ClassFilter>("all");
   const load = React.useCallback(() => getClassSummaries(), []);
