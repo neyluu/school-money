@@ -13,6 +13,7 @@ import { FundraisingsPage } from './pages/fundraisings-page.tsx'
 import { LoginPage } from './pages/login-page.tsx'
 import { PaymentsPage } from './pages/payments-page.tsx'
 import { RegisterPage } from './pages/register-page.tsx'
+import { ChildrenPage } from './pages/children-page.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -23,6 +24,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/dashboard" element={<RequireAuth />}>
           <Route index element={<DashboardPage />} />
           <Route path="payments" element={<PaymentsPage />} />
+          <Route path="children" element={<ChildrenPage />} />
           <Route path="fundraisers" element={<FundraisingsPage />} />
           <Route path="fundraisers/new" element={<FundraisingNewPage />} />
           <Route
