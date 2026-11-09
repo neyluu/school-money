@@ -37,7 +37,7 @@ export const defaultNavigationItems: NavigationItem[] = [
   },
   {
     id: "class",
-    label: "Klasa",
+    label: "Klasy",
     icon: <UsersRound />,
     href: "/dashboard/class",
   },
