@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Copy, RefreshCw } from "lucide-react";
+import { Copy, Eye, EyeOff, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/toast";
@@ -15,6 +15,10 @@ function ClassAccessCodeCard({
   onChanged: () => void;
 }) {
   const [isBusy, setIsBusy] = React.useState(false);
+  const [isVisible, setIsVisible] = React.useState(false);
+  const MASK_CHAR = "•";
+  const VISIBLE_PREFIX_LENGTH = 2;
+  const maskedCode = accessCode.slice(0, VISIBLE_PREFIX_LENGTH) + MASK_CHAR.repeat(Math.max(0, accessCode.length - VISIBLE_PREFIX_LENGTH));
 
   function copy() {
     navigator.clipboard
@@ -48,9 +52,22 @@ function ClassAccessCodeCard({
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <code className="flex-1 rounded-md bg-muted px-3 py-2 text-center font-mono text-lg tracking-widest">
-            {accessCode}
+          <code
+            className="flex-1 rounded-md bg-muted px-3 py-2 text-center font-mono text-lg tracking-widest select-none"
+            aria-label={isVisible ? undefined : "Kod ukryty"}
+          >
+            {isVisible ? accessCode : maskedCode}
           </code>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => setIsVisible((v) => !v)}
+            aria-label={isVisible ? "Ukryj kod" : "Pokaż kod"}
+            aria-pressed={isVisible}
+          >
+            {isVisible ? <EyeOff /> : <Eye />}
+          </Button>
           <Button
             type="button"
             variant="outline"
