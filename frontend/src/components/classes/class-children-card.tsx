@@ -1,10 +1,9 @@
 import * as React from "react";
 import { UserMinus } from "lucide-react";
 import { InitialsBubble } from "@/components/classes/initials-bubble";
+import { RemoveChildDialog } from "@/components/classes/remove-child-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/components/ui/toast";
-import { removeMembership } from "@/lib/class-management";
 import type { ClassChild } from "@/lib/class-management";
 
 function ClassChildrenCard({
@@ -18,26 +17,7 @@ function ClassChildrenCard({
   isOwner: boolean;
   onChanged: () => void;
 }) {
-  const [busyId, setBusyId] = React.useState<number | null>(null);
-
-  async function remove(child: ClassChild) {
-    setBusyId(child.id);
-    try {
-      await removeMembership(classId, child.id);
-      toast.add({
-        title: `Usunięto z klasy: ${child.firstName} ${child.lastName}`,
-        type: "success",
-      });
-      onChanged();
-    } catch {
-      toast.add({
-        title: "Nie udało się usunąć dziecka z klasy. Spróbuj ponownie.",
-        type: "error",
-      });
-    } finally {
-      setBusyId(null);
-    }
-  }
+  const [removingId, setRemovingId] = React.useState<number | null>(null);
 
   return (
     <Card>
@@ -66,17 +46,27 @@ function ClassChildrenCard({
                   </span>
                 </div>
                 {isOwner ? (
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    disabled={busyId != null}
-                    className="text-danger hover:text-danger"
-                    aria-label={`Usuń z klasy: ${child.firstName} ${child.lastName}`}
-                    onClick={() => void remove(child)}
-                  >
-                    <UserMinus />
-                  </Button>
+                  <>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="text-danger hover:text-danger"
+                      aria-label={`Usuń z klasy: ${child.firstName} ${child.lastName}`}
+                      onClick={() => setRemovingId(child.id)}
+                    >
+                      <UserMinus />
+                    </Button>
+                    <RemoveChildDialog
+                      classId={classId}
+                      child={child}
+                      open={removingId === child.id}
+                      onOpenChange={(next) =>
+                        setRemovingId(next ? child.id : null)
+                      }
+                      onChanged={onChanged}
+                    />
+                  </>
                 ) : null}
               </li>
             ))}
