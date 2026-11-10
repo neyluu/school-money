@@ -20,12 +20,12 @@ function ToastViewport({ className, ...props }: ToastPrimitive.Viewport.Props) {
     <ToastPrimitive.Viewport
       data-slot="toast-viewport"
       className={cn(
-        "pointer-events-none fixed inset-x-4 top-4 z-50 mx-auto w-auto max-w-sm outline-none md:inset-x-auto md:top-auto md:right-4 md:bottom-4 md:mx-0 md:w-full",
-        className
+        "pointer-events-none fixed inset-x-4 top-4 z-[100] mx-auto w-auto max-w-sm outline-none md:inset-x-auto md:top-auto md:right-4 md:bottom-4 md:mx-0 md:w-full",
+        className,
       )}
       {...props}
     />
-  )
+  );
 }
 
 function Toast({ className, ...props }: ToastPrimitive.Root.Props) {
