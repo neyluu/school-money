@@ -216,9 +216,6 @@ function DashboardPage() {
                 ) : null}
               </>
             ) : null}
-            <Button variant="outline" onClick={logout}>
-              Wyloguj się
-            </Button>
           </div>
         </div>
         {isLoading ? (
