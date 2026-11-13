@@ -120,7 +120,7 @@ function FundraisingDetailsContent({
                 <Tabs defaultValue="payments">
                   <TabsList>
                     <TabsTrigger value="payments">Wpłaty</TabsTrigger>
-                    <TabsTrigger value="withdrawals">Wypłaty</TabsTrigger>
+                    <TabsTrigger value="withdrawals">Wypłaty i zwroty</TabsTrigger>
                     <TabsTrigger value="invoices">Faktury</TabsTrigger>
                   </TabsList>
                   <TabsContent value="payments" className="pt-4">
@@ -190,7 +190,7 @@ function FundraisingDetailsContent({
             <>
               <Card>
                 <CardHeader>
-                  <CardTitle>Wypłaty</CardTitle>
+                  <CardTitle>Wypłaty i zwroty</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <FundraisingWithdrawalsTab
