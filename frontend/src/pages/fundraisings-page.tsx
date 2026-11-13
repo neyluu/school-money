@@ -12,15 +12,17 @@ import { Button } from "@/components/ui/button"
 import { Toaster } from "@/components/ui/toast"
 import { useAsyncData } from "@/hooks/use-async-data"
 import { getClasses } from "@/lib/classes"
+import type { ClassSummary } from "@/lib/classes"
 import { getFundraisings } from "@/lib/fundraising"
 import type { FundraisingListItem, FundraisingStatus } from "@/lib/fundraising"
 
-type FundraisingFilter = "all" | "active" | "closed"
+type FundraisingFilter = "all" | "mine" | "active" | "closed"
 
 const NEW_FUNDRAISING_PATH = "/dashboard/fundraisers/new"
 
 const FILTER_OPTIONS: SegmentedOption<FundraisingFilter>[] = [
   { value: "all", label: "Wszystkie" },
+  { value: "mine", label: "Moje" },
   { value: "active", label: "Aktywne" },
   { value: "closed", label: "Zamknięte" },
 ]
@@ -38,11 +40,19 @@ function matchesFilter(
   switch (filter) {
     case "all":
       return true
+    case "mine":
+      return fundraising.isOwner
     case "active":
       return fundraising.status === "ACTIVE"
     case "closed":
       return fundraising.status !== "ACTIVE"
   }
+}
+
+function describeClass(schoolClass: ClassSummary | undefined): string | undefined {
+  return schoolClass != null
+    ? `Klasa ${schoolClass.name} · ${schoolClass.school}`
+    : undefined
 }
 
 function FundraisingsPage() {
@@ -53,6 +63,7 @@ function FundraisingsPage() {
   )
   const { data, error, isLoading, reload } = useAsyncData(load)
 
+  const classes = new Map((data?.[1] ?? []).map((item) => [item.id, item]))
   const canCreate = data?.[1].some((item) => item.isOwner) ?? false
   const visible = (data?.[0] ?? []).filter((fundraising) =>
     matchesFilter(fundraising, filter)
@@ -72,7 +83,7 @@ function FundraisingsPage() {
         </div>
         <SegmentedControl<FundraisingFilter>
           aria-label="Filtr zbiórek"
-          className="max-w-md"
+          className="max-w-xl"
           options={FILTER_OPTIONS}
           value={filter}
           onChange={setFilter}
@@ -103,6 +114,8 @@ function FundraisingsPage() {
                 key={fundraising.id}
                 icon={<HandCoins />}
                 title={fundraising.name}
+                classLabel={describeClass(classes.get(fundraising.classId))}
+                isOwner={fundraising.isOwner}
                 dueDate={fundraising.endDate}
                 amountPerChild={fundraising.amountPerChild}
                 status={CARD_STATUSES[fundraising.status]}

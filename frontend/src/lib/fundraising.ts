@@ -133,6 +133,16 @@ function getFundraisingWithdrawals(
   )
 }
 
+function getFundraisingReplenishments(
+  fundraisingId: number,
+  page = 0,
+  size = DEFAULT_PAGE_SIZE
+): Promise<FundraisingTransfer[]> {
+  return authorizedRequest<FundraisingTransfer[]>(
+    `/payments/fundraisings/${fundraisingId}/replenishments?page=${page}&size=${size}`
+  )
+}
+
 function getFundraisingInvoices(fundraisingId: number): Promise<FundraisingInvoice[]> {
   return authorizedRequest<FundraisingInvoice[]>(
     `/payments/fundraisings/${fundraisingId}/invoices`
@@ -189,6 +199,7 @@ export {
   getFundraisingChildren,
   getFundraisingContributions,
   getFundraisingInvoices,
+  getFundraisingReplenishments,
   getFundraisings,
   getFundraisingSummary,
   getFundraisingWallet,

@@ -1,11 +1,13 @@
 import * as React from "react"
-import { Link, useNavigate } from "react-router"
+import { Link, useNavigate, useSearchParams } from "react-router"
 import { AuthLayout, AuthLogo } from "@/components/auth-layout"
 import { SegmentedControl } from "@/components/segmented-control"
 import { Button } from "@/components/ui/button"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { toast } from "@/components/ui/toast"
+import { ROLE_PARAM, parseRole } from "@/lib/account-role"
+import type { AccountRole } from "@/lib/account-role"
 import { ApiError } from "@/lib/api-client"
 import { register } from "@/lib/auth"
 
@@ -13,7 +15,12 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const MIN_PASSWORD_LENGTH = 8
 const MAX_PASSWORD_LENGTH = 72
 
-type Role = "parent" | "treasurer"
+const ROLE_HINTS: Record<AccountRole, string> = {
+  parent:
+    "Po założeniu konta dodasz dziecko do klasy kodem od skarbnika.",
+  treasurer:
+    "Po założeniu konta utworzysz klasę i dostaniesz kod dostępu dla rodziców.",
+}
 
 type RegisterErrors = {
   fullName?: string
@@ -32,8 +39,8 @@ function splitName(value: string): { firstName: string; lastName: string } {
 
 function RegisterPage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
 
-  const [role, setRole] = React.useState<Role>("parent")
   const [fullName, setFullName] = React.useState("")
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
@@ -41,7 +48,12 @@ function RegisterPage() {
   const [errors, setErrors] = React.useState<RegisterErrors>({})
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
-  const isParent = role === "parent"
+  const role = parseRole(searchParams.get(ROLE_PARAM))
+  const loginPath = `/login?${ROLE_PARAM}=${role}`
+
+  function handleRoleChange(nextRole: AccountRole) {
+    setSearchParams({ [ROLE_PARAM]: nextRole }, { replace: true })
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -130,14 +142,15 @@ function RegisterPage() {
     <AuthLayout>
       <div className="flex flex-col gap-6">
         <AuthLogo />
-        <h1 className="text-3xl font-bold">Załóż konto</h1>
-        <SegmentedControl<Role>
+        <h1 className="text-3xl font-normal">Załóż konto</h1>
+        <SegmentedControl<AccountRole>
+          aria-label="Typ konta"
           options={[
             { value: "parent", label: "Rodzic" },
             { value: "treasurer", label: "Skarbnik klasy" },
           ]}
-          value={isParent ? "parent" : "treasurer"}
-          onChange={setRole}
+          value={role}
+          onChange={handleRoleChange}
         />
         <form
           onSubmit={handleSubmit}
@@ -207,16 +220,12 @@ function RegisterPage() {
               <FieldError>{errors.confirmPassword}</FieldError>
             ) : null}
           </Field>
-          {isParent ? (
-            <p className="text-sm text-muted-foreground">
-              Po założeniu konta dodasz dziecko do klasy w panelu.
-            </p>
-          ) : null}
+          <p className="text-sm text-muted-foreground">{ROLE_HINTS[role]}</p>
           <Button
             type="submit"
             size="lg"
             loading={isSubmitting}
-            className="w-full bg-foreground text-background hover:bg-foreground/90"
+            className="w-full bg-foreground text-background hover:bg-foreground/90 cursor-pointer"
           >
             Utwórz konto
           </Button>
@@ -224,7 +233,7 @@ function RegisterPage() {
         <p className="text-sm text-muted-foreground">
           Masz konto?{" "}
           <Link
-            to="/login"
+            to={loginPath}
             className="text-primary underline-offset-4 hover:underline"
           >
             Zaloguj się

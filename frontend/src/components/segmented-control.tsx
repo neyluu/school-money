@@ -19,10 +19,7 @@ function SegmentedControl<T extends string>({
   return (
     <div
       role="radiogroup"
-      className={cn(
-        "flex w-full rounded-full bg-muted p-1",
-        className
-      )}
+      className={cn("flex w-full rounded-lg bg-muted p-1", className)}
       {...props}
     >
       {options.map((option) => {
@@ -35,7 +32,7 @@ function SegmentedControl<T extends string>({
             aria-checked={selected}
             onClick={() => onChange?.(option.value)}
             className={cn(
-              "flex-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+              "flex-1 cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
               selected
                 ? "bg-foreground text-background"
                 : "text-muted-foreground hover:text-foreground"

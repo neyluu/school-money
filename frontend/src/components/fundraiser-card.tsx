@@ -38,6 +38,8 @@ function FundraiserCard({
   icon,
   imageUrl,
   title,
+  classLabel,
+  isOwner = false,
   dueDate,
   collected,
   target,
@@ -51,6 +53,8 @@ function FundraiserCard({
   icon?: React.ReactNode
   imageUrl?: string
   title: string
+  classLabel?: string
+  isOwner?: boolean
   dueDate: string | number | Date
   collected?: number
   target?: number
@@ -67,6 +71,7 @@ function FundraiserCard({
     <Card
       className={cn(
         "w-80",
+        isOwner && "ring-2 ring-primary/60",
         href != null && "transition-shadow hover:ring-foreground/25",
         className
       )}
@@ -90,15 +95,23 @@ function FundraiserCard({
           </span>
           <div className="min-w-0">
             <CardTitle className="truncate">{title}</CardTitle>
+            {classLabel != null ? (
+              <p className="truncate text-xs text-muted-foreground">
+                {classLabel}
+              </p>
+            ) : null}
             <p className="text-xs text-muted-foreground">
               Termin: {dateFormatter.format(new Date(dueDate))}
             </p>
           </div>
         </div>
         <CardAction>
-          <Badge variant={status === "active" ? "success" : "neutral"}>
-            {STATUS_LABELS[status]}
-          </Badge>
+          <div className="flex flex-col items-end gap-1">
+            <Badge variant={status === "active" ? "success" : "neutral"}>
+              {STATUS_LABELS[status]}
+            </Badge>
+            {isOwner ? <Badge variant="warning">Twoja zbiórka</Badge> : null}
+          </div>
         </CardAction>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">

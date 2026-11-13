@@ -1,11 +1,12 @@
 import * as React from "react"
-import { Link, useNavigate } from "react-router"
+import { Link, useNavigate, useSearchParams } from "react-router"
 import { AuthLayout, AuthLogo } from "@/components/auth-layout"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { toast } from "@/components/ui/toast"
+import { ROLE_PARAM, withRole } from "@/lib/account-role"
 import { ApiError } from "@/lib/api-client"
 import { login } from "@/lib/auth"
 
@@ -18,11 +19,14 @@ type LoginErrors = {
 
 function LoginPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
   const [rememberMe, setRememberMe] = React.useState(false)
   const [errors, setErrors] = React.useState<LoginErrors>({})
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  const registerPath = withRole("/register", searchParams.get(ROLE_PARAM))
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -79,7 +83,7 @@ function LoginPage() {
     <AuthLayout>
       <div className="flex flex-col gap-6">
         <AuthLogo />
-        <h1 className="text-3xl font-bold">Zaloguj się</h1>
+        <h1 className="text-3xl font-normal">Zaloguj się</h1>
         <form
           onSubmit={handleSubmit}
           noValidate
@@ -120,23 +124,18 @@ function LoginPage() {
                 id="login-remember"
                 checked={rememberMe}
                 onCheckedChange={setRememberMe}
+                className="cursor-pointer"
               />
               <FieldLabel htmlFor="login-remember">
                 Zapamiętaj mnie
               </FieldLabel>
             </Field>
-            <Link
-              to="/forgot-password"
-              className="shrink-0 text-sm text-primary underline-offset-4 hover:underline"
-            >
-              Nie pamiętam hasła
-            </Link>
           </div>
           <Button
             type="submit"
             size="lg"
             loading={isSubmitting}
-            className="w-full bg-foreground text-background hover:bg-foreground/90"
+            className="w-full bg-foreground text-background hover:bg-foreground/90 cursor-pointer"
           >
             Zaloguj się
           </Button>
@@ -144,7 +143,7 @@ function LoginPage() {
         <p className="text-sm text-muted-foreground">
           Nie masz konta?{" "}
           <Link
-            to="/register"
+            to={registerPath}
             className="text-primary underline-offset-4 hover:underline"
           >
             Zarejestruj się
