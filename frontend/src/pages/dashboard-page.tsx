@@ -1,15 +1,16 @@
 import * as React from "react"
 import { Link, useNavigate } from "react-router"
-import { ArrowUpRight, CreditCard, LayoutDashboard, Plus, UsersRound } from "lucide-react"
+import { LayoutDashboard, Plus, UsersRound } from "lucide-react"
 import { CashFlowChart } from "@/components/cash-flow-chart"
 import { DashboardAccountsCard } from "@/components/dashboard-accounts-card"
-import { DashboardChildren } from "@/components/dashboard-children"
-import type { DashboardChild } from "@/components/dashboard-children"
 import { DashboardDeadlinesCard } from "@/components/dashboard-deadlines-card"
+import { DashboardDues } from "@/components/dashboard-dues"
+import type { DashboardChild } from "@/components/dashboard-dues"
 import { EmptyState } from "@/components/empty-state"
 import { KpiCards } from "@/components/kpi-cards"
 import { AppShell } from "@/components/layout/app-shell"
 import { MyPaymentsCard } from "@/components/my-payments-card"
+import { PageHeader } from "@/components/page-header"
 import { PayDialog } from "@/components/pay-dialog"
 import { RecentTransactions } from "@/components/recent-transactions"
 import { Button } from "@/components/ui/button"
@@ -17,12 +18,13 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Toaster } from "@/components/ui/toast"
 import { ApiError } from "@/lib/api-client"
-import { logout, me } from "@/lib/auth"
+import { me } from "@/lib/auth"
 import type { AuthUser } from "@/lib/auth"
 import { getClasses } from "@/lib/classes"
 import type { ClassSummary } from "@/lib/classes"
 import { getDues, getOwnedFundraisings } from "@/lib/dashboard"
 import type { Due, OwnedFundraising } from "@/lib/dashboard"
+import { formatMoney } from "@/lib/money"
 import {
   getContributions,
   getSummary,
@@ -90,11 +92,6 @@ function calculateAwaitedAmount(fundraisings: OwnedFundraising[]): number {
 
 function capitalize(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1)
-}
-
-function describeParent(childrenCount: number): string {
-  if (childrenCount === 0) return "Rodzic"
-  return childrenCount === 1 ? "Rodzic · 1 dziecko" : `Rodzic · ${childrenCount} dzieci`
 }
 
 function DashboardPage() {
@@ -169,55 +166,44 @@ function DashboardPage() {
   const isTreasurer = data?.classes.some((item) => item.isOwner) ?? false
   const children = data != null ? collectChildren(data.classes) : []
 
-  return (
-    <AppShell activeId="dashboard">
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            {data != null ? (
-              <>
-                <p className="text-sm text-muted-foreground">
-                  {isTreasurer
-                    ? capitalize(dateFormatter.format(new Date()))
-                    : describeParent(children.length)}
-                </p>
-                <h1 className="text-2xl font-bold">
-                  {isTreasurer ? "Dzień dobry" : "Cześć"}, {data.user.firstName}
-                </h1>
-              </>
-            ) : (
-              <h1 className="text-2xl font-bold">Pulpit</h1>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {isTreasurer ? (
+  function renderHeader(loaded: DashboardData) {
+    if (isTreasurer) {
+      return (
+        <PageHeader
+          eyebrow={capitalize(dateFormatter.format(new Date()))}
+          title={`Dzień dobry, ${loaded.user.firstName}`}
+          actions={
+            <>
+              <Button variant="outline" render={<Link to="/dashboard/payments" />}>
+                Mój rachunek
+              </Button>
               <Button render={<Link to="/dashboard/fundraisers/new" />}>
                 <Plus />
                 Nowa zbiórka
               </Button>
-            ) : null}
-            {data != null ? (
-              <>
-                <Button
-                  variant="outline"
-                  render={<Link to="/dashboard/payments" />}
-                >
-                  <CreditCard />
-                  Wpłać
-                </Button>
-                {isTreasurer ? (
-                  <Button
-                    variant="outline"
-                    render={<Link to="/dashboard/payments" />}
-                  >
-                    <ArrowUpRight />
-                    Wypłać
-                  </Button>
-                ) : null}
-              </>
-            ) : null}
-          </div>
-        </div>
+            </>
+          }
+        />
+      )
+    }
+
+    return (
+      <PageHeader
+        title={`Cześć, ${loaded.user.firstName}`}
+        description={`Na rachunku masz ${formatMoney(loaded.wallet.balance)}.`}
+        actions={
+          <Button variant="outline" render={<Link to="/dashboard/payments" />}>
+            Doładuj rachunek
+          </Button>
+        }
+      />
+    )
+  }
+
+  return (
+    <AppShell activeId="dashboard">
+      <div className="flex flex-col gap-6">
+        {data == null ? <PageHeader title="Pulpit" /> : renderHeader(data)}
         {isLoading ? (
           <DashboardSkeleton />
         ) : data != null ? (
@@ -231,9 +217,19 @@ function DashboardPage() {
                   days={data.summary.days}
                   unpaid={calculateAwaitedAmount(data.ownedFundraisings)}
                 />
-                <div className="grid gap-4 lg:grid-cols-[2fr_1fr] lg:items-start">
-                  <CashFlowChart daily={data.summary.daily} />
-                  <div className="flex flex-col gap-4">
+                <div className="grid gap-6 lg:grid-cols-[2fr_1fr] lg:items-start">
+                  <div className="flex min-w-0 flex-col gap-6">
+                    {children.length > 0 ? (
+                      <DashboardDues
+                        students={children}
+                        dues={data.dues}
+                        onPay={setPayTarget}
+                      />
+                    ) : null}
+                    <CashFlowChart daily={data.summary.daily} />
+                    <RecentTransactions transactions={data.transactions} />
+                  </div>
+                  <div className="flex min-w-0 flex-col gap-6">
                     <DashboardAccountsCard
                       wallet={data.wallet}
                       fundraisings={data.ownedFundraisings}
@@ -243,29 +239,25 @@ function DashboardPage() {
                   </div>
                 </div>
               </>
-            ) : null}
-            {children.length > 0 ? (
-              <DashboardChildren
-                students={children}
-                dues={data.dues}
-                onPay={setPayTarget}
-              />
-            ) : null}
-            {!isTreasurer && children.length === 0 ? (
+            ) : children.length > 0 ? (
+              <>
+                <DashboardDues
+                  students={children}
+                  dues={data.dues}
+                  onPay={setPayTarget}
+                />
+                <MyPaymentsCard contributions={data.contributions} />
+              </>
+            ) : (
               <Card>
                 <CardContent>
                   <EmptyState
                     icon={<UsersRound />}
-                    title="Brak dzieci w klasie"
-                    description="Gdy skarbnik zaakceptuje Twoje dziecko w klasie, zobaczysz tutaj jego opłaty."
+                    title="Twoje dziecko nie jest jeszcze w klasie"
+                    description="Gdy skarbnik zatwierdzi zgłoszenie, opłaty pojawią się tutaj."
                   />
                 </CardContent>
               </Card>
-            ) : null}
-            {isTreasurer ? (
-              <RecentTransactions transactions={data.transactions} />
-            ) : (
-              <MyPaymentsCard contributions={data.contributions} />
             )}
             {payTarget != null ? (
               <PayDialog
@@ -289,7 +281,7 @@ function DashboardPage() {
               <EmptyState
                 icon={<LayoutDashboard />}
                 title="Nie udało się wczytać pulpitu"
-                description="Sprawdź połączenie i spróbuj ponownie."
+                description="Sprawdź połączenie i spróbuj jeszcze raz."
                 action={<Button onClick={reload}>Spróbuj ponownie</Button>}
               />
             </CardContent>
@@ -304,14 +296,17 @@ function DashboardPage() {
 function DashboardSkeleton() {
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Skeleton className="h-28 rounded-xl" />
-        <Skeleton className="h-28 rounded-xl" />
-        <Skeleton className="h-28 rounded-xl" />
-        <Skeleton className="h-28 rounded-xl" />
+      <Skeleton className="h-24 rounded-xl" />
+      <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+        <div className="flex flex-col gap-6">
+          <Skeleton className="h-72 rounded-xl" />
+          <Skeleton className="h-64 rounded-xl" />
+        </div>
+        <div className="flex flex-col gap-6">
+          <Skeleton className="h-52 rounded-xl" />
+          <Skeleton className="h-40 rounded-xl" />
+        </div>
       </div>
-      <Skeleton className="h-80 rounded-xl" />
-      <Skeleton className="h-72 rounded-xl" />
     </div>
   )
 }

@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/empty-state"
 import { FundraiserCard } from "@/components/fundraiser-card"
 import type { FundraiserStatus } from "@/components/fundraiser-card"
 import { AppShell } from "@/components/layout/app-shell"
+import { PageHeader } from "@/components/page-header"
 import { SegmentedControl } from "@/components/segmented-control"
 import type { SegmentedOption } from "@/components/segmented-control"
 import { Button } from "@/components/ui/button"
@@ -22,10 +23,17 @@ const NEW_FUNDRAISING_PATH = "/dashboard/fundraisers/new"
 
 const FILTER_OPTIONS: SegmentedOption<FundraisingFilter>[] = [
   { value: "all", label: "Wszystkie" },
-  { value: "mine", label: "Moje" },
-  { value: "active", label: "Aktywne" },
-  { value: "closed", label: "Zamknięte" },
+  { value: "mine", label: "Prowadzone przeze mnie" },
+  { value: "active", label: "Trwające" },
+  { value: "closed", label: "Zakończone" },
 ]
+
+const EMPTY_TEXTS: Record<FundraisingFilter, string> = {
+  all: "W Twoich klasach nie ma jeszcze żadnej zbiórki.",
+  mine: "Nie prowadzisz jeszcze żadnej zbiórki.",
+  active: "Żadna zbiórka aktualnie nie trwa.",
+  closed: "Żadna zbiórka nie jest jeszcze zakończona.",
+}
 
 const CARD_STATUSES: Record<FundraisingStatus, FundraiserStatus> = {
   ACTIVE: "active",
@@ -69,21 +77,24 @@ function FundraisingsPage() {
     matchesFilter(fundraising, filter)
   )
 
+  const createButton = canCreate ? (
+    <Button render={<Link to={NEW_FUNDRAISING_PATH} />}>
+      <Plus />
+      Nowa zbiórka
+    </Button>
+  ) : undefined
+
   return (
     <AppShell activeId="fundraisers">
       <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between gap-2">
-          <h1 className="text-2xl font-bold">Zbiórki</h1>
-          {canCreate ? (
-            <Button render={<Link to={NEW_FUNDRAISING_PATH} />}>
-              <Plus />
-              Nowa zbiórka
-            </Button>
-          ) : null}
-        </div>
+        <PageHeader
+          title="Zbiórki"
+          description="Zbiórki w klasach, które prowadzisz, i w klasach Twoich dzieci."
+          actions={createButton}
+        />
         <SegmentedControl<FundraisingFilter>
           aria-label="Filtr zbiórek"
-          className="max-w-xl"
+          className="max-w-2xl"
           options={FILTER_OPTIONS}
           value={filter}
           onChange={setFilter}
@@ -96,15 +107,9 @@ function FundraisingsPage() {
           emptyState={
             <EmptyState
               icon={<HandCoins />}
-              title="Brak zbiórek"
-              description="Nie ma zbiórek pasujących do tego filtra."
-              action={
-                canCreate ? (
-                  <Button render={<Link to={NEW_FUNDRAISING_PATH} />}>
-                    Nowa zbiórka
-                  </Button>
-                ) : undefined
-              }
+              title="Nic tu jeszcze nie ma"
+              description={EMPTY_TEXTS[filter]}
+              action={filter === "all" || filter === "mine" ? createButton : undefined}
             />
           }
         >

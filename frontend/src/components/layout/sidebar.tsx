@@ -2,6 +2,7 @@ import { Link } from "react-router"
 import { cn } from "cn"
 import { Settings } from "lucide-react"
 import { defaultNavigationItems } from "@/components/layout/navigation"
+import Logo from "@/assets/Logo.svg"
 import type { NavigationItem } from "@/components/layout/navigation"
 
 function Sidebar({
@@ -23,16 +24,16 @@ function Sidebar({
       )}
       {...props}
     >
-      <div className="flex h-16 items-center gap-2 border-b px-4">
-        <span
-          aria-hidden
-          className="flex size-9 items-center justify-center rounded-lg bg-primary font-serif text-lg text-primary-foreground"
-        >
-          S
-        </span>
-        <span className="font-serif text-lg leading-none">
-          SchoolMoney
-        </span>
+      <div className="flex h-16 items-center gap-2 border-b px-4 cursor-default">
+        <img
+          src={Logo}
+          width="auto"
+          height="auto"
+          className="w-6"
+          alt="Logo Icon"
+          draggable="false"
+        />
+        <span className="text-lg font-medium">SchoolMoney</span>
       </div>
       <nav aria-label="Nawigacja główna" className="flex-1 overflow-y-auto p-3">
         <ul className="flex flex-col gap-1">

@@ -16,8 +16,9 @@ import { JoinClassDialog } from "@/components/children/join-class-dialog";
 import { LeaveClassDialog } from "@/components/children/leave-class-dialog";
 import { EmptyState } from "@/components/empty-state";
 import { AppShell } from "@/components/layout/app-shell";
+import { PageHeader } from "@/components/page-header";
+import { Section } from "@/components/section";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast, Toaster } from "@/components/ui/toast";
 import { ApiError } from "@/lib/api-client";
@@ -31,10 +32,10 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu.tsx";
-import { Button } from "@/components/ui/button.tsx";
-import { EditChildDialog } from "@/components/children/edit-child-dialog.tsx";
-import { DeleteChildDialog } from "@/components/children/delete-child-dialog.tsx";
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { EditChildDialog } from "@/components/children/edit-child-dialog";
+import { DeleteChildDialog } from "@/components/children/delete-child-dialog";
 
 const STATUS_VARIANTS: Record<
   MembershipStatus,
@@ -103,194 +104,172 @@ function ChildrenPage() {
   return (
     <AppShell activeId="children">
       <div className="flex flex-col gap-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold">Moje dzieci</h1>
-            <p className="text-sm text-muted-foreground">
-              Dowolna liczba dzieci w różnych klasach
-            </p>
-          </div>
-          <AddChildDialog onCreated={loadData} />
-        </div>
+        <PageHeader
+          title="Moje dzieci"
+          description="Możesz dodać dowolną liczbę dzieci, także w różnych klasach."
+          actions={<AddChildDialog onCreated={loadData} />}
+        />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Dzieci</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex flex-col gap-4">
-                {[0, 1].map((index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <Skeleton className="size-10 rounded-full" />
-                    <div className="flex flex-col gap-1.5">
-                      <Skeleton className="h-4 w-36" />
-                      <Skeleton className="h-3 w-24" />
-                    </div>
+        <Section title="Dzieci">
+          {isLoading ? (
+            <div className="flex flex-col gap-4">
+              {[0, 1].map((index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <Skeleton className="size-10 rounded-full" />
+                  <div className="flex flex-col gap-1.5">
+                    <Skeleton className="h-4 w-36" />
+                    <Skeleton className="h-3 w-24" />
                   </div>
-                ))}
-              </div>
-            ) : children.length === 0 ? (
-              <EmptyState
-                icon={<UserRound />}
-                title="Nie dodano jeszcze dzieci"
-                description="Dodaj dziecko, aby dołączyć do klasy i brać udział w zbiórkach."
-              />
-            ) : (
-              <ul className="flex flex-col divide-y">
-                {children.map((child) => {
-                  const memberships = classesByChild.get(child.id) ?? [];
-                  const info = pickPrimary(memberships);
-                  const isActive =
-                    info?.status === "ACCEPTED" || info?.status === "PENDING";
+                </div>
+              ))}
+            </div>
+          ) : children.length === 0 ? (
+            <EmptyState
+              icon={<UserRound />}
+              title="Nie dodano jeszcze dziecka"
+              description="Dodaj dziecko, a potem dołącz do klasy kodem od skarbnika."
+            />
+          ) : (
+            <ul className="flex flex-col divide-y">
+              {children.map((child) => {
+                const memberships = classesByChild.get(child.id) ?? [];
+                const info = pickPrimary(memberships);
+                const isActive =
+                  info?.status === "ACCEPTED" || info?.status === "PENDING";
 
-                  return (
-                    <li
-                      key={child.id}
-                      className="flex justify-between py-3 first:pt-0 last:pb-0 md:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto]"
-                    >
-                      <div className="flex gap-15">
-                        <div className="flex gap-3">
-                          <ChildAvatar child={child} />
+                return (
+                  <li
+                    key={child.id}
+                    className="flex flex-wrap items-center gap-x-6 gap-y-3 py-4 first:pt-0 last:pb-0"
+                  >
+                    <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
+                      <ChildAvatar child={child} />
+                      <div className="flex min-w-0 flex-col">
+                        <span className="truncate text-sm font-medium">
+                          {child.firstname} {child.lastname}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          ur. {formatBirthDate(child.birthDate)}
+                        </span>
+                      </div>
+                    </div>
 
-                          <div className="flex min-w-24 flex-col ">
-                            <span className="truncate text-sm font-semibold">
-                              {child.firstname} {child.lastname}
+                    <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
+                      {info != null ? (
+                        <>
+                          <div className="flex min-w-0 flex-1 flex-col">
+                            <span className="truncate text-sm font-medium">
+                              {info.className}
                             </span>
-                            <span className="text-xs text-muted-foreground">
-                              ur. {formatBirthDate(child.birthDate)}
+                            <span className="truncate text-xs text-muted-foreground">
+                              {info.school}
                             </span>
                           </div>
-                        </div>
-
-                        <div className="col-span-2 flex min-w-0 items-center gap-2 md:col-span-1">
-                          {info != null ? (
-                            <>
-                              <div className="flex min-w-36 flex-1 flex-col">
-                                <span className="truncate text-sm font-medium">
-                                  {info.className}
-                                </span>
-                                <span className="truncate text-xs text-muted-foreground">
-                                  {info.school}
-                                </span>
-                              </div>
-                              <Badge variant={STATUS_VARIANTS[info.status]}>
-                                {STATUS_LABELS[info.status]}
-                              </Badge>
-                            </>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">
-                              Brak klasy
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="col-span-2 flex items-center justify-end gap-2 md:col-span-1">
-                        {info != null && isActive ? (
-                          <LeaveClassDialog
-                            child={child}
-                            info={info}
-                            onChanged={loadData}
-                          />
-                        ) : (
-                          <JoinClassDialog child={child} onChanged={loadData} />
-                        )}
-                        <>
-                          {/*<ChangeAvatarDialog*/}
-                          {/*  child={child}*/}
-                          {/*  onChanged={loadData}*/}
-                          {/*/>*/}
+                          <Badge variant={STATUS_VARIANTS[info.status]}>
+                            {STATUS_LABELS[info.status]}
+                          </Badge>
                         </>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger
-                            render={
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                aria-label={`Akcje: ${child.firstname} ${child.lastname}`}
-                              />
-                            }
-                          >
-                            <MoreHorizontal />
-                          </DropdownMenuTrigger>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">
+                          Nie jest jeszcze w żadnej klasie
+                        </span>
+                      )}
+                    </div>
 
-                          <DropdownMenuContent
-                            align="end"
-                            className="w-34"
+                    <div className="ml-auto flex items-center gap-2">
+                      {info != null && isActive ? (
+                        <LeaveClassDialog
+                          child={child}
+                          info={info}
+                          onChanged={loadData}
+                        />
+                      ) : (
+                        <JoinClassDialog child={child} onChanged={loadData} />
+                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          render={
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label={`Akcje: ${child.firstname} ${child.lastname}`}
+                            />
+                          }
+                        >
+                          <MoreHorizontal />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="min-w-44">
+                          <DropdownMenuItem
+                            onClick={() => setEditingId(child.id)}
                           >
-                            <DropdownMenuItem
-                              onClick={() => setEditingId(child.id)}
-                            >
-                              <Pencil />
-                              Edytuj
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => setAvatarEditingId(child.id)}
-                            >
-                              <ImagePlus />
-                              Zmień zdjęcie
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            {child.avatarId != null ? (
-                              <DropdownMenuItem
-                                variant="destructive"
-                                onClick={() => setAvatarDeletingId(child.id)}
-                              >
-                                <ImageMinus />
-                                Usuń zdjęcie
-                              </DropdownMenuItem>
-                            ) : null}
+                            <Pencil />
+                            Edytuj dane
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => setAvatarEditingId(child.id)}
+                          >
+                            <ImagePlus />
+                            Zmień zdjęcie
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {child.avatarId != null ? (
                             <DropdownMenuItem
                               variant="destructive"
-                              onClick={() => setDeletingId(child.id)}
+                              onClick={() => setAvatarDeletingId(child.id)}
                             >
-                              <UserMinus />
-                              Usuń dziecko
+                              <ImageMinus />
+                              Usuń zdjęcie
                             </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                          ) : null}
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => setDeletingId(child.id)}
+                          >
+                            <UserMinus />
+                            Usuń dziecko
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
 
-                        <EditChildDialog
-                          child={child}
-                          open={editingId === child.id}
-                          onOpenChange={(next) =>
-                            setEditingId(next ? child.id : null)
-                          }
-                          onChanged={loadData}
-                        />
-                        <ChangeAvatarDialog
-                          child={child}
-                          open={avatarEditingId === child.id}
-                          onOpenChange={(next) =>
-                            setAvatarEditingId(next ? child.id : null)
-                          }
-                          onChanged={loadData}
-                        />
-                        <DeleteAvatarDialog
-                          child={child}
-                          open={avatarDeletingId === child.id}
-                          onOpenChange={(next) =>
-                            setAvatarDeletingId(next ? child.id : null)
-                          }
-                          onChanged={loadData}
-                        />
-                        <DeleteChildDialog
-                          child={child}
-                          open={deletingId === child.id}
-                          onOpenChange={(next) =>
-                            setDeletingId(next ? child.id : null)
-                          }
-                          onChanged={loadData}
-                        />
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+                      <EditChildDialog
+                        child={child}
+                        open={editingId === child.id}
+                        onOpenChange={(next) =>
+                          setEditingId(next ? child.id : null)
+                        }
+                        onChanged={loadData}
+                      />
+                      <ChangeAvatarDialog
+                        child={child}
+                        open={avatarEditingId === child.id}
+                        onOpenChange={(next) =>
+                          setAvatarEditingId(next ? child.id : null)
+                        }
+                        onChanged={loadData}
+                      />
+                      <DeleteAvatarDialog
+                        child={child}
+                        open={avatarDeletingId === child.id}
+                        onOpenChange={(next) =>
+                          setAvatarDeletingId(next ? child.id : null)
+                        }
+                        onChanged={loadData}
+                      />
+                      <DeleteChildDialog
+                        child={child}
+                        open={deletingId === child.id}
+                        onOpenChange={(next) =>
+                          setDeletingId(next ? child.id : null)
+                        }
+                        onChanged={loadData}
+                      />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </Section>
       </div>
       <Toaster />
     </AppShell>

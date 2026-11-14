@@ -49,13 +49,13 @@ function FundraisingEditForm({
           await uploadFundraisingLogo(fundraising.id, logo)
         } catch {
           toast.add({
-            title: "Nie udało się dodać logo. Spróbuj ponownie.",
+            title: "Zmiany zapisane, ale logo się nie wysłało. Spróbuj jeszcze raz.",
             type: "error",
           })
         }
       }
       toast.add({
-        title: "Zbiórka została zaktualizowana.",
+        title: "Zmiany zostały zapisane.",
         type: "success",
       })
       navigate(detailsPath)
@@ -96,7 +96,8 @@ function FundraisingEditForm({
   return (
     <FundraisingForm
       title="Edytuj zbiórkę"
-      subtitleSuffix="edycja zbiórki"
+      description="Zmiany od razu zobaczą wszyscy rodzice w klasie."
+      backTo={detailsPath}
       submitLabel="Zapisz zmiany"
       classes={classes.filter((item) => item.id === fundraising.classId)}
       lockClass
@@ -155,8 +156,8 @@ function FundraisingEditPage() {
               <CardContent>
                 <EmptyState
                   icon={<HandCoins />}
-                  title="Nie można edytować tej zbiórki"
-                  description="Edytować może tylko właściciel klasy, dopóki zbiórka jest aktywna."
+                  title="Tej zbiórki nie da się edytować"
+                  description="Edytować może ją tylko skarbnik i tylko dopóki zbiórka trwa."
                 />
               </CardContent>
             </Card>
@@ -171,7 +172,7 @@ function FundraisingEditPage() {
           <CardContent>
             <EmptyState
               icon={<HandCoins />}
-              title="Nie znaleziono zbiórki"
+              title="Nie ma takiej zbiórki"
               description="Zbiórka nie istnieje albo nie masz do niej dostępu."
             />
           </CardContent>
