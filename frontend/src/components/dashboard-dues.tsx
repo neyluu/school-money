@@ -22,7 +22,7 @@ function DueRow({ due, onPay }: { due: Due; onPay: (due: Due) => void }) {
   const isPartial = due.paidAmount > 0
 
   return (
-    <li className="flex flex-wrap items-center gap-x-4 gap-y-2 py-2">
+    <li className="flex flex-wrap items-center gap-x-4">
       <div className="min-w-0 flex-1 basis-48">
         <Link
           to={`/dashboard/fundraisers/${due.fundraisingId}`}
@@ -36,7 +36,7 @@ function DueRow({ due, onPay }: { due: Due; onPay: (due: Due) => void }) {
             : `Termin: ${formatDaysLeft(days).toLowerCase()}`}
         </p>
       </div>
-      <MoneyAmount amount={due.remainingAmount} />
+      <MoneyAmount amount={due.remainingAmount} className="text-lg" />
       <Button size="sm" onClick={() => onPay(due)}>
         Zapłać
       </Button>

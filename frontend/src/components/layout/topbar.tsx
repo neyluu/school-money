@@ -113,16 +113,16 @@ function Topbar({
           >
             {userInitials(user)}
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent align="end" className="w-fit p-2">
             {user != null ? (
-              <div className="flex flex-col px-1.5 py-1.5">
+              <div className="flex flex-col items-end px-1.5 py-1.5">
                 <span className="truncate text-sm font-medium">{fullName}</span>
-                <span className="truncate text-xs text-muted-foreground">
-                  {user.email}
+                <span className="truncate text-xs text-muted-foreground/75">
+                  ({user.email})
                 </span>
               </div>
             ) : null}
-            <DropdownMenuItem variant="destructive" onClick={logout}>
+            <DropdownMenuItem variant="destructive" onClick={logout} className="cursor-pointer">
               <LogOut />
               Wyloguj się
             </DropdownMenuItem>

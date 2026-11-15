@@ -23,7 +23,7 @@ const NEW_FUNDRAISING_PATH = "/dashboard/fundraisers/new"
 
 const FILTER_OPTIONS: SegmentedOption<FundraisingFilter>[] = [
   { value: "all", label: "Wszystkie" },
-  { value: "mine", label: "Prowadzone przeze mnie" },
+  { value: "mine", label: "Moje" },
   { value: "active", label: "Trwające" },
   { value: "closed", label: "Zakończone" },
 ]
