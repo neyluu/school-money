@@ -22,11 +22,11 @@ function DueRow({ due, onPay }: { due: Due; onPay: (due: Due) => void }) {
   const isPartial = due.paidAmount > 0
 
   return (
-    <li className="flex flex-wrap items-center gap-x-4">
+    <li className="flex flex-wrap items-center gap-x-4 py-2 first:pt-0 last:pb-0 border-b-1 border-b-primary/5 last:border-b-0 ">
       <div className="min-w-0 flex-1 basis-48">
         <Link
           to={`/dashboard/fundraisers/${due.fundraisingId}`}
-          className="block truncate text-sm font-medium underline-offset-4 hover:underline"
+          className="block truncate text-sm font-medium underline-offset-2 hover:underline"
         >
           {due.fundraisingName}
         </Link>

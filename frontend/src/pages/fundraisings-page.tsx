@@ -3,7 +3,7 @@ import { Link } from "react-router"
 import { HandCoins, Plus } from "lucide-react"
 import { DataState } from "@/components/data-state"
 import { EmptyState } from "@/components/empty-state"
-import { FundraiserCard } from "@/components/fundraiser-card"
+import { FundraisingListCard } from "@/components/fundraising-list-card"
 import type { FundraiserStatus } from "@/components/fundraiser-card"
 import { AppShell } from "@/components/layout/app-shell"
 import { PageHeader } from "@/components/page-header"
@@ -115,17 +115,11 @@ function FundraisingsPage() {
         >
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visible.map((fundraising) => (
-              <FundraiserCard
+              <FundraisingListCard
                 key={fundraising.id}
-                icon={<HandCoins />}
-                title={fundraising.name}
+                fundraising={fundraising}
                 classLabel={describeClass(classes.get(fundraising.classId))}
-                isOwner={fundraising.isOwner}
-                dueDate={fundraising.endDate}
-                amountPerChild={fundraising.amountPerChild}
                 status={CARD_STATUSES[fundraising.status]}
-                href={`/dashboard/fundraisers/${fundraising.id}`}
-                className="w-full"
               />
             ))}
           </div>

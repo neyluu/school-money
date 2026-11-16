@@ -183,7 +183,7 @@ function WalletHistory() {
         <Tabs defaultValue="transactions">
           <TabsList>
             <TabsTrigger value="transactions">Transakcje</TabsTrigger>
-            <TabsTrigger value="contributions">Moje wpłaty</TabsTrigger>
+            <TabsTrigger value="contributions">Wpłaty</TabsTrigger>
           </TabsList>
           <TabsContent value="transactions" className="pt-4">
             <TransactionsTab />

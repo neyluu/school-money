@@ -16,7 +16,7 @@ function ChildAvatar({
     <span
       aria-hidden
       className={cn(
-        "flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-sm font-semibold text-primary",
+        "flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary/10 text-sm font-medium text-primary",
         className,
       )}
     >

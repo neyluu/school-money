@@ -23,7 +23,7 @@ import java.util.List;
 public class FundraisingFundsService
 {
     private static final int MAX_PAGE_SIZE = 100;
-    private static final String REPLENISHMENT_TITLE_PREFIX = "Replenishment of fundraising ";
+    private static final String REPLENISHMENT_TITLE_PREFIX = "Uzupełnienie zbiórki ";
 
     private final FundraisingAccessService accessService;
     private final WalletRepository walletRepository;

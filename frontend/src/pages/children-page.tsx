@@ -178,58 +178,57 @@ function ChildrenPage() {
 
                     <div className="ml-auto flex items-center gap-2">
                       {info != null && isActive ? (
-                        <LeaveClassDialog
-                          child={child}
-                          info={info}
-                          onChanged={loadData}
-                        />
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label={`Akcje: ${child.firstname} ${child.lastname}`}
+                              />
+                            }
+                          >
+                            <MoreHorizontal />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="min-w-44">
+                            <DropdownMenuItem
+                              onClick={() => setEditingId(child.id)}
+                              className="cursor-pointer"
+                            >
+                              <Pencil />
+                              Edytuj dane
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => setAvatarEditingId(child.id)}
+                              className="cursor-pointer"
+                            >
+                              <ImagePlus />
+                              Zmień zdjęcie
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            {child.avatarId != null ? (
+                              <DropdownMenuItem
+                                variant="destructive"
+                                onClick={() => setAvatarDeletingId(child.id)}
+                                className="cursor-pointer"
+                              >
+                                <ImageMinus />
+                                Usuń zdjęcie
+                              </DropdownMenuItem>
+                            ) : null}
+                            <DropdownMenuItem
+                              variant="destructive"
+                              onClick={() => setDeletingId(child.id)}
+                              className="cursor-pointer"
+                            >
+                              <UserMinus />
+                              Usuń z klasy
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       ) : (
                         <JoinClassDialog child={child} onChanged={loadData} />
                       )}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
-                          render={
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              aria-label={`Akcje: ${child.firstname} ${child.lastname}`}
-                            />
-                          }
-                        >
-                          <MoreHorizontal />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="min-w-44">
-                          <DropdownMenuItem
-                            onClick={() => setEditingId(child.id)}
-                          >
-                            <Pencil />
-                            Edytuj dane
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => setAvatarEditingId(child.id)}
-                          >
-                            <ImagePlus />
-                            Zmień zdjęcie
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          {child.avatarId != null ? (
-                            <DropdownMenuItem
-                              variant="destructive"
-                              onClick={() => setAvatarDeletingId(child.id)}
-                            >
-                              <ImageMinus />
-                              Usuń zdjęcie
-                            </DropdownMenuItem>
-                          ) : null}
-                          <DropdownMenuItem
-                            variant="destructive"
-                            onClick={() => setDeletingId(child.id)}
-                          >
-                            <UserMinus />
-                            Usuń dziecko
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
 
                       <EditChildDialog
                         child={child}

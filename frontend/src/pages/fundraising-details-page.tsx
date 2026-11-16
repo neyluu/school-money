@@ -157,9 +157,9 @@ function FundraisingDetailsContent({
           >
             <Tabs defaultValue="payments">
               <TabsList>
-                <TabsTrigger value="payments">Wpłaty</TabsTrigger>
-                <TabsTrigger value="withdrawals">Wypłaty i zwroty</TabsTrigger>
-                <TabsTrigger value="invoices">Faktury</TabsTrigger>
+                <TabsTrigger value="payments" className="cursor-pointer">Wpłaty</TabsTrigger>
+                <TabsTrigger value="withdrawals" className="cursor-pointer">Wypłaty i zwroty</TabsTrigger>
+                <TabsTrigger value="invoices" className="cursor-pointer">Faktury</TabsTrigger>
               </TabsList>
               <TabsContent value="payments" className="pt-4">
                 <FundraisingPaymentsTab

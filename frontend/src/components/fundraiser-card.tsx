@@ -68,9 +68,7 @@ function FundraiserCard({
   const card = (
     <Card
       className={cn(
-        "w-80 gap-0 overflow-hidden rounded-lg border-0 bg-card py-0 shadow-sm",
-        isOwner && "ring-1 ring-primary/15",
-        href != null && "transition-shadow hover:shadow-md",
+        "w-80 gap-0 overflow-hidden rounded-lg border-0 bg-card py-0 transition-colors duration-350 ring-1 ring-primary/15 hover:ring-primary/25",
         className
       )}
       {...props}
@@ -134,7 +132,7 @@ function FundraiserCard({
             </div>
           </div>
         ) : amountPerChild != null ? (
-          <div className="flex items-baseline justify-between gap-3 rounded-lg bg-muted/50 px-3 py-2.5">
+          <div className="flex items-baseline justify-between gap-3 rounded-lg bg-primary/7 px-3 py-2.5">
             <span className="text-xs text-muted-foreground">
               Kwota od dziecka
             </span>

@@ -62,7 +62,7 @@ function ClassDetailsContent({
         }
         title={details.name}
         badge={
-          details.isOwner ? <Badge variant="success">Skarbnik</Badge> : undefined
+          details.isOwner ? <Badge variant="warning">Skarbnik</Badge> : undefined
         }
         description={
           details.isOwner

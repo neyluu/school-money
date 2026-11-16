@@ -37,7 +37,7 @@ function FundraisingMyChildrenCard({
             >
               <span
                 aria-hidden
-                className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary"
+                className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-medium text-primary"
               >
                 {initials(student)}
               </span>

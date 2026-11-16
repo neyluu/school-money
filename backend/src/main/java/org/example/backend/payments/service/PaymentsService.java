@@ -35,8 +35,8 @@ public class PaymentsService
 {
     private static final int MAX_PAGE_SIZE = 100;
     private static final int MAX_SUMMARY_DAYS = 90;
-    private static final String DEPOSIT_TITLE = "Virtual deposit";
-    private static final String WITHDRAWAL_TITLE_PREFIX = "Withdrawal to ";
+    private static final String DEPOSIT_TITLE = "Wirtualny depozyt";
+    private static final String WITHDRAWAL_TITLE_PREFIX = "Wypłata na ";
 
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;

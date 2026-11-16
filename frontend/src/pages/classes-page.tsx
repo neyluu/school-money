@@ -20,8 +20,8 @@ const CLASS_PATH = "/dashboard/class";
 
 const FILTER_OPTIONS: SegmentedOption<ClassFilter>[] = [
   { value: "all", label: "Wszystkie" },
-  { value: "mine", label: "Prowadzę" },
-  { value: "others", label: "Klasy dzieci" },
+  { value: "mine", label: "Moje" },
+  { value: "others", label: "Moich dzieci" },
 ];
 
 const EMPTY_TEXTS: Record<ClassFilter, string> = {
@@ -85,8 +85,8 @@ function ClassesPage() {
             />
           }
         >
-          <Card>
-            <CardContent>
+          <Card className="p-0">
+            <CardContent className="p-0">
               <ul className="flex flex-col divide-y">
                 {visible.map((item) => (
                   <ClassRow
