@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { DataState } from "@/components/data-state";
 import { EmptyState } from "@/components/empty-state";
 import { AppShell } from "@/components/layout/app-shell";
+import { PageHeader } from "@/components/page-header";
 import { SegmentedControl } from "@/components/segmented-control";
 import type { SegmentedOption } from "@/components/segmented-control";
 import { Toaster } from "@/components/ui/toast";
@@ -22,6 +23,12 @@ const FILTER_OPTIONS: SegmentedOption<ClassFilter>[] = [
   { value: "mine", label: "Moje" },
   { value: "others", label: "Moich dzieci" },
 ];
+
+const EMPTY_TEXTS: Record<ClassFilter, string> = {
+  all: "Załóż klasę albo dodaj dziecko kodem od skarbnika.",
+  mine: "Nie prowadzisz jeszcze żadnej klasy.",
+  others: "Żadne z Twoich dzieci nie jest jeszcze w klasie.",
+};
 
 function matchesFilter(item: ClassSummary, filter: ClassFilter): boolean {
   switch (filter) {
@@ -53,15 +60,11 @@ function ClassesPage() {
   return (
     <AppShell activeId="classes">
       <div className="flex flex-col gap-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold">Klasy</h1>
-            <p className="text-sm text-muted-foreground">
-              Klasy, którymi zarządzasz, oraz klasy Twoich dzieci
-            </p>
-          </div>
-          <CreateClassDialog onCreated={reload} />
-        </div>
+        <PageHeader
+          title="Klasy"
+          description="Klasy, które prowadzisz, i klasy, do których należą Twoje dzieci."
+          actions={<CreateClassDialog onCreated={reload} />}
+        />
         <SegmentedControl<ClassFilter>
           aria-label="Filtr klas"
           className="max-w-md"
@@ -77,13 +80,13 @@ function ClassesPage() {
           emptyState={
             <EmptyState
               icon={<GraduationCap />}
-              title="Brak klas"
-              description="Nie ma klas pasujących do tego filtra."
+              title="Nic tu jeszcze nie ma"
+              description={EMPTY_TEXTS[filter]}
             />
           }
         >
-          <Card>
-            <CardContent>
+          <Card className="p-0">
+            <CardContent className="p-0">
               <ul className="flex flex-col divide-y">
                 {visible.map((item) => (
                   <ClassRow

@@ -37,7 +37,7 @@ function AvatarPicker({
     <div className="flex items-center gap-4">
       <span
         aria-hidden
-        className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-lg font-semibold text-primary"
+        className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary/10 text-lg font-medium text-primary"
       >
         {shownImageUrl != null ? (
           <img src={shownImageUrl} alt="" className="size-full object-cover" />

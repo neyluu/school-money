@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Logo from "@/assets/Logo.svg";
 import { logout, me } from "@/lib/auth";
 import type { AuthUser } from "@/lib/auth";
 
@@ -66,15 +67,17 @@ function Topbar({
       )}
       {...props}
     >
-      <span className="flex items-center gap-2 font-serif text-lg md:hidden">
-        <span
-          aria-hidden
-          className="flex size-8 items-center justify-center rounded-lg bg-primary text-base text-primary-foreground"
-        >
-          S
-        </span>
-        SchoolMoney
-      </span>
+      <div className="flex items-center gap-2 text-lg md:hidden cursor-default">
+        <img
+          src={Logo}
+          width="auto"
+          height="auto"
+          className="w-6"
+          alt="Logo Icon"
+          draggable="false"
+        />
+        <span className="text-lg font-medium">SchoolMoney</span>
+      </div>
       <div className="ml-auto flex items-center gap-1.5">
         {searchSlot ??
           (onSearch ? (
@@ -87,7 +90,7 @@ function Topbar({
           size="icon"
           aria-label="Powiadomienia"
           onClick={onNotifications}
-          className="relative"
+          className="cursor-pointer relative"
         >
           <Bell />
           {unreadCount > 0 ? (
@@ -104,22 +107,22 @@ function Topbar({
               <button
                 type="button"
                 aria-label="Menu użytkownika"
-                className="flex size-8 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground outline-none transition-colors hover:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring"
+                className="cursor-pointer flex size-8 items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground outline-none transition-colors hover:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring"
               />
             }
           >
             {userInitials(user)}
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent align="end" className="w-fit p-2">
             {user != null ? (
-              <div className="flex flex-col px-1.5 py-1.5">
+              <div className="flex flex-col items-end px-1.5 py-1.5">
                 <span className="truncate text-sm font-medium">{fullName}</span>
-                <span className="truncate text-xs text-muted-foreground">
-                  {user.email}
+                <span className="truncate text-xs text-muted-foreground/75">
+                  ({user.email})
                 </span>
               </div>
             ) : null}
-            <DropdownMenuItem variant="destructive" onClick={logout}>
+            <DropdownMenuItem variant="destructive" onClick={logout} className="cursor-pointer">
               <LogOut />
               Wyloguj się
             </DropdownMenuItem>

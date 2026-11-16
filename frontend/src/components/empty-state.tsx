@@ -27,7 +27,7 @@ function EmptyState({
       >
         {icon}
       </span>
-      <p className="text-sm font-semibold text-foreground">{title}</p>
+      <p className="text-sm font-medium text-foreground">{title}</p>
       {description ? (
         <p className="max-w-xs text-sm text-muted-foreground">{description}</p>
       ) : null}

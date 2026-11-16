@@ -1,34 +1,36 @@
 import { CopyButton } from "@/components/copy-button"
 import { MoneyAmount } from "@/components/money-amount"
-import { Card, CardContent } from "@/components/ui/card"
 import { formatIban } from "@/lib/iban"
 import type { Wallet } from "@/lib/wallet"
 
 function WalletCard({
   wallet,
   ...props
-}: Omit<React.ComponentProps<typeof Card>, "variant"> & {
-  wallet: Wallet
-}) {
+}: React.ComponentProps<"div"> & { wallet: Wallet }) {
   return (
-    <Card variant="dark" {...props}>
-      <CardContent className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <span className="text-sm text-muted-foreground">Saldo</span>
-          <MoneyAmount amount={wallet.balance} className="text-3xl" />
-        </div>
-        <div className="flex items-center justify-between gap-2">
+    <div
+      className="flex min-h-56 flex-col justify-between gap-8 rounded-xl bg-primary/10 ring-1 ring-primary/25 p-6 text-foreground"
+      {...props}
+    >
+      <div className="flex flex-col gap-2">
+        <span className="text-sm text-foreground/75">Dostępne środki</span>
+        <MoneyAmount amount={wallet.balance} className="text-4xl" />
+      </div>
+      <div className="flex items-center justify-between gap-3 border-t border-white/10 pt-4">
+        <div className="flex min-w-0 flex-col gap-1">
+          <span className="text-xs text-foreground/50">Numer rachunku</span>
           <span className="font-mono text-sm tabular-nums">
             {formatIban(wallet.iban)}
           </span>
-          <CopyButton
-            value={wallet.iban}
-            label="Kopiuj numer rachunku"
-            successTitle="Numer rachunku skopiowany."
-          />
         </div>
-      </CardContent>
-    </Card>
+        <CopyButton
+          value={wallet.iban}
+          label="Kopiuj numer rachunku"
+          successTitle="Numer rachunku skopiowany."
+          className="text-foreground/50 hover:text-foreground/75"
+        />
+      </div>
+    </div>
   )
 }
 

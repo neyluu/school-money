@@ -30,7 +30,7 @@ import java.util.List;
 public class FundraisingPaymentsService
 {
     private static final int MAX_PAGE_SIZE = 100;
-    private static final String CONTRIBUTION_TITLE_PREFIX = "Contribution to fundraising ";
+    private static final String CONTRIBUTION_TITLE_PREFIX = "Wpłata na zbiórkę ";
 
     private final FundraisingAccessService accessService;
     private final FundraisingContributionRepository contributionRepository;

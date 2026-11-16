@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Section } from "@/components/section"
 import {
   Progress,
   ProgressIndicator,
@@ -20,27 +20,24 @@ function FundraisingProgressCard({
   const waiting = totalChildren - paidChildren
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3">
+    <Section title={title}>
+      <div className="flex flex-col gap-3">
         <Progress value={percent}>
           <ProgressTrack className="h-2">
             <ProgressIndicator />
           </ProgressTrack>
         </Progress>
-        <p className="text-sm font-semibold tabular-nums">
-          {paidChildren} / {totalChildren} dzieci
+        <p className="text-sm tabular-nums">
+          {paidChildren} z {totalChildren} dzieci opłaciło
         </p>
         <p className="text-sm text-muted-foreground">
           {waiting > 0
-            ? `Czeka na wpłatę: ${waiting}`
+            ? `Na wpłatę czeka jeszcze ${waiting}.`
             : "Wszystkie dzieci mają opłaconą zbiórkę."}
         </p>
-        {action != null ? action : null}
-      </CardContent>
-    </Card>
+        {action}
+      </div>
+    </Section>
   )
 }
 

@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FundraisingRefundService
 {
-    private static final String REFUND_TITLE_PREFIX = "Refund from fundraising ";
+    private static final String REFUND_TITLE_PREFIX = "Zwrot ze zbiórki ";
 
     private final FundraisingAccessService accessService;
     private final FundraisingContributionRepository contributionRepository;

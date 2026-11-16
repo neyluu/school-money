@@ -1,54 +1,40 @@
 import {
-  CircleAlert,
-  CircleCheck,
   Hourglass,
   TrendingDown,
   TrendingUp,
 } from "lucide-react"
 import { MoneyAmount } from "@/components/money-amount"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { StatStrip } from "@/components/stat-strip"
+import type { StatItem } from "@/components/stat-strip"
 
-type Tone = "success" | "warning" | "danger"
+type Tone = "success" | "warning"
 
 const TONE_CLASSES: Record<Tone, string> = {
-  success: "bg-success/10 text-success",
-  warning: "bg-warning/10 text-warning",
-  danger: "bg-danger/10 text-danger",
+  success: "text-success",
+  warning: "text-warning",
 }
 
-function KpiCard({
-  label,
-  amount,
-  hint,
+function AmountWithIcon({
   tone,
-  indicator,
+  icon,
+  amount,
 }: {
-  label: string
+  tone?: Tone
+  icon?: React.ReactNode
   amount: number
-  hint: string
-  tone: Tone
-  indicator: React.ReactNode
 }) {
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between gap-2">
-          <CardTitle className="text-sm text-muted-foreground">
-            {label}
-          </CardTitle>
-          <span
-            aria-hidden
-            className={`flex size-8 items-center justify-center rounded-full [&_svg]:size-4 ${TONE_CLASSES[tone]}`}
-          >
-            {indicator}
-          </span>
-        </div>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-1">
-        <MoneyAmount amount={amount} className="text-2xl" />
-        <span className="text-xs text-muted-foreground">{hint}</span>
-      </CardContent>
-    </Card>
+    <span className="inline-flex items-center gap-2">
+      {icon != null && tone != null ? (
+        <span
+          aria-hidden
+          className={`flex shrink-0 items-center [&_svg]:size-4.25 ${TONE_CLASSES[tone]}`}
+        >
+          {icon}
+        </span>
+      ) : null}
+      <MoneyAmount amount={amount} />
+    </span>
   )
 }
 
@@ -56,66 +42,62 @@ function KpiCards({
   balance,
   income,
   expense,
-  days,
   unpaid,
 }: {
   balance: number
   income: number
   expense: number
-  days: number
+  days?: number
   unpaid?: number
 }) {
   const net = Math.round((income - expense) * 100) / 100
-  const period = `Ostatnie ${days} dni`
-  const hasUnpaid = unpaid != null
 
-  return (
-    <div
-      className={
-        hasUnpaid
-          ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-5"
-          : "grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-      }
-    >
-      <KpiCard
-        label="Dostępne środki"
-        amount={balance}
-        hint="Na Twoim rachunku"
-        tone={balance > 0 ? "success" : "warning"}
-        indicator={balance > 0 ? <CircleCheck /> : <CircleAlert />}
-      />
-      <KpiCard
-        label="Wpływy"
-        amount={income}
-        hint={period}
-        tone="success"
-        indicator={<TrendingUp />}
-      />
-      <KpiCard
-        label="Wydatki"
-        amount={expense}
-        hint={period}
-        tone="warning"
-        indicator={<TrendingDown />}
-      />
-      <KpiCard
-        label="Bilans"
-        amount={net}
-        hint={period}
-        tone={net >= 0 ? "success" : "danger"}
-        indicator={net >= 0 ? <TrendingUp /> : <TrendingDown />}
-      />
-      {hasUnpaid ? (
-        <KpiCard
-          label="Niezapłacone"
+  const items: StatItem[] = [
+    {
+      label: "Dostępne środki",
+      value: <MoneyAmount amount={balance} />,
+    },
+  ]
+
+  if (unpaid != null) {
+    const hasUnpaid = unpaid > 0
+
+    items.push({
+      label: "Niezapłacone",
+      value: (
+        <AmountWithIcon
+          tone={hasUnpaid ? "warning" : undefined}
+          icon={hasUnpaid ? <Hourglass /> : undefined}
           amount={unpaid}
-          hint="Oczekiwane wpłaty do zbiórek"
-          tone={unpaid > 0 ? "warning" : "success"}
-          indicator={unpaid > 0 ? <Hourglass /> : <CircleCheck />}
         />
-      ) : null}
-    </div>
+      ),
+    })
+  }
+
+  items.push(
+    {
+      label: "Wpływy",
+      value: (
+        <AmountWithIcon tone="success" icon={<TrendingUp />} amount={income} />
+      ),
+    },
+    {
+      label: "Wydatki",
+      value: (
+        <AmountWithIcon
+          tone="warning"
+          icon={<TrendingDown />}
+          amount={expense}
+        />
+      ),
+    },
+    {
+      label: "Bilans",
+      value: <MoneyAmount amount={net} />,
+    }
   )
+
+  return <StatStrip items={items} />
 }
 
 export { KpiCards }

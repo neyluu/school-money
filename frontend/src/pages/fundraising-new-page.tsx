@@ -17,6 +17,8 @@ import {
 } from "@/lib/fundraising-management"
 import type { FundraisingFieldErrors } from "@/lib/fundraising-management"
 
+const LIST_PATH = "/dashboard/fundraisers"
+
 function FundraisingNewPage() {
   const navigate = useNavigate()
   const { data, error, isLoading, reload } = useAsyncData(getClasses)
@@ -34,7 +36,7 @@ function FundraisingNewPage() {
           await uploadFundraisingLogo(created.id, logo)
         } catch {
           toast.add({
-            title: "Nie udało się dodać logo. Dodaj je w edycji zbiórki.",
+            title: "Zbiórka jest gotowa, ale logo się nie wysłało. Dodasz je w edycji.",
             type: "error",
           })
         }
@@ -43,7 +45,7 @@ function FundraisingNewPage() {
         title: "Zbiórka została utworzona.",
         type: "success",
       })
-      navigate(`/dashboard/fundraisers/${created.id}`)
+      navigate(`${LIST_PATH}/${created.id}`)
       return undefined
     } catch (submitError) {
       if (submitError instanceof ApiError && submitError.status === 401) {
@@ -72,19 +74,20 @@ function FundraisingNewPage() {
         emptyState={
           <EmptyState
             icon={<UsersRound />}
-            title="Nie masz klasy"
-            description="Zbiórkę może założyć tylko właściciel klasy."
+            title="Najpierw załóż klasę"
+            description="Zbiórkę może utworzyć tylko skarbnik, czyli osoba, która założyła klasę."
           />
         }
       >
         {data != null ? (
           <FundraisingForm
             title="Nowa zbiórka"
-            subtitleSuffix="założy Skarbnik"
+            description="Rodzice zobaczą ją od razu po utworzeniu i będą mogli wpłacać."
+            backTo={LIST_PATH}
             submitLabel="Utwórz zbiórkę"
             classes={ownedClasses}
             onSubmit={handleSubmit}
-            onCancel={() => navigate("/dashboard/fundraisers")}
+            onCancel={() => navigate(LIST_PATH)}
           />
         ) : null}
       </DataState>

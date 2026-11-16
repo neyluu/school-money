@@ -16,7 +16,7 @@ const STATUS_VARIANTS: Record<
 };
 
 const ROW_CLASS =
-  "flex flex-wrap items-center justify-between gap-3 rounded-md px-2 py-3";
+  "flex flex-wrap items-center justify-between gap-3 p-3";
 
 function ClassRow({ item, href }: { item: ClassSummary; href: string }) {
   const isDeleted = item.deletedAt != null;
@@ -24,11 +24,11 @@ function ClassRow({ item, href }: { item: ClassSummary; href: string }) {
   const content = (
     <>
       <div className="flex min-w-0 items-center gap-3">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
           <GraduationCap className="size-5" />
         </div>
         <div className="flex min-w-0 flex-col">
-          <span className="truncate text-sm font-semibold">{item.name}</span>
+          <span className="truncate text-sm font-medium">{item.name}</span>
           <span className="truncate text-xs text-muted-foreground">
             {item.school} · {item.city}
           </span>

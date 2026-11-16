@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Link, useNavigate, useParams } from "react-router";
-import { ArrowLeft, GraduationCap, Pencil, Trash2 } from "lucide-react";
+import { useNavigate, useParams } from "react-router";
+import { GraduationCap, Pencil, Trash2 } from "lucide-react";
 import { ClassAccessCodeCard } from "@/components/classes/class-access-code-card";
 import { ClassChildrenCard } from "@/components/classes/class-children-card";
 import { ClassFundraisingsCard } from "@/components/classes/class-fundraisings-card";
@@ -10,6 +10,7 @@ import { EditClassDialog } from "@/components/classes/edit-class-dialog";
 import { DataState } from "@/components/data-state";
 import { EmptyState } from "@/components/empty-state";
 import { AppShell } from "@/components/layout/app-shell";
+import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -48,41 +49,29 @@ function ClassDetailsContent({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3">
-        <Button
-          variant="ghost"
-          className="w-fit"
-          render={<Link to={CLASSES_PATH} />}
-        >
-          <ArrowLeft />
-          Klasy
-        </Button>
-
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-              <GraduationCap className="size-6" />
-            </div>
-            <div className="flex min-w-0 flex-col">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="truncate text-2xl font-bold">{details.name}</h1>
-                {details.isOwner ? (
-                  <Badge variant="success">Skarbnik</Badge>
-                ) : null}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {details.school} · {details.city}
-              </p>
-              {!details.isOwner ? (
-                <p className="text-xs text-muted-foreground">
-                  Skarbnik: {details.owner.firstName} {details.owner.lastName}
-                </p>
-              ) : null}
-            </div>
-          </div>
-
-          {details.isOwner ? (
-            <div className="flex flex-wrap items-center gap-2">
+      <PageHeader
+        backTo={CLASSES_PATH}
+        backLabel="Klasy"
+        leading={
+          <span
+            aria-hidden
+            className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary [&_svg]:size-6"
+          >
+            <GraduationCap />
+          </span>
+        }
+        title={details.name}
+        badge={
+          details.isOwner ? <Badge variant="warning">Skarbnik</Badge> : undefined
+        }
+        description={
+          details.isOwner
+            ? `${details.school} · ${details.city}`
+            : `${details.school} · ${details.city} · skarbnik: ${details.owner.firstName} ${details.owner.lastName}`
+        }
+        actions={
+          details.isOwner ? (
+            <>
               <Button variant="outline" onClick={() => setActiveDialog("edit")}>
                 <Pencil />
                 Edytuj
@@ -95,38 +84,39 @@ function ClassDetailsContent({
                 <Trash2 />
                 Usuń klasę
               </Button>
-            </div>
-          ) : null}
-        </div>
-      </div>
+            </>
+          ) : undefined
+        }
+      />
 
-      <div className="grid gap-4 lg:grid-cols-[2fr_1fr] lg:items-start">
-        <ClassChildrenCard
-          classId={details.id}
-          students={details.children}
-          isOwner={details.isOwner}
-          onChanged={onChanged}
-        />
+      <div className="grid gap-6 lg:grid-cols-[2fr_1fr] lg:items-start">
+        <div className="flex min-w-0 flex-col gap-6">
+          <ClassFundraisingsCard
+            fundraisings={fundraisings}
+            isOwner={details.isOwner}
+          />
+          <ClassChildrenCard
+            classId={details.id}
+            students={details.children}
+            isOwner={details.isOwner}
+            onChanged={onChanged}
+          />
+        </div>
         {details.isOwner ? (
-          <div className="flex flex-col gap-4">
-            <ClassAccessCodeCard
-              classId={details.id}
-              accessCode={details.accessCode}
-              onChanged={onChanged}
-            />
+          <div className="flex min-w-0 flex-col gap-6">
             <ClassRequestsCard
               classId={details.id}
               requests={pending}
               onChanged={onChanged}
             />
+            <ClassAccessCodeCard
+              classId={details.id}
+              accessCode={details.accessCode}
+              onChanged={onChanged}
+            />
           </div>
         ) : null}
       </div>
-
-      <ClassFundraisingsCard
-        fundraisings={fundraisings}
-        isOwner={details.isOwner}
-      />
 
       <EditClassDialog
         schoolClass={details}
@@ -187,7 +177,7 @@ function ClassDetailsPage() {
           <CardContent>
             <EmptyState
               icon={<GraduationCap />}
-              title="Nie znaleziono klasy"
+              title="Nie ma takiej klasy"
               description="Klasa nie istnieje albo nie masz do niej dostępu."
             />
           </CardContent>

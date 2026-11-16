@@ -1,6 +1,6 @@
 import * as React from "react"
-import { Link, useParams } from "react-router"
-import { HandCoins, Pencil, Plus, UsersRound } from "lucide-react"
+import { useNavigate, useParams } from "react-router"
+import { HandCoins, MoreHorizontal, Plus, UsersRound } from "lucide-react"
 import { AddInvoiceDialog } from "@/components/add-invoice-dialog"
 import { CloseFundraisingDialog } from "@/components/close-fundraising-dialog"
 import { DataState } from "@/components/data-state"
@@ -18,8 +18,16 @@ import { AppShell } from "@/components/layout/app-shell"
 import { PayDialog } from "@/components/pay-dialog"
 import type { PayPreselect } from "@/components/pay-dialog"
 import { ReplenishDialog } from "@/components/replenish-dialog"
+import { Section } from "@/components/section"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Toaster } from "@/components/ui/toast"
 import { useAsyncData } from "@/hooks/use-async-data"
@@ -47,6 +55,7 @@ function FundraisingDetailsContent({
   refreshToken: number
   onCompleted: () => void
 }) {
+  const navigate = useNavigate()
   const [activeDialog, setActiveDialog] = React.useState<ActiveDialog>(null)
   const [payPreselect, setPayPreselect] = React.useState<PayPreselect | undefined>(
     undefined
@@ -58,6 +67,7 @@ function FundraisingDetailsContent({
   const canManage =
     summary.isOwner && summary.status === "ACTIVE" && !summary.isBlocked
   const canReplenish = canManage && summary.withdrawnAmount > 0
+  const canAddInvoice = summary.isOwner && !summary.isBlocked
   const waitingStudents = students.filter((student) => !student.isPaid)
 
   function openPay(preselect?: PayPreselect) {
@@ -69,107 +79,117 @@ function FundraisingDetailsContent({
     return (open: boolean) => setActiveDialog(open ? dialog : null)
   }
 
-  const actions =
-    canPay || canManage ? (
-      <>
-        {canManage ? (
-          <>
-            <Button
-              variant="outline"
-              render={<Link to={`/dashboard/fundraisers/${summary.id}/edit`} />}
+  const menu =
+    canManage || canAddInvoice ? (
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="outline" />}>
+          <MoreHorizontal />
+          Więcej
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-56">
+          {canManage ? (
+            <DropdownMenuItem
+              onClick={() =>
+                navigate(`/dashboard/fundraisers/${summary.id}/edit`)
+              }
             >
-              <Pencil />
-              Edytuj
-            </Button>
-            <Button variant="outline" onClick={() => setActiveDialog("withdraw")}>
-              Wypłać środki
-            </Button>
-            <Button variant="outline" onClick={() => setActiveDialog("close")}>
-              Zamknij zbiórkę
-            </Button>
-          </>
-        ) : null}
-        {canPayForOthers ? (
-          <Button variant="outline" onClick={() => openPay("others")}>
-            <UsersRound />
-            Zapłać za inne dziecko
-          </Button>
-        ) : null}
-        {canPay ? <Button onClick={() => openPay()}>Zapłać</Button> : null}
-      </>
-    ) : undefined
+              Edytuj zbiórkę
+            </DropdownMenuItem>
+          ) : null}
+          {canAddInvoice ? (
+            <DropdownMenuItem onClick={() => setActiveDialog("invoice")}>
+              Dodaj fakturę
+            </DropdownMenuItem>
+          ) : null}
+          {canReplenish ? (
+            <DropdownMenuItem onClick={() => setActiveDialog("replenish")}>
+              Wpłać z powrotem po wypłacie
+            </DropdownMenuItem>
+          ) : null}
+          {canManage ? (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => setActiveDialog("close")}
+              >
+                Zamknij zbiórkę
+              </DropdownMenuItem>
+            </>
+          ) : null}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ) : null
+
+  const actions = (
+    <>
+      {menu}
+      {canManage ? (
+        <Button variant="outline" onClick={() => setActiveDialog("withdraw")}>
+          Wypłać środki
+        </Button>
+      ) : null}
+      {canPayForOthers ? (
+        <Button variant="outline" onClick={() => openPay("others")}>
+          <UsersRound />
+          Zapłać za inne dziecko
+        </Button>
+      ) : null}
+      {canPay ? <Button onClick={() => openPay()}>Zapłać</Button> : null}
+    </>
+  )
 
   return (
     <div className="flex flex-col gap-6">
       <FundraisingHeader summary={summary} actions={actions} />
       {summary.isOwner ? <FundraisingStats summary={summary} /> : null}
-      <div className="grid gap-4 lg:grid-cols-[2fr_1fr] lg:items-start">
-        <div className="flex flex-col gap-4">
+      <div className="grid gap-6 lg:grid-cols-[2fr_1fr] lg:items-start">
+        <div className="flex min-w-0 flex-col gap-6">
           <FundraisingMyChildrenCard
             students={students}
             amountPerChild={summary.amountPerChild}
             canPay={canPay}
             onPay={(childId) => openPay(childId)}
           />
-          {summary.isOwner ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Kto, za kogo, kiedy</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue="payments">
-                  <TabsList>
-                    <TabsTrigger value="payments">Wpłaty</TabsTrigger>
-                    <TabsTrigger value="withdrawals">Wypłaty i zwroty</TabsTrigger>
-                    <TabsTrigger value="invoices">Faktury</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="payments" className="pt-4">
-                    <FundraisingPaymentsTab
-                      key={refreshToken}
-                      fundraisingId={summary.id}
-                      amountPerChild={summary.amountPerChild}
-                      waitingStudents={waitingStudents}
-                    />
-                  </TabsContent>
-                  <TabsContent value="withdrawals" className="pt-4">
-                    <FundraisingWithdrawalsTab
-                      key={refreshToken}
-                      fundraisingId={summary.id}
-                    />
-                  </TabsContent>
-                  <TabsContent value="invoices" className="pt-4">
-                    <FundraisingInvoicesTab
-                      key={refreshToken}
-                      fundraisingId={summary.id}
-                      onAdd={
-                        summary.isBlocked
-                          ? undefined
-                          : () => setActiveDialog("invoice")
-                      }
-                    />
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Kto, za kogo, kiedy · podgląd</CardTitle>
-              </CardHeader>
-              <CardContent>
+          <Section
+            title="Historia zbiórki"
+            description="Kto, za kogo i kiedy wpłacił, co zostało wypłacone i na co."
+          >
+            <Tabs defaultValue="payments">
+              <TabsList>
+                <TabsTrigger value="payments" className="cursor-pointer">Wpłaty</TabsTrigger>
+                <TabsTrigger value="withdrawals" className="cursor-pointer">Wypłaty i zwroty</TabsTrigger>
+                <TabsTrigger value="invoices" className="cursor-pointer">Faktury</TabsTrigger>
+              </TabsList>
+              <TabsContent value="payments" className="pt-4">
                 <FundraisingPaymentsTab
                   key={refreshToken}
                   fundraisingId={summary.id}
                   amountPerChild={summary.amountPerChild}
                   waitingStudents={waitingStudents}
                 />
-              </CardContent>
-            </Card>
-          )}
+              </TabsContent>
+              <TabsContent value="withdrawals" className="pt-4">
+                <FundraisingWithdrawalsTab
+                  key={refreshToken}
+                  fundraisingId={summary.id}
+                />
+              </TabsContent>
+              <TabsContent value="invoices" className="pt-4">
+                <FundraisingInvoicesTab
+                  key={refreshToken}
+                  fundraisingId={summary.id}
+                  onAdd={
+                    canAddInvoice ? () => setActiveDialog("invoice") : undefined
+                  }
+                />
+              </TabsContent>
+            </Tabs>
+          </Section>
         </div>
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-6">
           <FundraisingProgressCard
-            title={summary.isOwner ? "Postęp" : "Postęp klasy"}
+            title="Postęp klasy"
             paidChildren={summary.paidChildren}
             totalChildren={summary.totalChildren}
             action={
@@ -184,34 +204,7 @@ function FundraisingDetailsContent({
               ) : undefined
             }
           />
-          {summary.isOwner ? (
-            <FundraisingAccountCard wallet={wallet} />
-          ) : (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Wypłaty i zwroty</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <FundraisingWithdrawalsTab
-                    key={refreshToken}
-                    fundraisingId={summary.id}
-                  />
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Faktury</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <FundraisingInvoicesTab
-                    key={refreshToken}
-                    fundraisingId={summary.id}
-                  />
-                </CardContent>
-              </Card>
-            </>
-          )}
+          {summary.isOwner ? <FundraisingAccountCard wallet={wallet} /> : null}
         </div>
       </div>
       <PayDialog
@@ -305,7 +298,7 @@ function FundraisingDetailsPage() {
           <CardContent>
             <EmptyState
               icon={<HandCoins />}
-              title="Nie znaleziono zbiórki"
+              title="Nie ma takiej zbiórki"
               description="Zbiórka nie istnieje albo nie masz do niej dostępu."
             />
           </CardContent>

@@ -1,9 +1,9 @@
 import * as React from "react"
 import { Check } from "lucide-react"
 import { FileUpload } from "@/components/file-upload"
-import { MoneyAmount } from "@/components/money-amount"
+import { PageHeader } from "@/components/page-header"
+import { Section } from "@/components/section"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
@@ -20,6 +20,7 @@ import type {
   FundraisingFieldErrors,
   FundraisingInput,
 } from "@/lib/fundraising-management"
+import { formatMoney } from "@/lib/money"
 
 const FORM_ID = "fundraising-form"
 const MAX_NAME_LENGTH = 50
@@ -41,7 +42,8 @@ function todayIso(): string {
 
 function FundraisingForm({
   title,
-  subtitleSuffix,
+  description,
+  backTo,
   submitLabel,
   classes,
   lockClass = false,
@@ -51,7 +53,8 @@ function FundraisingForm({
   onCancel,
 }: {
   title: string
-  subtitleSuffix: string
+  description: string
+  backTo: string
   submitLabel: string
   classes: ClassSummary[]
   lockClass?: boolean
@@ -66,9 +69,7 @@ function FundraisingForm({
     String(initial?.classId ?? classes[0]?.id ?? "")
   )
   const [name, setName] = React.useState(initial?.name ?? "")
-  const [description, setDescription] = React.useState(
-    initial?.description ?? ""
-  )
+  const [text, setText] = React.useState(initial?.description ?? "")
   const [endDate, setEndDate] = React.useState(initial?.endDate ?? "")
   const [amount, setAmount] = React.useState(
     initial != null ? formatAmountInput(initial.amount) : ""
@@ -80,6 +81,7 @@ function FundraisingForm({
   const selectedClass = classes.find((item) => String(item.id) === classId)
   const parsedAmount = parseAmount(amount)
   const childrenCount = selectedClass?.childrenCount ?? 0
+  const showClassSelect = !lockClass && classes.length > 1
   const classItems = classes.map((item) => ({
     value: String(item.id),
     label: `${item.name} · ${item.school}`,
@@ -92,22 +94,22 @@ function FundraisingForm({
       nextErrors.classId = "Wybierz klasę."
     }
     if (name.trim() === "") {
-      nextErrors.name = "Podaj cel zbiórki."
+      nextErrors.name = "Wpisz, na co zbieracie."
     } else if (name.trim().length > MAX_NAME_LENGTH) {
       nextErrors.name = "Cel może mieć maks. 50 znaków."
     }
-    if (description.trim() === "") {
-      nextErrors.description = "Dodaj krótki opis."
-    } else if (description.trim().length > MAX_DESCRIPTION_LENGTH) {
+    if (text.trim() === "") {
+      nextErrors.description = "Dodaj kilka słów o zbiórce."
+    } else if (text.trim().length > MAX_DESCRIPTION_LENGTH) {
       nextErrors.description = "Opis może mieć maks. 500 znaków."
     }
     if (endDate === "") {
-      nextErrors.endDate = "Podaj datę końca."
+      nextErrors.endDate = "Wybierz datę końca."
     } else if (endDate <= todayIso()) {
       nextErrors.endDate = "Data końca musi być w przyszłości."
     }
     if (parsedAmount == null) {
-      nextErrors.amount = "Podaj poprawną kwotę, np. 45,00."
+      nextErrors.amount = "Podaj kwotę, np. 45,00."
     } else if (parsedAmount > MAX_AMOUNT) {
       nextErrors.amount = "Maksymalna kwota to 10 000,00 zł."
     }
@@ -140,7 +142,7 @@ function FundraisingForm({
     const serverErrors = await onSubmit({
       classId: selectedClass.id,
       name,
-      description,
+      description: text,
       endDate,
       amount: parsedAmount,
       logo,
@@ -153,34 +155,32 @@ function FundraisingForm({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold">{title}</h1>
-          {selectedClass != null ? (
-            <p className="text-sm text-muted-foreground">
-              Klasa {selectedClass.name} · {subtitleSuffix}
-            </p>
-          ) : null}
-        </div>
-        <div className="flex gap-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Anuluj
-          </Button>
-          <Button type="submit" form={FORM_ID} loading={isSubmitting}>
-            <Check />
-            {submitLabel}
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        backTo={backTo}
+        backLabel="Zbiórki"
+        title={title}
+        description={description}
+        actions={
+          <>
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Anuluj
+            </Button>
+            <Button type="submit" form={FORM_ID} loading={isSubmitting}>
+              <Check />
+              {submitLabel}
+            </Button>
+          </>
+        }
+      />
       <form
         id={FORM_ID}
         onSubmit={handleSubmit}
         noValidate
-        className="grid gap-4 lg:grid-cols-[2fr_1fr] lg:items-start"
+        className="grid gap-6 lg:grid-cols-[3fr_2fr] lg:items-start"
       >
-        <Card>
-          <CardContent className="flex flex-col gap-5">
-            {!lockClass && classes.length > 1 ? (
+        <Section title="O zbiórce">
+          <div className="flex flex-col gap-5">
+            {showClassSelect ? (
               <Field data-invalid={errors.classId != null}>
                 <FieldLabel htmlFor="fundraising-class">Klasa</FieldLabel>
                 <Select
@@ -207,6 +207,10 @@ function FundraisingForm({
                   <FieldError>{errors.classId}</FieldError>
                 ) : null}
               </Field>
+            ) : selectedClass != null ? (
+              <p className="text-sm text-muted-foreground">
+                Klasa {selectedClass.name} · {selectedClass.school}
+              </p>
             ) : null}
             <Field data-invalid={errors.name != null}>
               <FieldLabel htmlFor="fundraising-name">Cel zbiórki</FieldLabel>
@@ -228,8 +232,9 @@ function FundraisingForm({
               <Textarea
                 id="fundraising-description"
                 rows={4}
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
+                placeholder="Na co pójdą pieniądze i kiedy będą potrzebne?"
+                value={text}
+                onChange={(event) => setText(event.target.value)}
                 aria-invalid={errors.description != null}
               />
               {errors.description != null ? (
@@ -237,7 +242,9 @@ function FundraisingForm({
               ) : null}
             </Field>
             <Field data-invalid={errors.endDate != null}>
-              <FieldLabel htmlFor="fundraising-end-date">Data końca</FieldLabel>
+              <FieldLabel htmlFor="fundraising-end-date">
+                Wpłaty do
+              </FieldLabel>
               <Input
                 id="fundraising-end-date"
                 type="date"
@@ -250,7 +257,7 @@ function FundraisingForm({
               ) : null}
             </Field>
             <Field data-invalid={errors.logo != null}>
-              <FieldLabel>Logo</FieldLabel>
+              <FieldLabel>Logo (opcjonalnie)</FieldLabel>
               {logoSlot}
               <FileUpload
                 multiple={false}
@@ -260,13 +267,13 @@ function FundraisingForm({
               />
               {errors.logo != null ? <FieldError>{errors.logo}</FieldError> : null}
             </Field>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Płatność</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
+          </div>
+        </Section>
+        <Section
+          title="Wpłata"
+          description="Każde dziecko wpłaca tyle samo. Zbiórka nie ma celu finansowego i dostaje własny numer rachunku."
+        >
+          <div className="flex flex-col gap-5">
             <Field data-invalid={errors.amount != null}>
               <FieldLabel htmlFor="fundraising-amount">
                 Kwota od dziecka (zł)
@@ -285,30 +292,24 @@ function FundraisingForm({
                 <FieldError>{errors.amount}</FieldError>
               ) : null}
             </Field>
-            <p className="text-sm text-muted-foreground">
-              Każde dziecko wpłaca tę samą kwotę. Zbiórka nie ma celu
-              finansowego. Dostanie własny rachunek (IBAN).
-            </p>
-            <dl className="flex flex-col gap-2 text-sm">
+            <dl className="flex flex-col gap-2 rounded-lg bg-muted p-3 text-sm">
               <div className="flex items-center justify-between gap-2">
                 <dt className="text-muted-foreground">Dzieci w klasie</dt>
-                <dd className="font-semibold">{childrenCount}</dd>
+                <dd className="font-medium tabular-nums">{childrenCount}</dd>
               </div>
               <div className="flex items-center justify-between gap-2">
-                <dt className="text-muted-foreground">Zbierana kwota</dt>
-                <dd>
-                  {parsedAmount != null ? (
-                    <MoneyAmount
-                      amount={Math.round(parsedAmount * childrenCount * 100) / 100}
-                    />
-                  ) : (
-                    <span className="font-semibold">kwota × {childrenCount}</span>
-                  )}
+                <dt className="text-muted-foreground">Przy komplecie wpłat</dt>
+                <dd className="font-medium tabular-nums">
+                  {parsedAmount != null
+                    ? formatMoney(
+                        Math.round(parsedAmount * childrenCount * 100) / 100
+                      )
+                    : `kwota × ${childrenCount}`}
                 </dd>
               </div>
             </dl>
-          </CardContent>
-        </Card>
+          </div>
+        </Section>
       </form>
     </div>
   )

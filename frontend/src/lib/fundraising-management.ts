@@ -1,5 +1,6 @@
 import { ApiError } from "@/lib/api-client"
 import { authorizedBlob, authorizedRequest } from "@/lib/authorized-client"
+import { cropToSquare } from "@/lib/crop-image"
 import type { FundraisingListItem } from "@/lib/fundraising"
 
 export type FundraisingInput = {
@@ -55,9 +56,17 @@ function getFundraisingLogo(fundraisingId: number): Promise<Blob> {
   return authorizedBlob(`/fundraisings/${fundraisingId}/logo`)
 }
 
-function uploadFundraisingLogo(fundraisingId: number, file: File): Promise<void> {
+async function squareOrOriginal(file: File): Promise<File> {
+  try {
+    return await cropToSquare(file)
+  } catch {
+    return file
+  }
+}
+
+async function uploadFundraisingLogo(fundraisingId: number, file: File): Promise<void> {
   const body = new FormData()
-  body.append("file", file)
+  body.append("file", await squareOrOriginal(file))
 
   return authorizedRequest<void>(`/fundraisings/${fundraisingId}/logo`, {
     method: "PUT",
