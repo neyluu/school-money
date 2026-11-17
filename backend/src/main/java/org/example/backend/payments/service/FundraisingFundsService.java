@@ -94,6 +94,12 @@ public class FundraisingFundsService
         return getTransfers(fundraisingId, userId, TransactionType.REPLENISHMENT, page, size);
     }
 
+    @Transactional(readOnly = true)
+    public List<FundraisingTransferResponse> getRefunds(Integer fundraisingId, Integer userId, int page, int size)
+    {
+        return getTransfers(fundraisingId, userId, TransactionType.REFUND, page, size);
+    }
+
     private List<FundraisingTransferResponse> getTransfers(
         Integer fundraisingId,
         Integer userId,

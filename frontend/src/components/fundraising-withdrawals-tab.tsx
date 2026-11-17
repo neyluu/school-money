@@ -7,11 +7,13 @@ import { Badge } from "@/components/ui/badge"
 import { useAsyncData } from "@/hooks/use-async-data"
 import {
   getFundraisingReplenishments,
+  getFundraisingRefunds,
   getFundraisingWithdrawals,
 } from "@/lib/fundraising"
 import type { FundraisingTransfer } from "@/lib/fundraising"
 
 const REPLENISHMENT_LABEL = "Zwrot środków na zbiórkę"
+const REFUND_BADGE = "Zwrot wpłat"
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", {
   day: "numeric",
@@ -28,11 +30,12 @@ function byNewest(a: FundraisingTransfer, b: FundraisingTransfer): number {
 function FundraisingWithdrawalsTab({ fundraisingId }: { fundraisingId: number }) {
   const load = React.useCallback(
     async () => {
-      const [withdrawals, replenishments] = await Promise.all([
+      const [withdrawals, replenishments, refunds] = await Promise.all([
         getFundraisingWithdrawals(fundraisingId),
         getFundraisingReplenishments(fundraisingId),
+        getFundraisingRefunds(fundraisingId),
       ])
-      return [...withdrawals, ...replenishments].sort(byNewest)
+      return [...withdrawals, ...replenishments, ...refunds].sort(byNewest)
     },
     [fundraisingId]
   )
@@ -48,7 +51,7 @@ function FundraisingWithdrawalsTab({ fundraisingId }: { fundraisingId: number })
         <EmptyState
           icon={<HandCoins />}
           title="Brak wypłat i zwrotów"
-          description="Wypłaty ze zbiórki i zwroty wypłaconych środków pojawią się tutaj."
+          description="Wypłaty ze zbiórki, zwroty wypłaconych środków i zwroty wpłat rodzicom pojawią się tutaj."
         />
       }
     >
@@ -64,6 +67,7 @@ function FundraisingWithdrawalsTab({ fundraisingId }: { fundraisingId: number })
           <tbody>
             {data?.map((transfer) => {
               const isReplenishment = transfer.type === "REPLENISHMENT"
+              const isRefund = transfer.type === "REFUND"
               return (
                 <tr
                   key={`${transfer.type}-${transfer.id}`}
@@ -79,6 +83,9 @@ function FundraisingWithdrawalsTab({ fundraisingId }: { fundraisingId: number })
                     <div className="flex items-center justify-end gap-2">
                       {isReplenishment ? (
                         <Badge variant="success">Zwrot</Badge>
+                      ) : null}
+                      {isRefund ? (
+                        <Badge variant="neutral">{REFUND_BADGE}</Badge>
                       ) : null}
                       <MoneyAmount
                         amount={isReplenishment ? transfer.amount : -transfer.amount}

@@ -69,7 +69,7 @@ export type Contribution = {
 
 export type FundraisingTransfer = {
   id: number
-  type: "PAYOUT" | "REPLENISHMENT"
+  type: "PAYOUT" | "REPLENISHMENT" | "REFUND"
   amount: number
   title: string
   createdAt: string
@@ -143,6 +143,16 @@ function getFundraisingReplenishments(
   )
 }
 
+function getFundraisingRefunds(
+  fundraisingId: number,
+  page = 0,
+  size = DEFAULT_PAGE_SIZE
+): Promise<FundraisingTransfer[]> {
+  return authorizedRequest<FundraisingTransfer[]>(
+    `/payments/fundraisings/${fundraisingId}/refunds?page=${page}&size=${size}`
+  )
+}
+
 function getFundraisingInvoices(fundraisingId: number): Promise<FundraisingInvoice[]> {
   return authorizedRequest<FundraisingInvoice[]>(
     `/payments/fundraisings/${fundraisingId}/invoices`
@@ -200,6 +210,7 @@ export {
   getFundraisingContributions,
   getFundraisingInvoices,
   getFundraisingReplenishments,
+  getFundraisingRefunds,
   getFundraisings,
   getFundraisingSummary,
   getFundraisingWallet,
