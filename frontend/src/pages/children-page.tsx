@@ -5,6 +5,7 @@ import {
   ImagePlus,
   MoreHorizontal,
   Pencil,
+  Trash2,
   UserMinus,
   UserRound,
 } from "lucide-react";
@@ -73,6 +74,7 @@ function ChildrenPage() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [editingId, setEditingId] = React.useState<number | null>(null);
   const [deletingId, setDeletingId] = React.useState<number | null>(null);
+  const [leavingId, setLeavingId] = React.useState<number | null>(null);
   const [avatarEditingId, setAvatarEditingId] = React.useState<number | null>(
     null,
   );
@@ -177,58 +179,71 @@ function ChildrenPage() {
                     </div>
 
                     <div className="ml-auto flex items-center gap-2">
-                      {info != null && isActive ? (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger
-                            render={
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                aria-label={`Akcje: ${child.firstname} ${child.lastname}`}
-                              />
-                            }
+                      {!isActive ? (
+                        <JoinClassDialog child={child} onChanged={loadData} />
+                      ) : null}
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          render={
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label={`Akcje: ${child.firstname} ${child.lastname}`}
+                            />
+                          }
+                        >
+                          <MoreHorizontal />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="min-w-44">
+                          <DropdownMenuItem
+                            onClick={() => setEditingId(child.id)}
+                            className="cursor-pointer"
                           >
-                            <MoreHorizontal />
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="min-w-44">
-                            <DropdownMenuItem
-                              onClick={() => setEditingId(child.id)}
-                              className="cursor-pointer"
-                            >
-                              <Pencil />
-                              Edytuj dane
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => setAvatarEditingId(child.id)}
-                              className="cursor-pointer"
-                            >
-                              <ImagePlus />
-                              Zmień zdjęcie
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            {child.avatarId != null ? (
-                              <DropdownMenuItem
-                                variant="destructive"
-                                onClick={() => setAvatarDeletingId(child.id)}
-                                className="cursor-pointer"
-                              >
-                                <ImageMinus />
-                                Usuń zdjęcie
-                              </DropdownMenuItem>
-                            ) : null}
+                            <Pencil />
+                            Edytuj dane
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => setAvatarEditingId(child.id)}
+                            className="cursor-pointer"
+                          >
+                            <ImagePlus />
+                            Zmień zdjęcie
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {child.avatarId != null ? (
                             <DropdownMenuItem
                               variant="destructive"
-                              onClick={() => setDeletingId(child.id)}
+                              onClick={() => setAvatarDeletingId(child.id)}
+                              className="cursor-pointer"
+                            >
+                              <ImageMinus />
+                              Usuń zdjęcie
+                            </DropdownMenuItem>
+                          ) : null}
+                          {info != null && isActive ? (
+                            <DropdownMenuItem
+                              variant="destructive"
+                              onClick={() => setLeavingId(child.id)}
                               className="cursor-pointer"
                             >
                               <UserMinus />
-                              Usuń z klasy
+                              {info.status === "PENDING"
+                                ? "Wycofaj prośbę"
+                                : "Usuń z klasy"}
                             </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      ) : (
-                        <JoinClassDialog child={child} onChanged={loadData} />
-                      )}
+                          ) : null}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => setDeletingId(child.id)}
+                            className="cursor-pointer"
+                          >
+                            <Trash2 />
+                            Usuń dziecko
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
 
                       <EditChildDialog
                         child={child}
@@ -254,6 +269,17 @@ function ChildrenPage() {
                         }
                         onChanged={loadData}
                       />
+                      {info != null ? (
+                        <LeaveClassDialog
+                          child={child}
+                          info={info}
+                          open={leavingId === child.id}
+                          onOpenChange={(next) =>
+                            setLeavingId(next ? child.id : null)
+                          }
+                          onChanged={loadData}
+                        />
+                      ) : null}
                       <DeleteChildDialog
                         child={child}
                         open={deletingId === child.id}
