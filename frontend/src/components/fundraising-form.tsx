@@ -153,6 +153,30 @@ function FundraisingForm({
     }
   }
 
+  function FormActions({
+    submitLabel,
+    isSubmitting,
+    onCancel,
+    className,
+  }: {
+    submitLabel: string;
+    isSubmitting: boolean;
+    onCancel: () => void;
+    className?: string;
+  }) {
+    return (
+      <div className={className}>
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Anuluj
+        </Button>
+        <Button type="submit" form={FORM_ID} loading={isSubmitting}>
+          <Check />
+          {submitLabel}
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
@@ -161,15 +185,12 @@ function FundraisingForm({
         title={title}
         description={description}
         actions={
-          <>
-            <Button type="button" variant="outline" onClick={onCancel}>
-              Anuluj
-            </Button>
-            <Button type="submit" form={FORM_ID} loading={isSubmitting}>
-              <Check />
-              {submitLabel}
-            </Button>
-          </>
+          <FormActions
+            className="hidden items-center gap-2 md:flex"
+            submitLabel={submitLabel}
+            isSubmitting={isSubmitting}
+            onCancel={onCancel}
+          />
         }
       />
       <form
@@ -223,7 +244,9 @@ function FundraisingForm({
                 onChange={(event) => setName(event.target.value)}
                 aria-invalid={errors.name != null}
               />
-              {errors.name != null ? <FieldError>{errors.name}</FieldError> : null}
+              {errors.name != null ? (
+                <FieldError>{errors.name}</FieldError>
+              ) : null}
             </Field>
             <Field data-invalid={errors.description != null}>
               <FieldLabel htmlFor="fundraising-description">
@@ -242,9 +265,7 @@ function FundraisingForm({
               ) : null}
             </Field>
             <Field data-invalid={errors.endDate != null}>
-              <FieldLabel htmlFor="fundraising-end-date">
-                Wpłaty do
-              </FieldLabel>
+              <FieldLabel htmlFor="fundraising-end-date">Wpłaty do</FieldLabel>
               <Input
                 id="fundraising-end-date"
                 type="date"
@@ -265,7 +286,9 @@ function FundraisingForm({
                 description="PNG lub JPEG, maks. 25 MB"
                 onFilesChange={(files) => setLogo(files[0] ?? null)}
               />
-              {errors.logo != null ? <FieldError>{errors.logo}</FieldError> : null}
+              {errors.logo != null ? (
+                <FieldError>{errors.logo}</FieldError>
+              ) : null}
             </Field>
           </div>
         </Section>
@@ -302,7 +325,7 @@ function FundraisingForm({
                 <dd className="font-medium tabular-nums">
                   {parsedAmount != null
                     ? formatMoney(
-                        Math.round(parsedAmount * childrenCount * 100) / 100
+                        Math.round(parsedAmount * childrenCount * 100) / 100,
                       )
                     : `kwota × ${childrenCount}`}
                 </dd>
@@ -311,8 +334,14 @@ function FundraisingForm({
           </div>
         </Section>
       </form>
+      <FormActions
+        className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end md:hidden"
+        submitLabel={submitLabel}
+        isSubmitting={isSubmitting}
+        onCancel={onCancel}
+      />
     </div>
-  )
+  );
 }
 
 export { FundraisingForm }
