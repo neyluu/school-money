@@ -189,6 +189,21 @@ public class PaymentsController
     }
 
 
+    @Operation(summary = "Get all fundraise refunds to payers, newest first")
+    @GetMapping("/fundraisings/{id}/refunds")
+    public ResponseEntity<List<FundraisingTransferResponse>> getAllFundraiseRefunds(
+        @PathVariable Integer id,
+        @AuthenticationPrincipal AuthenticatedUser user,
+        @Parameter(description = "Page number starting from 0")
+        @RequestParam(defaultValue = "0") int page,
+        @Parameter(description = "Page size, default 20, max 100")
+        @RequestParam(defaultValue = "20") int size
+    )
+    {
+        return ResponseEntity.ok(fundraisingFundsService.getRefunds(id, user.id(), page, size));
+    }
+
+
     @Operation(
         summary = "Pay on a fundraise",
         description = "Payer can pay for any accepted child of the class and can pay in parts, total paid for a child cannot exceed amount per child"
