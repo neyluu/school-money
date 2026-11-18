@@ -58,7 +58,7 @@ function ClassesPage() {
     .filter((item) => matchesFilter(item, filter));
 
   return (
-    <AppShell activeId="classes">
+    <AppShell activeId="class">
       <div className="flex flex-col gap-6">
         <PageHeader
           title="Klasy"

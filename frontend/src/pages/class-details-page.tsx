@@ -154,7 +154,7 @@ function ClassDetailsPage() {
     error instanceof ApiError && (error.status === 404 || error.status === 403);
 
   return (
-    <AppShell activeId="classes">
+    <AppShell activeId="class">
       {Number.isInteger(classId) && !isUnavailable ? (
         <DataState
           isLoading={isLoading && data == null}
