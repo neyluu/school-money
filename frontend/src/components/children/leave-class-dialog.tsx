@@ -1,5 +1,4 @@
 import * as React from "react";
-import { UserMinus } from "lucide-react";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -16,13 +15,16 @@ import type { ChildClassInfo } from "@/lib/classes";
 function LeaveClassDialog({
   child,
   info,
+  open,
+  onOpenChange,
   onChanged,
 }: {
   child: Child;
   info: ChildClassInfo;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onChanged: () => void;
 }) {
-  const [open, setOpen] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
 
   const childName = `${child.firstname} ${child.lastname}`;
@@ -33,7 +35,7 @@ function LeaveClassDialog({
     if (isSaving) {
       return;
     }
-    setOpen(nextOpen);
+    onOpenChange(nextOpen);
   }
 
   async function confirm() {
@@ -48,7 +50,7 @@ function LeaveClassDialog({
         type: "success",
       });
       onChanged();
-      setOpen(false);
+      onOpenChange(false);
     } catch {
       toast.add({
         title: "Nie udało się usunąć dziecka z klasy. Spróbuj ponownie.",
@@ -60,51 +62,40 @@ function LeaveClassDialog({
   }
 
   return (
-    <>
-      <Button
-        variant="outline"
-        onClick={() => setOpen(true)}
-        aria-label={`${actionLabel}: ${childName}`}
-        className="text-danger hover:text-danger"
-      >
-        <UserMinus data-icon="inline-start" />
-        <span className="hidden sm:inline">{actionLabel}</span>
-      </Button>
-      <ResponsiveDialog open={open} onOpenChange={handleOpenChange}>
-        <ResponsiveDialogContent className="sm:max-w-md">
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>
-              {isPending ? "Wycofać prośbę?" : "Usunąć dziecko z klasy?"}
-            </ResponsiveDialogTitle>
-            <ResponsiveDialogDescription>
-              {childName} · {info.className}
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
+    <ResponsiveDialog open={open} onOpenChange={handleOpenChange}>
+      <ResponsiveDialogContent className="sm:max-w-md">
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>
+            {isPending ? "Wycofać prośbę?" : "Usunąć dziecko z klasy?"}
+          </ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
+            {childName} · {info.className}
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
 
-          <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center">
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              onClick={() => handleOpenChange(false)}
-              disabled={isSaving}
-              className="sm:ml-auto"
-            >
-              Anuluj
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              size="lg"
-              onClick={() => void confirm()}
-              disabled={isSaving}
-            >
-              {isSaving ? "Usuwanie…" : actionLabel}
-            </Button>
-          </div>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
-    </>
+        <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center">
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            onClick={() => handleOpenChange(false)}
+            disabled={isSaving}
+            className="sm:ml-auto"
+          >
+            Anuluj
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            size="lg"
+            onClick={() => void confirm()}
+            disabled={isSaving}
+          >
+            {isSaving ? "Usuwanie…" : actionLabel}
+          </Button>
+        </div>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }
 
