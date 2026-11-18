@@ -456,8 +456,7 @@ function PayDialog({
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>Wpłać na zbiórkę</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
-            {fundraisingName} · {formatMoney(amountPerChild)} od dziecka. Wpłatę
-            można podzielić: kilku rodziców może pokryć jedno dziecko.
+            {fundraisingName} · {formatMoney(amountPerChild)} od dziecka.
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
         <PayLoader
