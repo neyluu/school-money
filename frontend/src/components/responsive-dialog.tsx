@@ -98,7 +98,7 @@ function ResponsiveDialogContent({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className="absolute top-2 right-2"
+                className="absolute top-2 right-2 z-20"
               />
             }
           >
