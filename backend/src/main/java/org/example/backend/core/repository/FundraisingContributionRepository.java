@@ -1,8 +1,12 @@
 package org.example.backend.core.repository;
 
 import org.example.backend.core.entity.FundraisingContribution;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -11,7 +15,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public interface FundraisingContributionRepository extends JpaRepository<FundraisingContribution, Integer> {
+public interface FundraisingContributionRepository extends JpaRepository<FundraisingContribution, Integer>, JpaSpecificationExecutor<FundraisingContribution> {
     @Query("""
         SELECT c FROM FundraisingContribution c
         JOIN FETCH c.payer
@@ -26,19 +30,9 @@ public interface FundraisingContributionRepository extends JpaRepository<Fundrai
         Pageable pageable
     );
 
-    @Query("""
-        SELECT c FROM FundraisingContribution c
-        JOIN FETCH c.fundraising
-        JOIN FETCH c.child
-        JOIN FETCH c.transaction
-        LEFT JOIN FETCH c.refundTransaction
-        WHERE c.payer.id = :payerId
-        ORDER BY c.id DESC
-        """)
-    List<FundraisingContribution> findAllByPayerId(
-        @Param("payerId") Integer payerId,
-        Pageable pageable
-    );
+    @Override
+    @EntityGraph(attributePaths = {"fundraising", "child", "transaction", "refundTransaction"})
+    Page<FundraisingContribution> findAll(Specification<FundraisingContribution> specification, Pageable pageable);
 
     @Query("""
         SELECT c FROM FundraisingContribution c

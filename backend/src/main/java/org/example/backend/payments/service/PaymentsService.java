@@ -7,14 +7,19 @@ import org.example.backend.core.entity.types.TransactionStatus;
 import org.example.backend.core.repository.FundraisingContributionRepository;
 import org.example.backend.core.repository.TransactionRepository;
 import org.example.backend.core.repository.WalletRepository;
+import org.example.backend.payments.dto.request.ContributionFilter;
 import org.example.backend.payments.dto.request.DepositRequest;
+import org.example.backend.payments.dto.request.HistorySearchRequest;
+import org.example.backend.payments.dto.request.TransactionFilter;
 import org.example.backend.payments.dto.request.WithdrawRequest;
 import org.example.backend.payments.dto.response.DailyFlowResponse;
 import org.example.backend.payments.dto.response.TransactionResponse;
 import org.example.backend.payments.dto.response.WalletContributionResponse;
 import org.example.backend.payments.dto.response.WalletResponse;
 import org.example.backend.payments.dto.response.WalletSummaryResponse;
+import org.example.backend.payments.utils.HistorySpecifications;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,12 +83,12 @@ public class PaymentsService
     }
 
     @Transactional(readOnly = true)
-    public List<TransactionResponse> getTransactions(Integer userId, int page, int size)
+    public List<TransactionResponse> getTransactions(Integer userId, TransactionFilter filter, HistorySearchRequest search, int page, int size)
     {
+        validateRanges(search);
         Integer walletId = findUserWalletId(userId);
-        PageRequest pageRequest = PageRequest.of(Math.max(page, 0), Math.clamp(size, 1, MAX_PAGE_SIZE));
 
-        return transactionRepository.findAllByWalletId(walletId, pageRequest).stream()
+        return transactionRepository.findAll(HistorySpecifications.transactions(walletId, filter, search), newestFirst(page, size)).stream()
                 .map(transaction -> TransactionResponse.from(transaction, walletId))
                 .toList();
     }
@@ -125,13 +130,30 @@ public class PaymentsService
     }
 
     @Transactional(readOnly = true)
-    public List<WalletContributionResponse> getContributions(Integer userId, int page, int size)
+    public List<WalletContributionResponse> getContributions(Integer userId, ContributionFilter filter, HistorySearchRequest search, int page, int size)
     {
-        PageRequest pageRequest = PageRequest.of(Math.max(page, 0), Math.clamp(size, 1, MAX_PAGE_SIZE));
+        validateRanges(search);
 
-        return contributionRepository.findAllByPayerId(userId, pageRequest).stream()
+        return contributionRepository.findAll(HistorySpecifications.contributions(userId, filter, search), newestFirst(page, size)).stream()
                 .map(WalletContributionResponse::from)
                 .toList();
+    }
+
+    private PageRequest newestFirst(int page, int size)
+    {
+        return PageRequest.of(Math.max(page, 0), Math.clamp(size, 1, MAX_PAGE_SIZE), Sort.by(Sort.Direction.DESC, "id"));
+    }
+
+    private void validateRanges(HistorySearchRequest search)
+    {
+        if(search.from() != null && search.to() != null && !search.from().isBefore(search.to()))
+        {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Start of period must be before its end");
+        }
+        if(search.minAmount() != null && search.maxAmount() != null && search.minAmount().compareTo(search.maxAmount()) > 0)
+        {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Minimal amount cannot be greater than maximal amount");
+        }
     }
 
     private BigDecimal sum(Map<LocalDate, BigDecimal> amountsByDay)
