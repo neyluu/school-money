@@ -1,6 +1,7 @@
 import * as React from "react"
 import { useNavigate } from "react-router"
 import { DataState } from "@/components/data-state"
+import { MaskedInput } from "@/components/masked-input"
 import { MoneyAmount } from "@/components/money-amount"
 import {
   ResponsiveDialog,
@@ -11,13 +12,14 @@ import {
 } from "@/components/responsive-dialog"
 import { Button } from "@/components/ui/button"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
 import { toast } from "@/components/ui/toast"
 import { useAsyncData } from "@/hooks/use-async-data"
 import { formatAmountInput, parseAmount } from "@/lib/amount"
 import { ApiError } from "@/lib/api-client"
 import { describeError } from "@/lib/error-messages"
 import { replenishFundraising } from "@/lib/fundraising-closing"
+import { maskAmount } from "@/lib/input-rules"
+import { formatMoney } from "@/lib/money"
 import { getWallet } from "@/lib/wallet"
 
 function ReplenishForm({
@@ -34,11 +36,21 @@ function ReplenishForm({
   onCompleted: () => void
 }) {
   const navigate = useNavigate()
-  const [amount, setAmount] = React.useState(formatAmountInput(outstanding))
+  const [amount, setAmount] = React.useState(
+    formatAmountInput(Math.min(outstanding, balance))
+  )
   const [error, setError] = React.useState<string | undefined>()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   const parsedAmount = parseAmount(amount)
+  const maxAmount = Math.min(outstanding, balance)
+  let amountError = error
+  if (maxAmount <= 0) {
+    amountError = "Brak środków, które możesz wpłacić z powrotem."
+  } else if (parsedAmount != null && parsedAmount > maxAmount) {
+    amountError = `Możesz wpłacić najwyżej ${formatMoney(maxAmount)}.`
+  }
+  const canSubmit = parsedAmount != null && parsedAmount <= maxAmount
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -102,18 +114,23 @@ function ReplenishForm({
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-      <Field data-invalid={error != null}>
+      <Field data-invalid={amountError != null}>
         <FieldLabel htmlFor="replenish-amount">Kwota (zł)</FieldLabel>
-        <Input
+        <MaskedInput
           id="replenish-amount"
           type="text"
           inputMode="decimal"
           autoComplete="off"
           value={amount}
-          onChange={(event) => setAmount(event.target.value)}
-          aria-invalid={error != null}
+          disabled={maxAmount <= 0}
+          mask={maskAmount}
+          onValueChange={(value) => {
+            setAmount(value)
+            setError(undefined)
+          }}
+          aria-invalid={amountError != null}
         />
-        {error != null ? <FieldError>{error}</FieldError> : null}
+        {amountError != null ? <FieldError>{amountError}</FieldError> : null}
       </Field>
       <dl className="flex flex-col gap-2 rounded-lg bg-muted p-3 text-sm">
         <div className="flex items-center justify-between gap-2">
@@ -139,7 +156,7 @@ function ReplenishForm({
         <Button type="button" variant="outline" onClick={onClose}>
           Anuluj
         </Button>
-        <Button type="submit" loading={isSubmitting}>
+        <Button type="submit" loading={isSubmitting} disabled={!canSubmit}>
           Wpłać z powrotem
         </Button>
       </div>

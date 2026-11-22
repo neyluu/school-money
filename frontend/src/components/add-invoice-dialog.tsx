@@ -105,8 +105,12 @@ function AddInvoiceForm({
           type="text"
           autoComplete="off"
           placeholder="Faktura – bilety"
+          maxLength={MAX_TITLE_LENGTH}
           value={title}
-          onChange={(event) => setTitle(event.target.value)}
+          onChange={(event) => {
+            setTitle(event.target.value)
+            setErrors((current) => ({ ...current, title: undefined }))
+          }}
           aria-invalid={errors.title != null}
         />
         {errors.title != null ? <FieldError>{errors.title}</FieldError> : null}
@@ -117,7 +121,11 @@ function AddInvoiceForm({
           multiple={false}
           accept={ALLOWED_FILE_TYPES.join(",")}
           description="PNG, JPEG lub PDF, maks. 25 MB"
-          onFilesChange={(files) => setFile(files[0] ?? null)}
+          maxBytes={MAX_FILE_BYTES}
+          onFilesChange={(files) => {
+            setFile(files[0] ?? null)
+            setErrors((current) => ({ ...current, file: undefined }))
+          }}
         />
         {errors.file != null ? <FieldError>{errors.file}</FieldError> : null}
       </Field>
@@ -125,7 +133,7 @@ function AddInvoiceForm({
         <Button type="button" variant="outline" onClick={onClose}>
           Anuluj
         </Button>
-        <Button type="submit" loading={isSubmitting}>
+        <Button type="submit" loading={isSubmitting} disabled={file == null}>
           Dodaj fakturę
         </Button>
       </div>

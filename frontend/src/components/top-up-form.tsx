@@ -1,12 +1,13 @@
 import * as React from "react"
 import { useNavigate } from "react-router"
+import { MaskedInput } from "@/components/masked-input"
 import { Button } from "@/components/ui/button"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
 import { toast } from "@/components/ui/toast"
 import { ApiError } from "@/lib/api-client"
 import { parseAmount } from "@/lib/amount"
 import { describeError } from "@/lib/error-messages"
+import { maskAmount } from "@/lib/input-rules"
 import { deposit } from "@/lib/wallet"
 
 const MAX_DEPOSIT = 1000000
@@ -22,6 +23,14 @@ function TopUpForm({
   const [amount, setAmount] = React.useState("")
   const [error, setError] = React.useState<string | undefined>()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  const parsedAmount = parseAmount(amount)
+  const limitError =
+    parsedAmount != null && parsedAmount > MAX_DEPOSIT
+      ? "Maksymalna kwota doładowania to 1 000 000,00 zł."
+      : undefined
+  const shownError = limitError ?? error
+  const canSubmit = parsedAmount != null && limitError == null
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -69,19 +78,23 @@ function TopUpForm({
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-      <Field data-invalid={error != null}>
+      <Field data-invalid={shownError != null}>
         <FieldLabel htmlFor="top-up-amount">Kwota</FieldLabel>
-        <Input
+        <MaskedInput
           id="top-up-amount"
           type="text"
           inputMode="decimal"
           autoComplete="off"
           placeholder="0,00 zł"
           value={amount}
-          onChange={(event) => setAmount(event.target.value)}
-          aria-invalid={error != null}
+          mask={maskAmount}
+          onValueChange={(value) => {
+            setAmount(value)
+            setError(undefined)
+          }}
+          aria-invalid={shownError != null}
         />
-        {error != null ? <FieldError>{error}</FieldError> : null}
+        {shownError != null ? <FieldError>{shownError}</FieldError> : null}
       </Field>
       <div className="flex justify-end gap-2">
         {onCancel != null ? (
@@ -89,7 +102,12 @@ function TopUpForm({
             Anuluj
           </Button>
         ) : null}
-        <Button type="submit" loading={isSubmitting} className="flex-1">
+        <Button
+          type="submit"
+          loading={isSubmitting}
+          disabled={!canSubmit}
+          className="flex-1"
+        >
           Wykonaj przelew wirtualny
         </Button>
       </div>

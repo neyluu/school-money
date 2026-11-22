@@ -1,6 +1,7 @@
 import * as React from "react"
 import { useNavigate } from "react-router"
 import { FileUpload } from "@/components/file-upload"
+import { MaskedInput } from "@/components/masked-input"
 import { MoneyAmount } from "@/components/money-amount"
 import {
   ResponsiveDialog,
@@ -17,6 +18,8 @@ import { parseAmount } from "@/lib/amount"
 import { ApiError } from "@/lib/api-client"
 import { describeError } from "@/lib/error-messages"
 import { addInvoice, withdrawFromFundraising } from "@/lib/fundraising"
+import { maskAmount } from "@/lib/input-rules"
+import { formatMoney } from "@/lib/money"
 
 const MAX_TITLE_LENGTH = 100
 const MAX_FILE_BYTES = 25 * 1024 * 1024
@@ -45,6 +48,16 @@ function WithdrawForm({
   const [invoice, setInvoice] = React.useState<File | null>(null)
   const [errors, setErrors] = React.useState<WithdrawErrors>({})
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  const hasFunds = balance > 0
+  const parsed = parseAmount(amount)
+  let amountError = errors.amount
+  if (!hasFunds) {
+    amountError = "Na rachunku zbiórki nie ma środków do wypłaty."
+  } else if (parsed != null && parsed > balance) {
+    amountError = `Możesz wypłacić najwyżej ${formatMoney(balance)}.`
+  }
+  const canSubmit = parsed != null && parsed <= balance && title.trim() !== ""
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -142,22 +155,27 @@ function WithdrawForm({
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-      <Field data-invalid={errors.amount != null}>
+      <Field data-invalid={amountError != null}>
         <FieldLabel htmlFor="fundraising-withdraw-amount">Kwota (zł)</FieldLabel>
-        <Input
+        <MaskedInput
           id="fundraising-withdraw-amount"
           type="text"
           inputMode="decimal"
           autoComplete="off"
           placeholder="50,00"
           value={amount}
-          onChange={(event) => setAmount(event.target.value)}
-          aria-invalid={errors.amount != null}
+          disabled={!hasFunds}
+          mask={maskAmount}
+          onValueChange={(value) => {
+            setAmount(value)
+            setErrors((current) => ({ ...current, amount: undefined }))
+          }}
+          aria-invalid={amountError != null}
         />
         <span className="text-xs text-muted-foreground">
           Saldo zbiórki: <MoneyAmount amount={balance} className="text-xs" />
         </span>
-        {errors.amount != null ? <FieldError>{errors.amount}</FieldError> : null}
+        {amountError != null ? <FieldError>{amountError}</FieldError> : null}
       </Field>
       <Field data-invalid={errors.title != null}>
         <FieldLabel htmlFor="fundraising-withdraw-title">Opis wydatku</FieldLabel>
@@ -166,8 +184,12 @@ function WithdrawForm({
           type="text"
           autoComplete="off"
           placeholder="Zaliczka za bilety do teatru"
+          maxLength={MAX_TITLE_LENGTH}
           value={title}
-          onChange={(event) => setTitle(event.target.value)}
+          onChange={(event) => {
+            setTitle(event.target.value)
+            setErrors((current) => ({ ...current, title: undefined }))
+          }}
           aria-invalid={errors.title != null}
         />
         {errors.title != null ? <FieldError>{errors.title}</FieldError> : null}
@@ -178,7 +200,11 @@ function WithdrawForm({
           multiple={false}
           accept={ALLOWED_FILE_TYPES.join(",")}
           description="PNG, JPEG lub PDF, maks. 25 MB"
-          onFilesChange={(files) => setInvoice(files[0] ?? null)}
+          maxBytes={MAX_FILE_BYTES}
+          onFilesChange={(files) => {
+            setInvoice(files[0] ?? null)
+            setErrors((current) => ({ ...current, invoice: undefined }))
+          }}
         />
         {errors.invoice != null ? <FieldError>{errors.invoice}</FieldError> : null}
       </Field>
@@ -186,7 +212,7 @@ function WithdrawForm({
         <Button type="button" variant="outline" onClick={onClose}>
           Anuluj
         </Button>
-        <Button type="submit" loading={isSubmitting}>
+        <Button type="submit" loading={isSubmitting} disabled={!canSubmit}>
           Wypłać
         </Button>
       </div>

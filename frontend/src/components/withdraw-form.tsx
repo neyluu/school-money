@@ -1,18 +1,25 @@
 import * as React from "react"
 import { useNavigate } from "react-router"
 import { ArrowUpRight } from "lucide-react"
+import { MaskedInput } from "@/components/masked-input"
 import { Button } from "@/components/ui/button"
-import { Field, FieldError, FieldLabel } from "@/components/ui/field"
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { toast } from "@/components/ui/toast"
 import { ApiError } from "@/lib/api-client"
 import { parseAmount } from "@/lib/amount"
 import { describeError } from "@/lib/error-messages"
-import { formatIban, isIbanValid } from "@/lib/iban"
+import { isIbanValid } from "@/lib/iban"
+import { IBAN_DIGITS, maskAmount, maskIban } from "@/lib/input-rules"
+import { formatMoney } from "@/lib/money"
 import { withdraw } from "@/lib/wallet"
 
 const MAX_RECIPIENT_NAME_LENGTH = 100
-const MAX_FORMATTED_IBAN_LENGTH = 34
 
 type WithdrawErrors = {
   recipientName?: string
@@ -64,6 +71,23 @@ function WithdrawForm({
   const [amount, setAmount] = React.useState("")
   const [errors, setErrors] = React.useState<WithdrawErrors>({})
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  const hasFunds = balance > 0
+  const parsed = parseAmount(amount)
+  const amountError =
+    parsed != null && parsed > balance
+      ? `Możesz wypłacić najwyżej ${formatMoney(balance)}.`
+      : errors.amount
+  const ibanDigits = iban.replace(/\D/g, "").length
+  const canSubmit =
+    recipientName.trim() !== "" &&
+    isIbanValid(iban) &&
+    parsed != null &&
+    parsed <= balance
+
+  function clearError(field: keyof WithdrawErrors) {
+    setErrors((current) => ({ ...current, [field]: undefined }))
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -131,8 +155,12 @@ function WithdrawForm({
           type="text"
           autoComplete="off"
           placeholder="Jan Kowalski"
+          maxLength={MAX_RECIPIENT_NAME_LENGTH}
           value={recipientName}
-          onChange={(event) => setRecipientName(event.target.value)}
+          onChange={(event) => {
+            setRecipientName(event.target.value)
+            clearError("recipientName")
+          }}
           aria-invalid={errors.recipientName != null}
         />
         {errors.recipientName != null ? (
@@ -141,32 +169,53 @@ function WithdrawForm({
       </Field>
       <Field data-invalid={errors.iban != null}>
         <FieldLabel htmlFor="withdraw-iban">Rachunek docelowy (IBAN)</FieldLabel>
-        <Input
+        <MaskedInput
           id="withdraw-iban"
           type="text"
           autoComplete="off"
+          autoCapitalize="characters"
+          spellCheck={false}
           placeholder="PL…"
-          maxLength={MAX_FORMATTED_IBAN_LENGTH}
           value={iban}
-          onChange={(event) => setIban(event.target.value)}
-          onBlur={() => setIban(formatIban(iban))}
+          mask={maskIban}
+          onValueChange={(value) => {
+            setIban(value)
+            clearError("iban")
+          }}
           aria-invalid={errors.iban != null}
         />
-        {errors.iban != null ? <FieldError>{errors.iban}</FieldError> : null}
+        {errors.iban != null ? (
+          <FieldError>{errors.iban}</FieldError>
+        ) : iban !== "" && ibanDigits < IBAN_DIGITS ? (
+          <FieldDescription className="text-xs">
+            Wpisano {ibanDigits} z {IBAN_DIGITS} cyfr.
+          </FieldDescription>
+        ) : null}
       </Field>
-      <Field data-invalid={errors.amount != null}>
+      <Field data-invalid={amountError != null}>
         <FieldLabel htmlFor="withdraw-amount">Kwota</FieldLabel>
-        <Input
+        <MaskedInput
           id="withdraw-amount"
           type="text"
           inputMode="decimal"
           autoComplete="off"
           placeholder="0,00 zł"
           value={amount}
-          onChange={(event) => setAmount(event.target.value)}
-          aria-invalid={errors.amount != null}
+          disabled={!hasFunds}
+          mask={maskAmount}
+          onValueChange={(value) => {
+            setAmount(value)
+            clearError("amount")
+          }}
+          aria-invalid={amountError != null}
         />
-        {errors.amount != null ? <FieldError>{errors.amount}</FieldError> : null}
+        {!hasFunds ? (
+          <FieldDescription className="text-xs">
+            Brak środków do wypłaty.
+          </FieldDescription>
+        ) : amountError != null ? (
+          <FieldError>{amountError}</FieldError>
+        ) : null}
       </Field>
       <div className="flex justify-end gap-2">
         {onCancel != null ? (
@@ -178,6 +227,7 @@ function WithdrawForm({
           type="submit"
           variant="outline"
           loading={isSubmitting}
+          disabled={!canSubmit}
           className="flex-1"
         >
           <ArrowUpRight />
