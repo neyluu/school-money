@@ -34,6 +34,7 @@ function FundraisingEditForm({
 }) {
   const navigate = useNavigate()
   const [logoKey, setLogoKey] = React.useState(0)
+  const [isRemovingLogo, setIsRemovingLogo] = React.useState(false)
   const logoUrl = useFundraisingLogo(fundraising.id, logoKey)
   const detailsPath = `/dashboard/fundraisers/${fundraising.id}`
 
@@ -78,6 +79,7 @@ function FundraisingEditForm({
   }
 
   async function handleRemoveLogo() {
+    setIsRemovingLogo(true)
     try {
       await deleteFundraisingLogo(fundraising.id)
       setLogoKey((current) => current + 1)
@@ -90,6 +92,8 @@ function FundraisingEditForm({
         title: describeError(removeError),
         type: "error",
       })
+    } finally {
+      setIsRemovingLogo(false)
     }
   }
 
@@ -116,7 +120,12 @@ function FundraisingEditForm({
               alt=""
               className="size-16 rounded-lg object-cover"
             />
-            <Button type="button" variant="outline" onClick={handleRemoveLogo}>
+            <Button
+              type="button"
+              variant="outline"
+              loading={isRemovingLogo}
+              onClick={handleRemoveLogo}
+            >
               Usuń logo
             </Button>
           </div>

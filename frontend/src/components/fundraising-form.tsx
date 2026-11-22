@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Check } from "lucide-react"
 import { FileUpload } from "@/components/file-upload"
+import { MaskedInput } from "@/components/masked-input"
 import { PageHeader } from "@/components/page-header"
 import { Section } from "@/components/section"
 import { Button } from "@/components/ui/button"
@@ -20,6 +21,13 @@ import type {
   FundraisingFieldErrors,
   FundraisingInput,
 } from "@/lib/fundraising-management"
+import {
+  getDateRangeError,
+  getEarliestFutureDate,
+  isDateInRange,
+  maskFundraisingAmount,
+  MAX_DATE,
+} from "@/lib/input-rules"
 import { formatMoney } from "@/lib/money"
 
 const FORM_ID = "fundraising-form"
@@ -33,11 +41,35 @@ export type FundraisingFormValues = FundraisingInput & {
   logo: File | null
 }
 
-function todayIso(): string {
-  const now = new Date()
-  const month = String(now.getMonth() + 1).padStart(2, "0")
-  const day = String(now.getDate()).padStart(2, "0")
-  return `${now.getFullYear()}-${month}-${day}`
+function FormActions({
+  submitLabel,
+  isSubmitting,
+  canSubmit,
+  onCancel,
+  className,
+}: {
+  submitLabel: string
+  isSubmitting: boolean
+  canSubmit: boolean
+  onCancel: () => void
+  className?: string
+}) {
+  return (
+    <div className={className}>
+      <Button type="button" variant="outline" onClick={onCancel}>
+        Anuluj
+      </Button>
+      <Button
+        type="submit"
+        form={FORM_ID}
+        loading={isSubmitting}
+        disabled={!canSubmit}
+      >
+        <Check />
+        {submitLabel}
+      </Button>
+    </div>
+  )
 }
 
 function FundraisingForm({
@@ -87,6 +119,30 @@ function FundraisingForm({
     label: `${item.name} · ${item.school}`,
   }))
 
+  const minEndDate = getEarliestFutureDate()
+  const endDateError =
+    getDateRangeError(
+      endDate,
+      minEndDate,
+      MAX_DATE,
+      "Data końca musi być późniejsza niż dziś."
+    ) ?? errors.endDate
+  const amountError =
+    parsedAmount != null && parsedAmount > MAX_AMOUNT
+      ? "Maksymalna kwota to 10 000,00 zł."
+      : errors.amount
+  const canSubmit =
+    selectedClass != null &&
+    name.trim() !== "" &&
+    text.trim() !== "" &&
+    isDateInRange(endDate, minEndDate, MAX_DATE) &&
+    parsedAmount != null &&
+    parsedAmount <= MAX_AMOUNT
+
+  function clearError(field: keyof FundraisingFieldErrors) {
+    setErrors((current) => ({ ...current, [field]: undefined }))
+  }
+
   function validate(): FundraisingFieldErrors {
     const nextErrors: FundraisingFieldErrors = {}
 
@@ -105,7 +161,7 @@ function FundraisingForm({
     }
     if (endDate === "") {
       nextErrors.endDate = "Wybierz datę końca."
-    } else if (endDate <= todayIso()) {
+    } else if (!isDateInRange(endDate, minEndDate, MAX_DATE)) {
       nextErrors.endDate = "Data końca musi być w przyszłości."
     }
     if (parsedAmount == null) {
@@ -153,30 +209,6 @@ function FundraisingForm({
     }
   }
 
-  function FormActions({
-    submitLabel,
-    isSubmitting,
-    onCancel,
-    className,
-  }: {
-    submitLabel: string;
-    isSubmitting: boolean;
-    onCancel: () => void;
-    className?: string;
-  }) {
-    return (
-      <div className={className}>
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Anuluj
-        </Button>
-        <Button type="submit" form={FORM_ID} loading={isSubmitting}>
-          <Check />
-          {submitLabel}
-        </Button>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
@@ -187,6 +219,7 @@ function FundraisingForm({
         actions={
           <FormActions
             className="hidden items-center gap-2 md:flex"
+            canSubmit={canSubmit}
             submitLabel={submitLabel}
             isSubmitting={isSubmitting}
             onCancel={onCancel}
@@ -207,7 +240,10 @@ function FundraisingForm({
                 <Select
                   items={classItems}
                   value={classId}
-                  onValueChange={(value) => setClassId(value ?? "")}
+                  onValueChange={(value) => {
+                    setClassId(value ?? "")
+                    clearError("classId")
+                  }}
                 >
                   <SelectTrigger
                     id="fundraising-class"
@@ -240,8 +276,12 @@ function FundraisingForm({
                 type="text"
                 autoComplete="off"
                 placeholder="np. Wyjście do teatru"
+                maxLength={MAX_NAME_LENGTH}
                 value={name}
-                onChange={(event) => setName(event.target.value)}
+                onChange={(event) => {
+                  setName(event.target.value)
+                  clearError("name")
+                }}
                 aria-invalid={errors.name != null}
               />
               {errors.name != null ? (
@@ -256,25 +296,34 @@ function FundraisingForm({
                 id="fundraising-description"
                 rows={4}
                 placeholder="Na co pójdą pieniądze i kiedy będą potrzebne?"
+                maxLength={MAX_DESCRIPTION_LENGTH}
                 value={text}
-                onChange={(event) => setText(event.target.value)}
+                onChange={(event) => {
+                  setText(event.target.value)
+                  clearError("description")
+                }}
                 aria-invalid={errors.description != null}
               />
               {errors.description != null ? (
                 <FieldError>{errors.description}</FieldError>
               ) : null}
             </Field>
-            <Field data-invalid={errors.endDate != null}>
+            <Field data-invalid={endDateError != null}>
               <FieldLabel htmlFor="fundraising-end-date">Wpłaty do</FieldLabel>
               <Input
                 id="fundraising-end-date"
                 type="date"
+                min={minEndDate}
+                max={MAX_DATE}
                 value={endDate}
-                onChange={(event) => setEndDate(event.target.value)}
-                aria-invalid={errors.endDate != null}
+                onChange={(event) => {
+                  setEndDate(event.target.value)
+                  clearError("endDate")
+                }}
+                aria-invalid={endDateError != null}
               />
-              {errors.endDate != null ? (
-                <FieldError>{errors.endDate}</FieldError>
+              {endDateError != null ? (
+                <FieldError>{endDateError}</FieldError>
               ) : null}
             </Field>
             <Field data-invalid={errors.logo != null}>
@@ -284,7 +333,11 @@ function FundraisingForm({
                 multiple={false}
                 accept={LOGO_TYPES.join(",")}
                 description="PNG lub JPEG, maks. 25 MB"
-                onFilesChange={(files) => setLogo(files[0] ?? null)}
+                maxBytes={MAX_LOGO_BYTES}
+                onFilesChange={(files) => {
+                  setLogo(files[0] ?? null)
+                  clearError("logo")
+                }}
               />
               {errors.logo != null ? (
                 <FieldError>{errors.logo}</FieldError>
@@ -297,22 +350,26 @@ function FundraisingForm({
           description="Każde dziecko wpłaca tyle samo. Zbiórka nie ma celu finansowego i dostaje własny numer rachunku."
         >
           <div className="flex flex-col gap-5">
-            <Field data-invalid={errors.amount != null}>
+            <Field data-invalid={amountError != null}>
               <FieldLabel htmlFor="fundraising-amount">
                 Kwota od dziecka (zł)
               </FieldLabel>
-              <Input
+              <MaskedInput
                 id="fundraising-amount"
                 type="text"
                 inputMode="decimal"
                 autoComplete="off"
                 placeholder="0,00"
                 value={amount}
-                onChange={(event) => setAmount(event.target.value)}
-                aria-invalid={errors.amount != null}
+                mask={maskFundraisingAmount}
+                onValueChange={(value) => {
+                  setAmount(value)
+                  clearError("amount")
+                }}
+                aria-invalid={amountError != null}
               />
-              {errors.amount != null ? (
-                <FieldError>{errors.amount}</FieldError>
+              {amountError != null ? (
+                <FieldError>{amountError}</FieldError>
               ) : null}
             </Field>
             <dl className="flex flex-col gap-2 rounded-lg bg-muted p-3 text-sm">
@@ -336,6 +393,7 @@ function FundraisingForm({
       </form>
       <FormActions
         className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end md:hidden"
+        canSubmit={canSubmit}
         submitLabel={submitLabel}
         isSubmitting={isSubmitting}
         onCancel={onCancel}
