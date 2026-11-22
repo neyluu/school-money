@@ -13,8 +13,26 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1).replace(".", ",")} MB`
 }
 
+function getRejectionReason(
+  file: File,
+  accept: string | undefined,
+  maxBytes: number | undefined
+): string | null {
+  if (accept != null && !accept.split(",").includes(file.type)) {
+    return `Nie dodano pliku „${file.name}”, bo ma niedozwolony format.`
+  }
+  if (file.size === 0) {
+    return `Nie dodano pliku „${file.name}”, bo jest pusty.`
+  }
+  if (maxBytes != null && file.size > maxBytes) {
+    return `Nie dodano pliku „${file.name}”, bo przekracza ${formatSize(maxBytes)}.`
+  }
+  return null
+}
+
 function FileUpload({
   accept,
+  maxBytes,
   multiple = true,
   description = "Faktury, paragony, dokumenty zbiórki",
   onFilesChange,
@@ -22,12 +40,14 @@ function FileUpload({
   ...props
 }: Omit<React.ComponentProps<"div">, "onChange"> & {
   accept?: string
+  maxBytes?: number
   multiple?: boolean
   description?: React.ReactNode
   onFilesChange?: (files: File[]) => void
 }) {
   const [items, setItems] = useState<AttachedFile[]>([])
   const [dragging, setDragging] = useState(false)
+  const [rejection, setRejection] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const dragCount = useRef(0)
   const itemsRef = useRef(items)
@@ -46,27 +66,34 @@ function FileUpload({
   }
 
   function addFiles(list: FileList | File[]) {
-    const incoming = Array.from(list).map((file) => ({
+    const files = Array.from(list)
+    const reasons = files.map((file) => getRejectionReason(file, accept, maxBytes))
+    setRejection(reasons.find((reason) => reason != null) ?? null)
+
+    const allowed = files.filter((_, index) => reasons[index] == null)
+    const picked = multiple ? allowed : allowed.slice(0, 1)
+    if (picked.length === 0) {
+      return
+    }
+
+    const incoming = picked.map((file) => ({
       file,
       previewUrl: file.type.startsWith("image/")
         ? URL.createObjectURL(file)
         : null,
     }))
-    setItems((prev) => {
-      const next = multiple ? [...prev, ...incoming] : incoming
-      emit(next)
-      return next
-    })
+    const next = multiple ? [...items, ...incoming] : incoming
+    setItems(next)
+    emit(next)
   }
 
   function removeAt(index: number) {
-    setItems((prev) => {
-      const target = prev[index]
-      if (target?.previewUrl) URL.revokeObjectURL(target.previewUrl)
-      const next = prev.filter((_, i) => i !== index)
-      emit(next)
-      return next
-    })
+    const target = items[index]
+    if (target?.previewUrl) URL.revokeObjectURL(target.previewUrl)
+    const next = items.filter((_, i) => i !== index)
+    setItems(next)
+    setRejection(null)
+    emit(next)
   }
 
   return (
@@ -131,6 +158,11 @@ function FileUpload({
           }}
         />
       </div>
+      {rejection != null && (
+        <p role="alert" className="mt-2 text-sm wrap-anywhere text-destructive">
+          {rejection}
+        </p>
+      )}
       {items.length > 0 && (
         <ul className="mt-3 flex flex-col gap-2">
           {items.map((item, index) => (
