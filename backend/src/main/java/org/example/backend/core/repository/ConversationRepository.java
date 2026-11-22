@@ -4,6 +4,7 @@ import org.example.backend.core.entity.Conversation;
 import org.example.backend.core.entity.User;
 import org.example.backend.core.entity.types.MembershipStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -34,6 +35,22 @@ public interface ConversationRepository extends JpaRepository<Conversation, Inte
 
     @Query("SELECT c FROM Conversation c WHERE c.userA.id = :userAId AND c.userB.id = :userBId")
     Optional<Conversation> findPrivate(@Param("userAId") Integer userAId, @Param("userBId") Integer userBId);
+
+    @Modifying
+    @Query(value = """
+        INSERT INTO conversations (type, class_id, created_at)
+        VALUES ('CLASS', :classId, timezone('UTC', now()))
+        ON CONFLICT (class_id) DO NOTHING
+        """, nativeQuery = true)
+    void createClassIfMissing(@Param("classId") Integer classId);
+
+    @Modifying
+    @Query(value = """
+        INSERT INTO conversations (type, user_a_id, user_b_id, created_at)
+        VALUES ('PRIVATE', :userAId, :userBId, timezone('UTC', now()))
+        ON CONFLICT (user_a_id, user_b_id) DO NOTHING
+        """, nativeQuery = true)
+    void createPrivateIfMissing(@Param("userAId") Integer userAId, @Param("userBId") Integer userBId);
 
     @Query("""
         SELECT sc.id FROM SchoolClass sc
