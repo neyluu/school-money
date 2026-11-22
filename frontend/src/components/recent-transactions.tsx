@@ -3,21 +3,16 @@ import { ReceiptText } from "lucide-react"
 import { EmptyState } from "@/components/empty-state"
 import { MoneyAmount } from "@/components/money-amount"
 import { SegmentedControl } from "@/components/segmented-control"
-import type { SegmentedOption } from "@/components/segmented-control"
 import { TransactionStatusBadge } from "@/components/transaction-status-badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { matchesFilter } from "@/lib/transaction-filters"
+import {
+  matchesFilter,
+  TRANSACTION_FILTER_OPTIONS,
+} from "@/lib/transaction-filters"
 import type { TransactionFilter } from "@/lib/transaction-filters"
 import type { Transaction } from "@/lib/wallet"
 
 const MAX_ROWS = 10
-
-const FILTER_OPTIONS: SegmentedOption<TransactionFilter>[] = [
-  { value: "all", label: "Wszystkie" },
-  { value: "income", label: "Wpływy" },
-  { value: "outcome", label: "Wydatki" },
-  { value: "refunds", label: "Zwroty" },
-]
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", {
   day: "numeric",
@@ -45,7 +40,7 @@ function RecentTransactions({
       <CardContent className="flex flex-col gap-4">
         <SegmentedControl<TransactionFilter>
           aria-label="Filtr transakcji"
-          options={FILTER_OPTIONS}
+          options={TRANSACTION_FILTER_OPTIONS}
           value={filter}
           onChange={setFilter}
         />
