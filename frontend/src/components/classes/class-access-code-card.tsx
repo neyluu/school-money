@@ -52,10 +52,10 @@ function ClassAccessCodeCard({
       <CardHeader>
         <CardTitle>Kod zaproszenia</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
+      <CardContent className="@container flex flex-col gap-2">
+        <div className="flex flex-col gap-2 md:@min-[17.5rem]:flex-row md:@min-[17.5rem]:items-center">
           <code
-            className="flex-1 rounded-md bg-muted px-3 py-0.5 text-center font-mono text-lg tracking-[0.2em] select-none"
+            className="rounded-md bg-muted px-3 py-0.5 text-center font-mono text-lg tracking-[0.2em] whitespace-nowrap select-none md:@min-[17.5rem]:flex-1"
             aria-label={isVisible ? undefined : "Kod ukryty"}
           >
             {prefix}
@@ -66,35 +66,40 @@ function ClassAccessCodeCard({
               {isVisible ? rest : maskedRest}
             </span>
           </code>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={() => setIsVisible((v) => !v)}
-            aria-label={isVisible ? "Ukryj kod" : "Pokaż kod"}
-            aria-pressed={isVisible}
-          >
-            {isVisible ? <EyeOff /> : <Eye />}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={copy}
-            aria-label="Kopiuj kod"
-          >
-            <Copy />
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={() => void regenerate()}
-            disabled={isBusy}
-            aria-label="Wygeneruj nowy kod"
-          >
-            <RefreshCw />
-          </Button>
+          <div className="grid grid-cols-3 gap-2 md:@min-[17.5rem]:grid-cols-[repeat(3,--spacing(8))]">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="w-full"
+              onClick={() => setIsVisible((v) => !v)}
+              aria-label={isVisible ? "Ukryj kod" : "Pokaż kod"}
+              aria-pressed={isVisible}
+            >
+              {isVisible ? <EyeOff /> : <Eye />}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="w-full"
+              onClick={copy}
+              aria-label="Kopiuj kod"
+            >
+              <Copy />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="w-full"
+              onClick={() => void regenerate()}
+              disabled={isBusy}
+              aria-label="Wygeneruj nowy kod"
+            >
+              <RefreshCw />
+            </Button>
+          </div>
         </div>
         <p className="text-xs text-muted-foreground">
           Wygenerowanie nowego kodu unieważnia poprzedni.
