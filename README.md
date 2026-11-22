@@ -103,6 +103,22 @@ http://localhost/api/swagger
 
 and should be used to test and verify API endpoints during development.
 
+## Authentication
+
+Authentication uses JWT tokens. Roles: `USER` and `ADMIN`.
+
+| Endpoint | Auth | Description |
+|---|---|---|
+| `POST /auth/register` | public | `{ email, firstName, lastName, password }`, always creates a `USER` account |
+| `POST /auth/login` | public | `{ email, password }`, returns `accessToken` |
+| `GET /auth/me` | token | currently logged in user |
+
+Every other endpoint requires the header `Authorization: Bearer <accessToken>`, in Swagger use the **Authorize** button.
+Endpoints under `/admin/**` require the `ADMIN` role, for single endpoints use `@PreAuthorize("hasRole('ADMIN')")`.
+Logged in user is available in controllers with `@AuthenticationPrincipal AuthenticatedUser user`.
+
+The admin account is created on application startup from `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env` (see `.env.example`).
+
 ## Frontend
 
 The frontend uses **TypeScript**, **Tailwind CSS 4.3**, and **Prettier**.

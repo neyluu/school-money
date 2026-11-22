@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# shadcn/ui utils (re-include, root .gitignore ignores `lib/`)
+!src/lib/

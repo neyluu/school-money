@@ -5,12 +5,12 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.backend.core.entity.types.FundraisingStatus;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.*;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -42,12 +42,8 @@ public class Fundraising {
     private String description;
 
     @NotNull
-    @Column(name = "start_at", nullable = false)
-    private Instant startAt;
-
-    @NotNull
     @Column(name = "end_at", nullable = false)
-    private Instant endAt;
+    private LocalDate endAt;
 
     @NotNull
     @Column(name = "amount_per_child", nullable = false, precision = 12, scale = 2)
@@ -55,27 +51,29 @@ public class Fundraising {
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    @ColumnDefault("'active'")
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "status", nullable = false, columnDefinition = "fundraising_status")
-    private FundraisingStatus status;
+    private FundraisingStatus status = FundraisingStatus.ACTIVE;
 
+    @ColumnDefault("NULL")
     @Column(name = "cancelled_at")
     private Instant cancelledAt;
 
-    @NotNull
-    @ColumnDefault("false")
-    @Column(name = "is_blocked", nullable = false)
-    private Boolean isBlocked;
+    @ColumnDefault("NULL")
+    @Column(name = "closed_at")
+    private Instant closedAt;
 
     @NotNull
+    @Column(name = "is_blocked", nullable = false)
+    private Boolean isBlocked = false;
+
     @ColumnDefault("now()")
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @CreationTimestamp
     private Instant createdAt;
 
-    @NotNull
     @ColumnDefault("now()")
     @Column(name = "updated_at", nullable = false)
+    @UpdateTimestamp
     private Instant updatedAt;
-
-
 }
