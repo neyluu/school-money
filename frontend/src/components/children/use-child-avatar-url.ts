@@ -2,8 +2,7 @@ import * as React from "react";
 import { fetchChildAvatar } from "@/lib/children";
 
 function useChildAvatarUrl(
-  childId: number,
-  avatarId: number | null,
+  childId: number, avatarId: number | null,
 ): string | null {
   const [loaded, setLoaded] = React.useState<{
     avatarId: number;
