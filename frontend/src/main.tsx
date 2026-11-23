@@ -11,6 +11,9 @@ import { RequireAuth } from "./components/require-auth";
 import { AuthProvider } from "./contexts/auth-provider";
 
 import { ChatPage } from "./pages/chat-page";
+import { ClassDetailsPage } from "./pages/class-details-page";
+import { ClassesPage } from "./pages/classes-page";
+import { ChildrenPage } from "./pages/children-page";
 import { DashboardPage } from "./pages/dashboard-page";
 import { FundraisingDetailsPage } from "./pages/fundraising-details-page";
 import { FundraisingEditPage } from "./pages/fundraising-edit-page";
@@ -19,61 +22,40 @@ import { FundraisingsPage } from "./pages/fundraisings-page";
 import { LoginPage } from "./pages/login-page";
 import { PaymentsPage } from "./pages/payments-page";
 import { RegisterPage } from "./pages/register-page";
-import { ChildrenPage } from "./pages/children-page";
-import { ClassesPage } from "./pages/classes-page";
-import { ClassDetailsPage } from "./pages/class-details-page";
+import { SettingsPage } from "./pages/settings-page";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Guest-only routes */}
           <Route element={<GuestOnly />}>
             <Route path="/" element={<App />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
           </Route>
 
-          {/* Protected routes */}
           <Route element={<RequireAuth />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/dashboard/payments" element={<PaymentsPage />} />
             <Route path="/dashboard/children" element={<ChildrenPage />} />
             <Route path="/dashboard/class" element={<ClassesPage />} />
-
-            <Route
-              path="/dashboard/class/:classId"
-              element={<ClassDetailsPage />}
-            />
-
+            <Route path="/dashboard/class/:classId" element={<ClassDetailsPage />} />
             <Route path="/dashboard/chat" element={<ChatPage />} />
-
-            <Route
-              path="/dashboard/fundraisers"
-              element={<FundraisingsPage />}
-            />
-
-            <Route
-              path="/dashboard/fundraisers/new"
-              element={<FundraisingNewPage />}
-            />
-
+            <Route path="/dashboard/settings" element={<SettingsPage />} />
+            <Route path="/dashboard/fundraisers" element={<FundraisingsPage />} />
+            <Route path="/dashboard/fundraisers/new" element={<FundraisingNewPage />} />
             <Route
               path="/dashboard/fundraisers/:fundraisingId"
               element={<FundraisingDetailsPage />}
             />
-
             <Route
               path="/dashboard/fundraisers/:fundraisingId/edit"
               element={<FundraisingEditPage />}
             />
           </Route>
 
-          {/* Public routes */}
           <Route path="/demo" element={<Demo />} />
-
-          {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate, useParams } from "react-router";
-import { GraduationCap, Pencil, Trash2 } from "lucide-react";
+import { GraduationCap, MessageCircle, Pencil, Trash2 } from "lucide-react";
 import { ClassAccessCodeCard } from "@/components/classes/class-access-code-card";
 import { ClassChildrenCard } from "@/components/classes/class-children-card";
 import { ClassFundraisingsCard } from "@/components/classes/class-fundraisings-card";
@@ -14,7 +14,7 @@ import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Toaster } from "@/components/ui/toast";
+import { toast, Toaster } from "@/components/ui/toast";
 import { useAsyncData } from "@/hooks/use-async-data";
 import { ApiError } from "@/lib/api-client";
 import {
@@ -23,6 +23,7 @@ import {
   getPendingMemberships,
 } from "@/lib/class-management";
 import type { ClassDetails, PendingMembership } from "@/lib/class-management";
+import { getClassChat } from "@/lib/chat";
 import type { FundraisingListItem } from "@/lib/fundraising";
 
 const CLASSES_PATH = "/dashboard/class";
@@ -42,9 +43,27 @@ function ClassDetailsContent({
 }) {
   const navigate = useNavigate();
   const [activeDialog, setActiveDialog] = React.useState<ActiveDialog>(null);
+  const [isOpeningChat, setIsOpeningChat] = React.useState(false);
 
   function handleDialogChange(dialog: Exclude<ActiveDialog, null>) {
     return (open: boolean) => setActiveDialog(open ? dialog : null);
+  }
+
+  async function openClassChat() {
+    setIsOpeningChat(true);
+    try {
+      const chat = await getClassChat(details.id);
+      navigate(`/dashboard/chat?id=${chat.id}`);
+    } catch (error) {
+      setIsOpeningChat(false);
+      toast.add({
+        title:
+          error instanceof ApiError && error.status === 403
+            ? "Czat klasy będzie dostępny, gdy skarbnik zaakceptuje Twoje dziecko."
+            : "Nie udało się otworzyć czatu klasy.",
+        type: "error",
+      });
+    }
   }
 
   return (
@@ -62,7 +81,9 @@ function ClassDetailsContent({
         }
         title={details.name}
         badge={
-          details.isOwner ? <Badge variant="warning">Skarbnik</Badge> : undefined
+          details.isOwner ? (
+            <Badge variant="warning">Skarbnik</Badge>
+          ) : undefined
         }
         description={
           details.isOwner
@@ -70,22 +91,34 @@ function ClassDetailsContent({
             : `${details.school} · ${details.city} · skarbnik: ${details.owner.firstName} ${details.owner.lastName}`
         }
         actions={
-          details.isOwner ? (
-            <>
-              <Button variant="outline" onClick={() => setActiveDialog("edit")}>
-                <Pencil />
-                Edytuj
-              </Button>
-              <Button
-                variant="outline"
-                className="text-danger hover:text-danger"
-                onClick={() => setActiveDialog("delete")}
-              >
-                <Trash2 />
-                Usuń klasę
-              </Button>
-            </>
-          ) : undefined
+          <>
+            <Button
+              loading={isOpeningChat}
+              onClick={() => void openClassChat()}
+            >
+              <MessageCircle />
+              Czat klasy
+            </Button>
+            {details.isOwner ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveDialog("edit")}
+                >
+                  <Pencil />
+                  Edytuj
+                </Button>
+                <Button
+                  variant="outline"
+                  className="text-danger hover:text-danger"
+                  onClick={() => setActiveDialog("delete")}
+                >
+                  <Trash2 />
+                  Usuń klasę
+                </Button>
+              </>
+            ) : null}
+          </>
         }
       />
 

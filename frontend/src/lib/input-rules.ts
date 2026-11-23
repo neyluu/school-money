@@ -6,6 +6,7 @@ const ACCESS_CODE_LENGTH = 8;
 const IBAN_DIGITS = 26;
 const EMAIL_MAX_LENGTH = 255;
 const PASSWORD_MAX_BYTES = 72;
+const PASSWORD_PATTERN = /^[\x20-\x7E]{0,72}$/;
 const MAX_DATE = "9999-12-31";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -111,4 +112,5 @@ export {
   maskIban,
   maskPassword,
   MAX_DATE,
+  PASSWORD_PATTERN,
 };

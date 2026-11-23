@@ -4,6 +4,7 @@ export type ChatUser = {
   id: number;
   firstName: string;
   lastName: string;
+  deleted: boolean;
 };
 
 export type ChatMessage = {
@@ -22,6 +23,7 @@ export type Chat = {
   otherUser: ChatUser | null;
   lastMessage: ChatMessage | null;
   unreadCount: number;
+  canSend: boolean;
   createdAt: string;
 };
 
@@ -30,6 +32,14 @@ const MESSAGE_MAX_LENGTH = 2000;
 
 async function getChats(): Promise<Chat[]> {
   return authorizedRequest<Chat[]>("/chats");
+}
+
+async function getChat(chatId: number): Promise<Chat> {
+  return authorizedRequest<Chat>(`/chats/${chatId}`);
+}
+
+async function getClassChat(classId: number): Promise<Chat> {
+  return authorizedRequest<Chat>(`/chats/class/${classId}`);
 }
 
 async function getChatContacts(): Promise<ChatUser[]> {
@@ -68,14 +78,21 @@ async function sendMessage(
   });
 }
 
+async function hideChat(chatId: number): Promise<void> {
+  await authorizedRequest<void>(`/chats/${chatId}/hide`, { method: "POST" });
+}
+
 async function markAsRead(chatId: number): Promise<void> {
   await authorizedRequest<void>(`/chats/${chatId}/read`, { method: "POST" });
 }
 
 export {
+  getChat,
   getChatContacts,
+  getClassChat,
   getChats,
   getMessages,
+  hideChat,
   markAsRead,
   MESSAGE_MAX_LENGTH,
   MESSAGES_PAGE_SIZE,
