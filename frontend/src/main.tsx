@@ -22,6 +22,7 @@ import { FundraisingsPage } from "./pages/fundraisings-page";
 import { LoginPage } from "./pages/login-page";
 import { PaymentsPage } from "./pages/payments-page";
 import { RegisterPage } from "./pages/register-page";
+import { ReportsPage } from "./pages/reports-page";
 import { SettingsPage } from "./pages/settings-page";
 
 createRoot(document.getElementById("root")!).render(
@@ -40,11 +41,21 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/dashboard/payments" element={<PaymentsPage />} />
             <Route path="/dashboard/children" element={<ChildrenPage />} />
             <Route path="/dashboard/class" element={<ClassesPage />} />
-            <Route path="/dashboard/class/:classId" element={<ClassDetailsPage />} />
+            <Route
+              path="/dashboard/class/:classId"
+              element={<ClassDetailsPage />}
+            />
             <Route path="/dashboard/chat" element={<ChatPage />} />
+            <Route path="/dashboard/reports" element={<ReportsPage />} />
             <Route path="/dashboard/settings" element={<SettingsPage />} />
-            <Route path="/dashboard/fundraisers" element={<FundraisingsPage />} />
-            <Route path="/dashboard/fundraisers/new" element={<FundraisingNewPage />} />
+            <Route
+              path="/dashboard/fundraisers"
+              element={<FundraisingsPage />}
+            />
+            <Route
+              path="/dashboard/fundraisers/new"
+              element={<FundraisingNewPage />}
+            />
             <Route
               path="/dashboard/fundraisers/:fundraisingId"
               element={<FundraisingDetailsPage />}

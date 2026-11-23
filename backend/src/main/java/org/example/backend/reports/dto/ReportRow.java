@@ -16,4 +16,5 @@ public record ReportRow(
     public static final String REFUND = "Zwrot";
     public static final String PAYOUT = "Wypłata";
     public static final String REPLENISHMENT = "Uzupełnienie";
+    public static final String DEPOSIT = "Doładowanie";
 }

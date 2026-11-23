@@ -1,59 +1,115 @@
 package org.example.backend.reports.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import org.example.backend.reports.dto.ReportKind;
 import org.example.backend.reports.dto.ReportRow;
 
 public final class CsvBuilder {
 
+    private static final char SEPARATOR = ',';
+    private static final String NEWLINE = "\r\n";
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern(
-        "yyyy-MM-dd HH:mm"
+        "yyyy-MM-dd'T'HH:mm:ss'Z'"
     ).withZone(ZoneOffset.UTC);
-    private static final byte[] BOM = { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
 
     private CsvBuilder() {}
 
-    public static byte[] build(List<ReportRow> rows) {
-        StringBuilder csv = new StringBuilder(
-            "Data;Typ;Zbiórka;Dziecko;Płatnik;Kwota;Opis\r\n"
-        );
-
+    public static byte[] build(ReportKind kind, List<ReportRow> rows) {
+        StringBuilder csv = new StringBuilder();
+        writeLine(csv, headersFor(kind));
         for (ReportRow row : rows) {
-            csv.append(
-                String.join(
-                    ";",
-                    DATE.format(row.date()),
-                    cell(row.type()),
-                    cell(row.fundraisingName()),
-                    cell(row.child()),
-                    cell(row.payer()),
-                    row.amount().toPlainString().replace('.', ','),
-                    cell(row.description())
-                )
-            ).append("\r\n");
+            writeLine(csv, cellsFor(kind, row));
         }
-
-        byte[] body = csv.toString().getBytes(StandardCharsets.UTF_8);
-        byte[] result = new byte[BOM.length + body.length];
-        System.arraycopy(BOM, 0, result, 0, BOM.length);
-        System.arraycopy(body, 0, result, BOM.length, body.length);
-        return result;
+        return csv.toString().getBytes(StandardCharsets.UTF_8);
     }
 
-    private static String cell(String value) {
-        if (value == null) {
-            return "";
+    private static List<String> headersFor(ReportKind kind) {
+        return switch (kind) {
+            case FUNDRAISING -> List.of(
+                "data",
+                "typ",
+                "dziecko",
+                "platnik",
+                "kwota",
+                "opis"
+            );
+            case CHILD -> List.of(
+                "data",
+                "typ",
+                "zbiorka",
+                "platnik",
+                "kwota",
+                "opis"
+            );
+            case CLASS -> List.of(
+                "data",
+                "typ",
+                "zbiorka",
+                "dziecko",
+                "platnik",
+                "kwota",
+                "opis"
+            );
+        };
+    }
+
+    private static List<String> cellsFor(ReportKind kind, ReportRow row) {
+        List<String> cells = new ArrayList<>();
+        cells.add(DATE.format(row.date()));
+        cells.add(nullToEmpty(row.type()));
+        switch (kind) {
+            case FUNDRAISING -> {
+                cells.add(nullToEmpty(row.child()));
+                cells.add(nullToEmpty(row.payer()));
+            }
+            case CHILD -> {
+                cells.add(nullToEmpty(row.fundraisingName()));
+                cells.add(nullToEmpty(row.payer()));
+            }
+            case CLASS -> {
+                cells.add(nullToEmpty(row.fundraisingName()));
+                cells.add(nullToEmpty(row.child()));
+                cells.add(nullToEmpty(row.payer()));
+            }
         }
-        if (
-            value.contains(";") ||
-            value.contains("\"") ||
-            value.contains("\n") ||
-            value.contains("\r")
-        ) {
-            return "\"" + value.replace("\"", "\"\"") + "\"";
+        cells.add(amount(row.amount()));
+        cells.add(nullToEmpty(row.description()));
+        return cells;
+    }
+
+    private static void writeLine(StringBuilder csv, List<String> fields) {
+        for (int i = 0; i < fields.size(); i++) {
+            if (i > 0) {
+                csv.append(SEPARATOR);
+            }
+            csv.append(escape(fields.get(i)));
         }
-        return value;
+        csv.append(NEWLINE);
+    }
+
+    private static String escape(String value) {
+        boolean needsQuotes =
+            value.indexOf(SEPARATOR) >= 0 ||
+            value.indexOf('"') >= 0 ||
+            value.indexOf('\r') >= 0 ||
+            value.indexOf('\n') >= 0;
+        if (!needsQuotes) {
+            return value;
+        }
+        return "\"" + value.replace("\"", "\"\"") + "\"";
+    }
+
+    private static String amount(BigDecimal value) {
+        return value.setScale(2, RoundingMode.HALF_UP).toPlainString();
+    }
+
+    private static String nullToEmpty(String value) {
+        return value == null ? "" : value;
     }
 }
