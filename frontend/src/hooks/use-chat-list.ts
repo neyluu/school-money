@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import { usePolling } from "@/hooks/use-polling";
 import { ApiError } from "@/lib/api-client";
 import { me } from "@/lib/auth";
-import { getChats, hideChat } from "@/lib/chat";
+import { getChat, getChats, hideChat } from "@/lib/chat";
 import type { Chat } from "@/lib/chat";
 
 const REFRESH_INTERVAL_MS = 10000;
@@ -12,6 +12,7 @@ function useChatList(focusedId: number | null) {
   const navigate = useNavigate();
   const [chats, setChats] = React.useState<Chat[] | null>(null);
   const [draft, setDraft] = React.useState<Chat | null>(null);
+  const [missingId, setMissingId] = React.useState<number | null>(null);
   const [userId, setUserId] = React.useState<number | null>(null);
   const [failed, setFailed] = React.useState(false);
   const [reloadKey, setReloadKey] = React.useState(0);
@@ -45,6 +46,34 @@ function useChatList(focusedId: number | null) {
       ignored = true;
     };
   }, [handleError, reloadKey]);
+
+  const needsFocusedChat =
+    chats != null &&
+    focusedId != null &&
+    !chats.some((chat) => chat.id === focusedId) &&
+    draft?.id !== focusedId;
+
+  React.useEffect(() => {
+    if (!needsFocusedChat || focusedId == null) {
+      return;
+    }
+    let ignored = false;
+    getChat(focusedId)
+      .then((chat) => {
+        if (!ignored) {
+          setDraft(chat);
+        }
+      })
+      .catch((error: unknown) => {
+        if (!ignored) {
+          setMissingId(focusedId);
+          handleError(error);
+        }
+      });
+    return () => {
+      ignored = true;
+    };
+  }, [needsFocusedChat, focusedId, handleError]);
 
   const refresh = React.useCallback(async () => {
     const request = ++latestRequest.current;
@@ -108,6 +137,7 @@ function useChatList(focusedId: number | null) {
     chats: visibleDraft != null ? [visibleDraft, ...loaded] : loaded,
     discardDraft,
     hide,
+    isOpeningFocused: needsFocusedChat && missingId !== focusedId,
     userId,
     failed,
     isLoading: !isReady && !failed,

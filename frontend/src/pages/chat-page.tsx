@@ -28,6 +28,7 @@ function ChatPage() {
     addChat,
     discardDraft,
     hide,
+    isOpeningFocused,
   } = useChatList(requestedId != null ? Number(requestedId) : null);
 
   const selected = chats.find((chat) => String(chat.id) === requestedId);
@@ -106,6 +107,10 @@ function ChatPage() {
                   onBack={closeChat}
                   onActivity={() => void refresh()}
                 />
+              ) : isOpeningFocused ? (
+                <Card className="hidden items-center justify-center text-sm text-muted-foreground lg:flex">
+                  Otwieranie rozmowy…
+                </Card>
               ) : (
                 <Card className="hidden items-center justify-center lg:flex">
                   <EmptyState

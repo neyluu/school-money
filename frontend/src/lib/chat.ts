@@ -33,6 +33,14 @@ async function getChats(): Promise<Chat[]> {
   return authorizedRequest<Chat[]>("/chats");
 }
 
+async function getChat(chatId: number): Promise<Chat> {
+  return authorizedRequest<Chat>(`/chats/${chatId}`);
+}
+
+async function getClassChat(classId: number): Promise<Chat> {
+  return authorizedRequest<Chat>(`/chats/class/${classId}`);
+}
+
 async function getChatContacts(): Promise<ChatUser[]> {
   return authorizedRequest<ChatUser[]>("/chats/contacts");
 }
@@ -78,7 +86,9 @@ async function markAsRead(chatId: number): Promise<void> {
 }
 
 export {
+  getChat,
   getChatContacts,
+  getClassChat,
   getChats,
   getMessages,
   hideChat,
