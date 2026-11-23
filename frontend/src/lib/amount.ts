@@ -1,4 +1,4 @@
-const AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/
+const AMOUNT_PATTERN = /^\d+(\.\d{0,2})?$/
 
 function parseAmount(value: string): number | null {
   const normalized = value.trim().replace(",", ".")

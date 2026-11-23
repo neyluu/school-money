@@ -94,8 +94,12 @@ function ChangeAvatarDialog({
             currentImageUrl={currentAvatarUrl}
             invalid={error != null}
             onChange={(nextFile) => {
-              setFile(nextFile);
-              setError(undefined);
+              const nextError =
+                nextFile != null ? validateAvatar(nextFile) : undefined;
+              if (nextError == null) {
+                setFile(nextFile);
+              }
+              setError(nextError);
             }}
           />
           {error != null ? <FieldError>{error}</FieldError> : null}

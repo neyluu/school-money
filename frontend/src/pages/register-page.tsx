@@ -1,19 +1,27 @@
 import * as React from "react"
 import { Link, useNavigate, useSearchParams } from "react-router"
 import { AuthLayout, AuthLogo } from "@/components/auth-layout"
+import { MaskedInput } from "@/components/masked-input"
 import { SegmentedControl } from "@/components/segmented-control"
 import { Button } from "@/components/ui/button"
-import { Field, FieldError, FieldLabel } from "@/components/ui/field"
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { toast } from "@/components/ui/toast"
 import { ROLE_PARAM, parseRole } from "@/lib/account-role"
 import type { AccountRole } from "@/lib/account-role"
 import { ApiError } from "@/lib/api-client"
 import { register } from "@/lib/auth"
+import { EMAIL_MAX_LENGTH, maskPassword } from "@/lib/input-rules"
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const MIN_PASSWORD_LENGTH = 8
 const MAX_PASSWORD_LENGTH = 72
+const MAX_NAME_LENGTH = 100
 
 const ROLE_HINTS: Record<AccountRole, string> = {
   parent:
@@ -37,6 +45,14 @@ function splitName(value: string): { firstName: string; lastName: string } {
   }
 }
 
+function maskFullName(value: string): string | null {
+  const { firstName, lastName } = splitName(value)
+  return firstName.length <= MAX_NAME_LENGTH &&
+    lastName.length <= MAX_NAME_LENGTH
+    ? value
+    : null
+}
+
 function RegisterPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -50,6 +66,24 @@ function RegisterPage() {
 
   const role = parseRole(searchParams.get(ROLE_PARAM))
   const loginPath = `/login?${ROLE_PARAM}=${role}`
+
+  const hasFullName = splitName(fullName).lastName !== ""
+  const hasValidEmail = EMAIL_PATTERN.test(email.trim())
+  const confirmError =
+    confirmPassword !== "" &&
+    confirmPassword.length >= password.length &&
+    confirmPassword !== password
+      ? "Hasła muszą być takie same."
+      : errors.confirmPassword
+  const canSubmit =
+    hasFullName &&
+    hasValidEmail &&
+    password.length >= MIN_PASSWORD_LENGTH &&
+    confirmPassword === password
+
+  function clearError(field: keyof RegisterErrors) {
+    setErrors((prev) => ({ ...prev, [field]: undefined }))
+  }
 
   function handleRoleChange(nextRole: AccountRole) {
     setSearchParams({ [ROLE_PARAM]: nextRole }, { replace: true })
@@ -161,17 +195,25 @@ function RegisterPage() {
             <FieldLabel htmlFor="register-fullname">
               Imię i nazwisko
             </FieldLabel>
-            <Input
+            <MaskedInput
               id="register-fullname"
               type="text"
               autoComplete="name"
               placeholder="Anna Kowalska"
               value={fullName}
-              onChange={(event) => setFullName(event.target.value)}
+              mask={maskFullName}
+              onValueChange={(value) => {
+                setFullName(value)
+                clearError("fullName")
+              }}
               aria-invalid={errors.fullName != null}
             />
             {errors.fullName != null ? (
               <FieldError>{errors.fullName}</FieldError>
+            ) : fullName !== "" && !hasFullName ? (
+              <FieldDescription className="text-xs">
+                Wpisz imię i nazwisko, oddzielone spacją.
+              </FieldDescription>
             ) : null}
           </Field>
           <Field data-invalid={errors.email != null}>
@@ -181,43 +223,64 @@ function RegisterPage() {
               type="email"
               autoComplete="email"
               placeholder="anna@example.com"
+              maxLength={EMAIL_MAX_LENGTH}
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                setEmail(event.target.value)
+                clearError("email")
+              }}
               aria-invalid={errors.email != null}
             />
             {errors.email != null ? (
               <FieldError>{errors.email}</FieldError>
+            ) : email !== "" && !hasValidEmail ? (
+              <FieldDescription className="text-xs">
+                Wpisz pełny adres, np. anna@example.com.
+              </FieldDescription>
             ) : null}
           </Field>
           <Field data-invalid={errors.password != null}>
             <FieldLabel htmlFor="register-password">Hasło</FieldLabel>
-            <Input
+            <MaskedInput
               id="register-password"
               type="password"
               autoComplete="new-password"
               placeholder="Min. 8 znaków"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              mask={maskPassword}
+              onValueChange={(value) => {
+                setPassword(value)
+                clearError("password")
+              }}
               aria-invalid={errors.password != null}
             />
             {errors.password != null ? (
               <FieldError>{errors.password}</FieldError>
-            ) : null}
+            ) : (
+              <FieldDescription className="text-xs">
+                Od {MIN_PASSWORD_LENGTH} do {MAX_PASSWORD_LENGTH} znaków.
+                Polskie litery liczą się podwójnie do górnego limitu.
+              </FieldDescription>
+            )}
           </Field>
-          <Field data-invalid={errors.confirmPassword != null}>
+          <Field data-invalid={confirmError != null}>
             <FieldLabel htmlFor="register-confirm">
               Powtórz hasło
             </FieldLabel>
-            <Input
+            <MaskedInput
               id="register-confirm"
               type="password"
               autoComplete="new-password"
               value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              aria-invalid={errors.confirmPassword != null}
+              mask={maskPassword}
+              onValueChange={(value) => {
+                setConfirmPassword(value)
+                clearError("confirmPassword")
+              }}
+              aria-invalid={confirmError != null}
             />
-            {errors.confirmPassword != null ? (
-              <FieldError>{errors.confirmPassword}</FieldError>
+            {confirmError != null ? (
+              <FieldError>{confirmError}</FieldError>
             ) : null}
           </Field>
           <p className="text-sm text-muted-foreground">{ROLE_HINTS[role]}</p>
@@ -225,6 +288,7 @@ function RegisterPage() {
             type="submit"
             size="lg"
             loading={isSubmitting}
+            disabled={!canSubmit}
             className="w-full bg-foreground text-background hover:bg-foreground/90 cursor-pointer"
           >
             Utwórz konto

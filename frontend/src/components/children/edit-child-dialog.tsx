@@ -7,12 +7,22 @@ import {
   ResponsiveDialogTitle,
 } from "@/components/responsive-dialog";
 import { Button } from "@/components/ui/button";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
 import { ApiError } from "@/lib/api-client";
 import { updateChild } from "@/lib/children";
 import type { Child } from "@/lib/children";
+import {
+  getDateRangeError,
+  getLatestPastDate,
+  isDateInRange,
+} from "@/lib/input-rules";
 
 const MIN_NAME_LENGTH = 2;
 const MAX_NAME_LENGTH = 100;
@@ -22,13 +32,6 @@ type FormErrors = {
   lastName?: string;
   birthDate?: string;
 };
-
-function today(): string {
-  const now = new Date();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${now.getFullYear()}-${month}-${day}`;
-}
 
 function nameError(value: string, label: string): string | undefined {
   const length = value.trim().length;
@@ -50,7 +53,7 @@ function validate(values: {
 
   if (values.birthDate === "") {
     errors.birthDate = "Podaj datę urodzenia.";
-  } else if (values.birthDate >= today()) {
+  } else if (!isDateInRange(values.birthDate, "", getLatestPastDate())) {
     errors.birthDate = "Data urodzenia musi być w przeszłości.";
   }
 
@@ -146,6 +149,18 @@ function EditChildDialog({
     }
   }
 
+  const maxBirthDate = getLatestPastDate();
+  const birthDateError =
+    getDateRangeError(
+      birthDate,
+      "",
+      maxBirthDate,
+      "Data urodzenia musi być wcześniejsza niż dziś.",
+    ) ?? errors.birthDate;
+  const canSubmit =
+    firstName.trim().length >= MIN_NAME_LENGTH &&
+    lastName.trim().length >= MIN_NAME_LENGTH &&
+    isDateInRange(birthDate, "", maxBirthDate);
   const unchanged =
     firstName.trim() === child.firstname &&
     lastName.trim() === child.lastname &&
@@ -184,6 +199,10 @@ function EditChildDialog({
               />
               {errors.firstName != null ? (
                 <FieldError>{errors.firstName}</FieldError>
+              ) : firstName.trim().length === 1 ? (
+                <FieldDescription className="text-xs">
+                  Co najmniej {MIN_NAME_LENGTH} znaki.
+                </FieldDescription>
               ) : null}
             </Field>
             <Field data-invalid={errors.lastName != null}>
@@ -203,11 +222,15 @@ function EditChildDialog({
               />
               {errors.lastName != null ? (
                 <FieldError>{errors.lastName}</FieldError>
+              ) : lastName.trim().length === 1 ? (
+                <FieldDescription className="text-xs">
+                  Co najmniej {MIN_NAME_LENGTH} znaki.
+                </FieldDescription>
               ) : null}
             </Field>
           </div>
 
-          <Field data-invalid={errors.birthDate != null}>
+          <Field data-invalid={birthDateError != null}>
             <FieldLabel htmlFor={`edit-child-birth-date-${child.id}`}>
               Data urodzenia
             </FieldLabel>
@@ -215,15 +238,15 @@ function EditChildDialog({
               id={`edit-child-birth-date-${child.id}`}
               type="date"
               value={birthDate}
-              max={today()}
+              max={maxBirthDate}
               onChange={(event) => {
                 setBirthDate(event.target.value);
                 clearError("birthDate");
               }}
-              aria-invalid={errors.birthDate != null}
+              aria-invalid={birthDateError != null}
             />
-            {errors.birthDate != null ? (
-              <FieldError>{errors.birthDate}</FieldError>
+            {birthDateError != null ? (
+              <FieldError>{birthDateError}</FieldError>
             ) : null}
           </Field>
 
@@ -240,7 +263,7 @@ function EditChildDialog({
             <Button
               type="submit"
               size="lg"
-              disabled={isSubmitting || unchanged}
+              disabled={isSubmitting || unchanged || !canSubmit}
             >
               {isSubmitting ? "Zapisywanie…" : "Zapisz"}
             </Button>

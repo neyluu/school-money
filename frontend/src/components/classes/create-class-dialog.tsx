@@ -82,6 +82,8 @@ function CreateClassDialog({ onCreated }: { onCreated: () => void }) {
     }
   }
 
+  const canSubmit = Object.keys(validateClassForm(values)).length === 0;
+
   return (
     <>
       <Button size="lg" onClick={() => setOpen(true)}>
@@ -123,7 +125,11 @@ function CreateClassDialog({ onCreated }: { onCreated: () => void }) {
               >
                 Anuluj
               </Button>
-              <Button type="submit" size="lg" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                size="lg"
+                disabled={isSubmitting || !canSubmit}
+              >
                 {isSubmitting ? "Zapisywanie…" : "Utwórz klasę"}
               </Button>
             </div>

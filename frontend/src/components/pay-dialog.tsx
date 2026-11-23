@@ -1,6 +1,7 @@
 import * as React from "react"
 import { useNavigate } from "react-router"
 import { DataState } from "@/components/data-state"
+import { MaskedInput } from "@/components/masked-input"
 import { MoneyAmount } from "@/components/money-amount"
 import {
   ResponsiveDialog,
@@ -12,7 +13,6 @@ import {
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
 import {
   Progress,
   ProgressIndicator,
@@ -36,6 +36,7 @@ import {
   payForFundraising,
 } from "@/lib/fundraising"
 import type { Contribution, FundraisingChild } from "@/lib/fundraising"
+import { maskAmount } from "@/lib/input-rules"
 import { formatMoney } from "@/lib/money"
 import { getWallet } from "@/lib/wallet"
 
@@ -192,6 +193,22 @@ function PayForm({
     selected != null &&
     parsedAmount != null &&
     toCents(parsedAmount) < toCents(selected.remainingAmount)
+  let limitError: string | undefined
+  if (parsedAmount != null && selected != null) {
+    if (parsedAmount > selected.remainingAmount) {
+      limitError = `Do zapłaty zostało ${formatMoney(selected.remainingAmount)}.`
+    } else if (parsedAmount > balance) {
+      limitError = payAll
+        ? "Masz za mało środków. Doładuj konto albo odznacz całą kwotę, żeby wpłacić część."
+        : `Możesz wpłacić najwyżej ${formatMoney(balance)}.`
+    }
+  }
+  const amountError = limitError ?? errors.amount
+  const canSubmit =
+    selected != null &&
+    !selected.isPaid &&
+    parsedAmount != null &&
+    limitError == null
   const items = students.map((student) => ({
     value: String(student.id),
     label: studentLabel(student),
@@ -212,6 +229,7 @@ function PayForm({
 
   function handlePayAllChange(checked: boolean) {
     setPayAll(checked)
+    setErrors({})
     if (checked && selected != null) {
       setAmount(formatAmountInput(selected.remainingAmount))
     }
@@ -327,19 +345,23 @@ function PayForm({
           contributions={contributions}
         />
       ) : null}
-      <Field data-invalid={errors.amount != null}>
+      <Field data-invalid={amountError != null}>
         <FieldLabel htmlFor="pay-amount">Kwota części (zł)</FieldLabel>
-        <Input
+        <MaskedInput
           id="pay-amount"
           type="text"
           inputMode="decimal"
           autoComplete="off"
           value={amount}
           disabled={payAll}
-          onChange={(event) => setAmount(event.target.value)}
-          aria-invalid={errors.amount != null}
+          mask={maskAmount}
+          onValueChange={(value) => {
+            setAmount(value)
+            setErrors({})
+          }}
+          aria-invalid={amountError != null}
         />
-        {errors.amount != null ? <FieldError>{errors.amount}</FieldError> : null}
+        {amountError != null ? <FieldError>{amountError}</FieldError> : null}
       </Field>
       <Field orientation="horizontal">
         <Checkbox
@@ -377,7 +399,7 @@ function PayForm({
         <Button type="button" variant="outline" onClick={onClose}>
           Anuluj
         </Button>
-        <Button type="submit" loading={isSubmitting}>
+        <Button type="submit" loading={isSubmitting} disabled={!canSubmit}>
           {isPartial ? "Zapłać część" : "Zapłać"}
         </Button>
       </div>

@@ -3,12 +3,19 @@ import { Link, useNavigate, useSearchParams } from "react-router"
 import { AuthLayout, AuthLogo } from "@/components/auth-layout"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Field, FieldError, FieldLabel } from "@/components/ui/field"
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { toast } from "@/components/ui/toast"
+import { useAutofilled } from "@/hooks/use-autofilled"
 import { ROLE_PARAM, withRole } from "@/lib/account-role"
 import { ApiError } from "@/lib/api-client"
 import { login } from "@/lib/auth"
+import { EMAIL_MAX_LENGTH } from "@/lib/input-rules"
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -25,6 +32,13 @@ function LoginPage() {
   const [rememberMe, setRememberMe] = React.useState(false)
   const [errors, setErrors] = React.useState<LoginErrors>({})
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  const formRef = React.useRef<HTMLFormElement>(null)
+  const isAutofilled = useAutofilled(formRef)
+  const hasValidEmail = EMAIL_PATTERN.test(email.trim())
+  const isUntouched = email === "" && password === ""
+  const canSubmit =
+    (hasValidEmail && password !== "") || (isAutofilled && isUntouched)
 
   const registerPath = withRole("/register", searchParams.get(ROLE_PARAM))
 
@@ -85,6 +99,7 @@ function LoginPage() {
         <AuthLogo />
         <h1 className="text-3xl font-normal">Zaloguj się</h1>
         <form
+          ref={formRef}
           onSubmit={handleSubmit}
           noValidate
           className="flex flex-col gap-5"
@@ -96,12 +111,20 @@ function LoginPage() {
               type="email"
               autoComplete="email"
               placeholder="anna@example.com"
+              maxLength={EMAIL_MAX_LENGTH}
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                setEmail(event.target.value)
+                setErrors((prev) => ({ ...prev, email: undefined }))
+              }}
               aria-invalid={errors.email != null}
             />
             {errors.email != null ? (
               <FieldError>{errors.email}</FieldError>
+            ) : email !== "" && !hasValidEmail ? (
+              <FieldDescription className="text-xs">
+                Wpisz pełny adres, np. anna@example.com.
+              </FieldDescription>
             ) : null}
           </Field>
           <Field data-invalid={errors.password != null}>
@@ -111,7 +134,10 @@ function LoginPage() {
               type="password"
               autoComplete="current-password"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(event) => {
+                setPassword(event.target.value)
+                setErrors((prev) => ({ ...prev, password: undefined }))
+              }}
               aria-invalid={errors.password != null}
             />
             {errors.password != null ? (
@@ -135,6 +161,7 @@ function LoginPage() {
             type="submit"
             size="lg"
             loading={isSubmitting}
+            disabled={!canSubmit}
             className="w-full bg-foreground text-background hover:bg-foreground/90 cursor-pointer"
           >
             Zaloguj się

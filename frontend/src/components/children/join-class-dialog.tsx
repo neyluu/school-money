@@ -1,5 +1,6 @@
 import * as React from "react";
 import { UserPlus } from "lucide-react";
+import { MaskedInput } from "@/components/masked-input";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -8,12 +9,17 @@ import {
   ResponsiveDialogTitle,
 } from "@/components/responsive-dialog";
 import { Button } from "@/components/ui/button";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@/components/ui/field";
 import { toast } from "@/components/ui/toast";
 import { ApiError } from "@/lib/api-client";
 import { joinClass } from "@/lib/children";
 import type { Child } from "@/lib/children";
+import { ACCESS_CODE_LENGTH, maskAccessCode } from "@/lib/input-rules";
 
 function JoinClassDialog({
   child,
@@ -43,13 +49,12 @@ function JoinClassDialog({
 
   async function save(event: React.FormEvent) {
     event.preventDefault();
-    const trimmed = code.trim();
-    if (trimmed === "") {
+    if (isSaving || code.length !== ACCESS_CODE_LENGTH) {
       return;
     }
     setIsSaving(true);
     try {
-      await joinClass(trimmed, child.id);
+      await joinClass(code, child.id);
       toast.add({
         title: `Wysłano prośbę o dołączenie: ${childName}`,
         description: "Dziecko zostanie dodane po akceptacji właściciela klasy.",
@@ -94,17 +99,27 @@ function JoinClassDialog({
 
             <Field data-invalid={error != null}>
               <FieldLabel htmlFor={inputId}>Kod klasy</FieldLabel>
-              <Input
+              <MaskedInput
                 id={inputId}
+                autoComplete="off"
+                autoCapitalize="characters"
+                spellCheck={false}
                 placeholder="3BTX7KQ2"
                 value={code}
                 aria-invalid={error != null}
-                onChange={(event) => {
-                  setCode(event.target.value);
+                mask={maskAccessCode}
+                onValueChange={(value) => {
+                  setCode(value);
                   setError(undefined);
                 }}
               />
-              {error != null ? <FieldError>{error}</FieldError> : null}
+              {error != null ? (
+                <FieldError>{error}</FieldError>
+              ) : code !== "" && code.length < ACCESS_CODE_LENGTH ? (
+                <FieldDescription className="text-xs">
+                  Wpisano {code.length} z {ACCESS_CODE_LENGTH} znaków.
+                </FieldDescription>
+              ) : null}
             </Field>
 
             <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center">
@@ -121,7 +136,7 @@ function JoinClassDialog({
               <Button
                 type="submit"
                 size="lg"
-                disabled={code.trim() === "" || isSaving}
+                disabled={code.length !== ACCESS_CODE_LENGTH || isSaving}
               >
                 {isSaving ? "Wysyłanie…" : "Dołącz"}
               </Button>

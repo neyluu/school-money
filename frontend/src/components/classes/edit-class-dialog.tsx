@@ -70,6 +70,8 @@ function EditClassDialog({
     trimmed.school === schoolClass.school &&
     trimmed.city === schoolClass.city;
 
+  const canSubmit = Object.keys(validateClassForm(values)).length === 0;
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (isSubmitting) {
@@ -149,7 +151,7 @@ function EditClassDialog({
             <Button
               type="submit"
               size="lg"
-              disabled={isSubmitting || unchanged}
+              disabled={isSubmitting || unchanged || !canSubmit}
             >
               {isSubmitting ? "Zapisywanie…" : "Zapisz"}
             </Button>

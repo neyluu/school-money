@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Plus } from "lucide-react";
 import { AvatarPicker } from "@/components/children/avatar-picker";
+import { MaskedInput } from "@/components/masked-input";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -27,6 +28,13 @@ import {
   validateAvatar,
 } from "@/lib/children";
 import type { Child } from "@/lib/children";
+import {
+  ACCESS_CODE_LENGTH,
+  getDateRangeError,
+  getLatestPastDate,
+  isDateInRange,
+  maskAccessCode,
+} from "@/lib/input-rules";
 
 const MIN_NAME_LENGTH = 2;
 const MAX_NAME_LENGTH = 100;
@@ -38,13 +46,6 @@ type FormErrors = {
   avatar?: string;
   classCode?: string;
 };
-
-function today(): string {
-  const now = new Date();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${now.getFullYear()}-${month}-${day}`;
-}
 
 function initials(firstName: string, lastName: string): string {
   return `${firstName.trim().charAt(0)}${lastName.trim().charAt(0)}`.toUpperCase();
@@ -70,7 +71,7 @@ function validate(values: {
 
   if (values.birthDate === "") {
     errors.birthDate = "Podaj datę urodzenia.";
-  } else if (values.birthDate >= today()) {
+  } else if (!isDateInRange(values.birthDate, "", getLatestPastDate())) {
     errors.birthDate = "Data urodzenia musi być w przeszłości.";
   }
 
@@ -96,6 +97,20 @@ function AddChildDialog({ onCreated }: { onCreated: (child: Child) => void }) {
   function clearError(field: keyof FormErrors) {
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   }
+
+  const maxBirthDate = getLatestPastDate();
+  const birthDateError =
+    getDateRangeError(
+      birthDate,
+      "",
+      maxBirthDate,
+      "Data urodzenia musi być wcześniejsza niż dziś.",
+    ) ?? errors.birthDate;
+  const canSubmit =
+    firstName.trim().length >= MIN_NAME_LENGTH &&
+    lastName.trim().length >= MIN_NAME_LENGTH &&
+    isDateInRange(birthDate, "", maxBirthDate) &&
+    (classCode === "" || classCode.length === ACCESS_CODE_LENGTH);
 
   function reset() {
     setFirstName("");
@@ -241,8 +256,12 @@ function AddChildDialog({ onCreated }: { onCreated: (child: Child) => void }) {
                 fallback={initials(firstName, lastName) || "?"}
                 invalid={errors.avatar != null}
                 onChange={(file) => {
-                  setAvatar(file);
-                  setErrors((prev) => ({ ...prev, avatar: undefined }));
+                  const avatarError =
+                    file != null ? validateAvatar(file) : undefined;
+                  if (avatarError == null) {
+                    setAvatar(file);
+                  }
+                  setErrors((prev) => ({ ...prev, avatar: avatarError }));
                 }}
               />
               {errors.avatar != null ? (
@@ -267,6 +286,10 @@ function AddChildDialog({ onCreated }: { onCreated: (child: Child) => void }) {
                 />
                 {errors.firstName != null ? (
                   <FieldError>{errors.firstName}</FieldError>
+                ) : firstName.trim().length === 1 ? (
+                  <FieldDescription className="text-xs">
+                    Co najmniej {MIN_NAME_LENGTH} znaki.
+                  </FieldDescription>
                 ) : null}
               </Field>
               <Field data-invalid={errors.lastName != null}>
@@ -285,25 +308,29 @@ function AddChildDialog({ onCreated }: { onCreated: (child: Child) => void }) {
                 />
                 {errors.lastName != null ? (
                   <FieldError>{errors.lastName}</FieldError>
+                ) : lastName.trim().length === 1 ? (
+                  <FieldDescription className="text-xs">
+                    Co najmniej {MIN_NAME_LENGTH} znaki.
+                  </FieldDescription>
                 ) : null}
               </Field>
             </div>
 
-            <Field data-invalid={errors.birthDate != null}>
+            <Field data-invalid={birthDateError != null}>
               <FieldLabel htmlFor="child-birth-date">Data urodzenia</FieldLabel>
               <Input
                 id="child-birth-date"
                 type="date"
                 value={birthDate}
-                max={today()}
+                max={maxBirthDate}
                 onChange={(event) => {
                   setBirthDate(event.target.value);
                   clearError("birthDate");
                 }}
-                aria-invalid={errors.birthDate != null}
+                aria-invalid={birthDateError != null}
               />
-              {errors.birthDate != null ? (
-                <FieldError>{errors.birthDate}</FieldError>
+              {birthDateError != null ? (
+                <FieldError>{birthDateError}</FieldError>
               ) : null}
             </Field>
 
@@ -311,11 +338,12 @@ function AddChildDialog({ onCreated }: { onCreated: (child: Child) => void }) {
               <FieldLabel htmlFor="child-class-code">
                 Kod zaproszenia do klasy (opcjonalnie)
               </FieldLabel>
-              <Input
+              <MaskedInput
                 id="child-class-code"
                 value={classCode}
-                onChange={(event) => {
-                  setClassCode(event.target.value.toUpperCase());
+                mask={maskAccessCode}
+                onValueChange={(value) => {
+                  setClassCode(value);
                   setErrors((prev) => ({ ...prev, classCode: undefined }));
                 }}
                 placeholder="np. 3BX7KQ2M"
@@ -328,8 +356,9 @@ function AddChildDialog({ onCreated }: { onCreated: (child: Child) => void }) {
                 <FieldError>{errors.classCode}</FieldError>
               ) : (
                 <FieldDescription>
-                  Kod otrzymasz od skarbnika klasy. Możesz go podać także
-                  później.
+                  {classCode !== "" && classCode.length < ACCESS_CODE_LENGTH
+                    ? `Wpisano ${classCode.length} z ${ACCESS_CODE_LENGTH} znaków. Dokończ kod albo wyczyść pole.`
+                    : "Kod otrzymasz od skarbnika klasy. Możesz go podać także później."}
                 </FieldDescription>
               )}
             </Field>
@@ -344,7 +373,11 @@ function AddChildDialog({ onCreated }: { onCreated: (child: Child) => void }) {
               >
                 Anuluj
               </Button>
-              <Button type="submit" size="lg" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                size="lg"
+                disabled={isSubmitting || !canSubmit}
+              >
                 {isSubmitting ? "Zapisywanie…" : "Dodaj dziecko"}
               </Button>
             </div>
