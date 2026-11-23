@@ -2,6 +2,13 @@ import * as React from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { AuthLayout, AuthLogo } from "@/components/auth-layout";
 import { MaskedInput } from "@/components/masked-input";
+import {
+  MAX_PASSWORD_LENGTH,
+  MIN_PASSWORD_LENGTH,
+  NewPasswordFields,
+  PASSWORD_INVALID,
+  PASSWORD_MISMATCH,
+} from "@/components/new-password-fields";
 import { SegmentedControl } from "@/components/segmented-control";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,11 +23,9 @@ import { ROLE_PARAM, parseRole } from "@/lib/account-role";
 import type { AccountRole } from "@/lib/account-role";
 import { ApiError } from "@/lib/api-client";
 import { register } from "@/lib/auth";
-import { EMAIL_MAX_LENGTH, maskPassword } from "@/lib/input-rules";
+import { EMAIL_MAX_LENGTH } from "@/lib/input-rules";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MIN_PASSWORD_LENGTH = 8;
-const MAX_PASSWORD_LENGTH = 72;
 const MAX_NAME_LENGTH = 100;
 
 const ROLE_HINTS: Record<AccountRole, string> = {
@@ -68,12 +73,6 @@ function RegisterPage() {
 
   const hasFullName = splitName(fullName).lastName !== "";
   const hasValidEmail = EMAIL_PATTERN.test(email.trim());
-  const confirmError =
-    confirmPassword !== "" &&
-    confirmPassword.length >= password.length &&
-    confirmPassword !== password
-      ? "Hasła muszą być takie same."
-      : errors.confirmPassword;
   const canSubmit =
     hasFullName &&
     hasValidEmail &&
@@ -114,7 +113,7 @@ function RegisterPage() {
     if (confirmPassword === "") {
       nextErrors.confirmPassword = "Powtórz hasło.";
     } else if (confirmPassword !== password) {
-      nextErrors.confirmPassword = "Hasła muszą być takie same.";
+      nextErrors.confirmPassword = PASSWORD_MISMATCH;
     }
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
@@ -149,7 +148,7 @@ function RegisterPage() {
           fieldErrors.email = "Podaj poprawny adres e-mail.";
         }
         if (error.fieldErrors?.password != null) {
-          fieldErrors.password = "Hasło musi mieć min. 8 znaków.";
+          fieldErrors.password = PASSWORD_INVALID;
         }
         if (
           error.fieldErrors?.firstName != null ||
@@ -236,47 +235,23 @@ function RegisterPage() {
               </FieldDescription>
             ) : null}
           </Field>
-          <Field data-invalid={errors.password != null}>
-            <FieldLabel htmlFor="register-password">Hasło</FieldLabel>
-            <MaskedInput
-              id="register-password"
-              type="password"
-              autoComplete="new-password"
-              placeholder="Min. 8 znaków"
-              value={password}
-              mask={maskPassword}
-              onValueChange={(value) => {
-                setPassword(value);
-                clearError("password");
-              }}
-              aria-invalid={errors.password != null}
-            />
-            {errors.password != null ? (
-              <FieldError>{errors.password}</FieldError>
-            ) : (
-              <FieldDescription className="text-xs">
-                Od {MIN_PASSWORD_LENGTH} do {MAX_PASSWORD_LENGTH} znaków.
-              </FieldDescription>
-            )}
-          </Field>
-          <Field data-invalid={confirmError != null}>
-            <FieldLabel htmlFor="register-confirm">Powtórz hasło</FieldLabel>
-            <MaskedInput
-              id="register-confirm"
-              type="password"
-              autoComplete="new-password"
-              value={confirmPassword}
-              mask={maskPassword}
-              onValueChange={(value) => {
-                setConfirmPassword(value);
-                clearError("confirmPassword");
-              }}
-              aria-invalid={confirmError != null}
-            />
-            {confirmError != null ? (
-              <FieldError>{confirmError}</FieldError>
-            ) : null}
-          </Field>
+          <NewPasswordFields
+            idPrefix="register"
+            passwordLabel="Hasło"
+            confirmLabel="Powtórz hasło"
+            password={password}
+            confirm={confirmPassword}
+            onPasswordChange={(value) => {
+              setPassword(value);
+              clearError("password");
+            }}
+            onConfirmChange={(value) => {
+              setConfirmPassword(value);
+              clearError("confirmPassword");
+            }}
+            passwordError={errors.password}
+            confirmError={errors.confirmPassword}
+          />
           <p className="text-sm text-muted-foreground">{ROLE_HINTS[role]}</p>
           <Button
             type="submit"

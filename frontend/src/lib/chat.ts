@@ -4,6 +4,7 @@ export type ChatUser = {
   id: number;
   firstName: string;
   lastName: string;
+  deleted: boolean;
 };
 
 export type ChatMessage = {

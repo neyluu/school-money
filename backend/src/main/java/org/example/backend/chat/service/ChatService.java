@@ -224,13 +224,13 @@ public class ChatService
 
     private boolean canStartPrivateChat(AuthenticatedUser user, User target)
     {
-        if(user.role() == UserRole.ADMIN)
+        if(target.getIsBlocked())
+        {
+            return false;
+        }
+        if(user.role() == UserRole.ADMIN || target.getRole() == UserRole.ADMIN)
         {
             return true;
-        }
-        if(target.getRole() == UserRole.ADMIN)
-        {
-            return !target.getIsBlocked();
         }
         return conversationRepository.shareClass(user.id(), target.getId(), MembershipStatus.ACCEPTED);
     }

@@ -92,7 +92,12 @@ function Sidebar({
                 }
               : undefined
           }
-          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0"
+          aria-current={activeId === "settings" ? "page" : undefined}
+          className={cn(
+            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0",
+            activeId === "settings" &&
+              "bg-sidebar-accent text-sidebar-accent-foreground"
+          )}
         >
           <Settings />
           Ustawienia
