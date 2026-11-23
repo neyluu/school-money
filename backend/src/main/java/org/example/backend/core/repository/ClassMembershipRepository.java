@@ -51,6 +51,17 @@ public interface ClassMembershipRepository extends JpaRepository<ClassMembership
     List<ClassMembership> findAllByParentId(@Param("parentId") Integer parentId);
 
     @Query("""
+        SELECT m FROM ClassMembership m
+        JOIN FETCH m.schoolClass sc
+        JOIN FETCH m.child c
+        WHERE c.parent.id IN :parentIds AND c.active = true AND m.status = :status AND sc.deletedAt IS NULL
+        """)
+    List<ClassMembership> findAllByParentIdsAndStatus(
+        @Param("parentIds") Collection<Integer> parentIds,
+        @Param("status") MembershipStatus status
+    );
+
+    @Query("""
         SELECT m.schoolClass.id AS classId, COUNT(m) AS count FROM ClassMembership m
         WHERE m.schoolClass.id IN :classIds AND m.status = :status AND m.child.active = true
         GROUP BY m.schoolClass.id

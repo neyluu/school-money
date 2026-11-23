@@ -122,6 +122,7 @@ public class ClassesService
     public ClassResponse update(Integer classId, ClassUpdateRequest request, Integer userId)
     {
         SchoolClass schoolClass = findOwnedClass(classId, userId);
+        requireNotBlocked(schoolClass);
 
         if(request.name() != null)
         {
@@ -145,6 +146,7 @@ public class ClassesService
     public void remove(Integer classId, Integer userId)
     {
         SchoolClass schoolClass = findOwnedClass(classId, userId);
+        requireNotBlocked(schoolClass);
 
         if(fundraisingRepository.existsBySchoolClassId(classId))
         {
@@ -171,7 +173,8 @@ public class ClassesService
     @Transactional
     public MembershipResponse acceptMembership(Integer classId, Integer childId, Integer userId)
     {
-        findOwnedClass(classId, userId);
+        SchoolClass schoolClass = findOwnedClass(classId, userId);
+        requireNotBlocked(schoolClass);
         ClassMembership membership = findMembership(classId, childId, MembershipStatus.ACTIVE);
 
         if(membership.getStatus() == MembershipStatus.ACCEPTED)
@@ -188,7 +191,8 @@ public class ClassesService
     @Transactional
     public MembershipResponse rejectMembership(Integer classId, Integer childId, Integer userId)
     {
-        findOwnedClass(classId, userId);
+        SchoolClass schoolClass = findOwnedClass(classId, userId);
+        requireNotBlocked(schoolClass);
         ClassMembership membership = findMembership(classId, childId, MembershipStatus.ACTIVE);
 
         if(membership.getStatus() == MembershipStatus.ACCEPTED)
@@ -205,7 +209,8 @@ public class ClassesService
     @Transactional
     public void removeMembership(Integer classId, Integer childId, Integer userId)
     {
-        findOwnedClass(classId, userId);
+        SchoolClass schoolClass = findOwnedClass(classId, userId);
+        requireNotBlocked(schoolClass);
         membershipRepository.delete(findMembership(classId, childId, MembershipStatus.ACTIVE));
     }
 
@@ -221,6 +226,10 @@ public class ClassesService
         {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the child's parent or the class owner can remove the child");
         }
+        if(!isParent)
+        {
+            requireNotBlocked(schoolClass);
+        }
 
         membershipRepository.delete(membership);
     }
@@ -229,6 +238,7 @@ public class ClassesService
     public AccessCodeResponse regenerateAccessCode(Integer classId, Integer userId)
     {
         SchoolClass schoolClass = findOwnedClass(classId, userId);
+        requireNotBlocked(schoolClass);
 
         schoolClass.setAccessCode(generateUniqueAccessCode());
         schoolClassRepository.saveAndFlush(schoolClass);
@@ -305,6 +315,14 @@ public class ClassesService
     private boolean isOwner(SchoolClass schoolClass, Integer userId)
     {
         return schoolClass.getOwner().getId().equals(userId);
+    }
+
+    private void requireNotBlocked(SchoolClass schoolClass)
+    {
+        if(schoolClass.getIsBlocked())
+        {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Class is blocked");
+        }
     }
 
     private String normalizeAccessCode(String code)

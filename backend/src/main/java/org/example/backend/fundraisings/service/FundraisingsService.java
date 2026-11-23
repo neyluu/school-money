@@ -94,6 +94,7 @@ public class FundraisingsService
     public FundraiseResponse updateFundraise(Integer userId, Integer fundraiseId, UpdateFundraiseRequest request)
     {
         Fundraising fundraising = getFundraisingIfOwner(userId, fundraiseId);
+        accessService.requireNotBlocked(fundraising);
 
         if(request.name() != null)
         {
@@ -150,6 +151,7 @@ public class FundraisingsService
     public FileInfoDto putLogo(Integer userId, Integer fundraiseId, MultipartFile logo)
     {
         Fundraising fundraising = getFundraisingIfOwner(userId, fundraiseId);
+        accessService.requireNotBlocked(fundraising);
 
         FileInfoDto saved = fileProcessor.save(logo);
         File oldLogo = fundraising.getLogoFile();
@@ -183,6 +185,7 @@ public class FundraisingsService
     public void deleteLogo(Integer userId, Integer fundraiseId)
     {
         Fundraising fundraising = getFundraisingIfOwner(userId, fundraiseId);
+        accessService.requireNotBlocked(fundraising);
 
         File logo = fundraising.getLogoFile();
         if(logo != null)
@@ -199,6 +202,14 @@ public class FundraisingsService
         if( ! Objects.equals(schoolClass.getOwner().getId(), userId))
         {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized for this class");
+        }
+        if(schoolClass.getDeletedAt() != null)
+        {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Class not found");
+        }
+        if(schoolClass.getIsBlocked())
+        {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Class is blocked");
         }
 
         return schoolClass;

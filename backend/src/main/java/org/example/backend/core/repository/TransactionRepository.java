@@ -46,4 +46,23 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
         @Param("walletId") Integer walletId,
         @Param("type") TransactionType type
     );
+
+    @Query(
+        value = """
+            SELECT to_char(date_trunc('month', completed_at), 'YYYY-MM') AS month, SUM(amount) AS turnover
+            FROM transactions
+            WHERE status = 'COMPLETED'
+                AND type IN ('DEPOSIT', 'PAYMENT')
+                AND completed_at >= :from AND completed_at < :to
+            GROUP BY 1
+            ORDER BY 1
+        """,
+        nativeQuery = true
+    )
+    List<MonthlyTurnover> turnoverByMonth(@Param("from") Instant from, @Param("to") Instant to);
+
+    interface MonthlyTurnover {
+        String getMonth();
+        BigDecimal getTurnover();
+    }
 }
