@@ -1,11 +1,19 @@
-import { Navigate, Outlet } from "react-router"
-import { isAuthenticated } from "@/lib/auth-store"
+import { Navigate, Outlet, useLocation } from "react-router";
+import { useAuth } from "@/hooks/use-auth";
 
 function RequireAuth() {
-  if (!isAuthenticated()) {
-    return <Navigate to="/login" replace />
+  const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return null;
   }
-  return <Outlet />
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  return <Outlet />;
 }
 
-export { RequireAuth }
+export { RequireAuth };
