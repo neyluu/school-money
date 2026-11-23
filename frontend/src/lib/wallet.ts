@@ -1,118 +1,113 @@
-import { authorizedRequest } from "@/lib/authorized-client"
-import { normalizeIban } from "@/lib/iban"
+import { authorizedRequest } from "@/lib/authorized-client";
+import { normalizeIban } from "@/lib/iban";
 
-const DEFAULT_PAGE_SIZE = 20
-const DEFAULT_SUMMARY_DAYS = 30
+const DEFAULT_PAGE_SIZE = 20;
+const DEFAULT_SUMMARY_DAYS = 30;
 
 export type Wallet = {
-  id: number
-  iban: string
-  balance: number
-}
+  id: number;
+  iban: string;
+  balance: number;
+};
 
 export type TransactionType =
-  | "DEPOSIT"
-  | "WITHDRAWAL"
-  | "PAYMENT"
-  | "REFUND"
-  | "PAYOUT"
-  | "REPLENISHMENT"
+  "DEPOSIT" | "WITHDRAWAL" | "PAYMENT" | "REFUND" | "PAYOUT" | "REPLENISHMENT";
 
-export type TransactionStatus = "PENDING" | "COMPLETED" | "FAILED"
+export type TransactionStatus = "PENDING" | "COMPLETED" | "FAILED";
 
 export type Transaction = {
-  id: number
-  type: TransactionType
-  amount: number
-  title: string
-  status: TransactionStatus
-  incoming: boolean
-  createdAt: string
-  completedAt: string | null
-}
+  id: number;
+  type: TransactionType;
+  amount: number;
+  title: string;
+  status: TransactionStatus;
+  incoming: boolean;
+  createdAt: string;
+  completedAt: string | null;
+};
 
 export type DailyFlow = {
-  date: string
-  income: number
-  expense: number
-}
+  date: string;
+  income: number;
+  expense: number;
+};
 
 export type WalletSummary = {
-  days: number
-  income: number
-  expense: number
-  daily: DailyFlow[]
-}
+  days: number;
+  income: number;
+  expense: number;
+  daily: DailyFlow[];
+};
 
 export type WalletContribution = {
-  id: number
-  fundraisingId: number
-  fundraisingName: string
+  id: number;
+  fundraisingId: number;
+  fundraisingName: string;
   child: {
-    id: number
-    firstName: string
-    lastName: string
-  }
-  amount: number
-  createdAt: string
-  refunded: boolean
-  refundedAt: string | null
-}
+    id: number;
+    firstName: string;
+    lastName: string;
+  };
+  amount: number;
+  createdAt: string;
+  refunded: boolean;
+  refundedAt: string | null;
+};
 
-export type ContributionFilter = "all" | "completed" | "refunded"
+export type ContributionFilter = "all" | "completed" | "refunded";
 
 export type WithdrawInput = {
-  recipientName: string
-  iban: string
-  amount: number
-}
+  recipientName: string;
+  iban: string;
+  amount: number;
+};
 
 function getWallet(): Promise<Wallet> {
-  return authorizedRequest<Wallet>("/payments/wallet")
+  return authorizedRequest<Wallet>("/payments/wallet");
 }
 
 function buildHistoryQuery(
   page: number,
   size: number,
-  filters?: URLSearchParams
+  filters?: URLSearchParams,
 ): string {
-  const query = new URLSearchParams(filters)
-  query.set("page", String(page))
-  query.set("size", String(size))
-  return query.toString()
+  const query = new URLSearchParams(filters);
+  query.set("page", String(page));
+  query.set("size", String(size));
+  return query.toString();
 }
 
 function getTransactions(
   page = 0,
   size = DEFAULT_PAGE_SIZE,
-  filters?: URLSearchParams
+  filters?: URLSearchParams,
 ): Promise<Transaction[]> {
   return authorizedRequest<Transaction[]>(
-    `/payments/wallet/transactions?${buildHistoryQuery(page, size, filters)}`
-  )
+    `/payments/wallet/transactions?${buildHistoryQuery(page, size, filters)}`,
+  );
 }
 
 function getSummary(days = DEFAULT_SUMMARY_DAYS): Promise<WalletSummary> {
   return authorizedRequest<WalletSummary>(
-    `/payments/wallet/summary?days=${days}`
-  )
+    `/payments/wallet/summary?days=${days}`,
+  );
 }
 
 function getContributions(
   page = 0,
   size = DEFAULT_PAGE_SIZE,
-  filters?: URLSearchParams
+  filters?: URLSearchParams,
 ): Promise<WalletContribution[]> {
   return authorizedRequest<WalletContribution[]>(
-    `/payments/wallet/contributions?${buildHistoryQuery(page, size, filters)}`
-  )
+    `/payments/wallet/contributions?${buildHistoryQuery(page, size, filters)}`,
+  );
 }
 
 function deposit(amount: number): Promise<Transaction> {
   return authorizedRequest<Transaction>("/payments/wallet/deposits", {
     method: "POST",
     body: { amount },
-  })
+  });
 }
 
 function withdraw(input: WithdrawInput): Promise<Transaction> {
@@ -123,7 +118,7 @@ function withdraw(input: WithdrawInput): Promise<Transaction> {
       iban: normalizeIban(input.iban),
       amount: input.amount,
     },
-  })
+  });
 }
 
 export {
@@ -133,4 +128,4 @@ export {
   getTransactions,
   getWallet,
   withdraw,
-}
+};
