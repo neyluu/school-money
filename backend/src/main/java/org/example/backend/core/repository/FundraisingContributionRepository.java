@@ -1,6 +1,7 @@
 package org.example.backend.core.repository;
 
 import org.example.backend.core.entity.FundraisingContribution;
+import org.example.backend.core.entity.types.TransactionType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -84,6 +85,27 @@ public interface FundraisingContributionRepository extends JpaRepository<Fundrai
         @Param("fundraisingIds") Collection<Integer> fundraisingIds
     );
 
+    @Query("""
+        SELECT fc.payer.id AS payerId,
+               fc.child.id AS childId,
+               SUM(t.amount - COALESCE(rt.amount, 0)) AS netPaid
+        FROM FundraisingContribution fc
+            JOIN fc.transaction t
+            LEFT JOIN fc.refundTransaction rt
+        WHERE
+            fc.fundraising.id = :fundraisingId
+            AND t.type = :type
+        GROUP BY fc.payer.id, fc.child.id
+        HAVING SUM(t.amount - COALESCE(rt.amount, 0)) > :newValue
+    """)
+    List<ChildOverpayment> findOverpaidChildren(@Param("fundraisingId") Integer fundraisingId,
+                                                @Param("newValue") BigDecimal newValue,
+                                                @Param("type") TransactionType type);
+
+    Optional<FundraisingContribution> findFirstByFundraisingIdAndChildIdAndRefundTransactionIsNullOrderByIdDesc(
+        Integer fundraisingId, Integer childId
+    );
+
     interface ChildPaidAmount {
         Integer getChildId();
 
@@ -96,5 +118,11 @@ public interface FundraisingContributionRepository extends JpaRepository<Fundrai
         Integer getChildId();
 
         BigDecimal getAmount();
+    }
+
+    interface ChildOverpayment {
+        Integer getPayerId();
+        Integer getChildId();
+        BigDecimal getNetPaid();
     }
 }

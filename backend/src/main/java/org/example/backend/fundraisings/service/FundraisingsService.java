@@ -3,19 +3,16 @@ package org.example.backend.fundraisings.service;
 import lombok.RequiredArgsConstructor;
 import org.example.backend.core.dto.response.FileDto;
 import org.example.backend.core.dto.response.FileInfoDto;
-import org.example.backend.core.entity.File;
-import org.example.backend.core.entity.Fundraising;
-import org.example.backend.core.entity.SchoolClass;
+import org.example.backend.core.entity.*;
 import org.example.backend.core.entity.types.FundraisingStatus;
-import org.example.backend.core.repository.FileRepository;
-import org.example.backend.core.repository.FundraisingRepository;
-import org.example.backend.core.repository.SchoolClassRepository;
-import org.example.backend.core.repository.WalletRepository;
+import org.example.backend.core.entity.types.TransactionType;
+import org.example.backend.core.repository.*;
 import org.example.backend.core.utils.FileProcessor;
 import org.example.backend.fundraisings.dto.request.CreateFundraiseRequest;
 import org.example.backend.fundraisings.dto.request.UpdateFundraiseRequest;
 import org.example.backend.fundraisings.dto.response.FundraiseResponse;
 import org.example.backend.payments.service.FundraisingAccessService;
+import org.example.backend.payments.service.LedgerService;
 import org.example.backend.payments.service.WalletCreationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,9 +35,11 @@ public class FundraisingsService
     private final FileProcessor fileProcessor;
     private final SchoolClassRepository schoolClassRepository;
     private final FundraisingRepository fundraisingRepository;
+    private final FundraisingContributionRepository fundraisingContributionRepository ;
     private final WalletRepository walletRepository;
     private final WalletCreationService walletCreationService;
     private final FundraisingAccessService accessService;
+    private final LedgerService ledgerService;
 
     private static final Set<String> ALLOWED_LOGO_TYPES = Set.of("image/png", "image/jpeg");
 
@@ -111,7 +110,7 @@ public class FundraisingsService
         {
             if(request.perChildAmount().compareTo(fundraising.getAmountPerChild()) < 0)
             {
-                // TODO handle refunding overpayments
+                refundOverpayments(fundraising, request.perChildAmount());
             }
 
             fundraising.setAmountPerChild(request.perChildAmount());
@@ -214,5 +213,28 @@ public class FundraisingsService
     {
         return fundraisingRepository.findByIdAndSchoolClassOwnerId(fundraisingsId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Fundraising not found"));
+    }
+
+    @Transactional
+    protected void refundOverpayments(Fundraising fundraising, BigDecimal newValue) {
+        List<FundraisingContributionRepository.ChildOverpayment> overpaid = fundraisingContributionRepository
+                .findOverpaidChildren(fundraising.getId(), newValue, TransactionType.PAYMENT);
+        Wallet fundraisingWallet = walletRepository.findByFundraisingId(fundraising.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Fundraising wallet not found"));
+
+        for (FundraisingContributionRepository.ChildOverpayment o : overpaid) {
+            Wallet userWallet = walletRepository.findByUserId(o.getPayerId())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User wallet not found"));
+
+            BigDecimal refund = o.getNetPaid().subtract(newValue);
+
+            Transaction refundTx = ledgerService.transfer(
+                fundraisingWallet.getId(),
+                userWallet.getId(),
+                refund,
+                TransactionType.REFUND,
+                "Zwrot nadpłaty ze zbiórki " + fundraising.getName()
+            );
+        }
     }
 }
