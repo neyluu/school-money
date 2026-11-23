@@ -25,7 +25,6 @@ import org.example.backend.payments.dto.response.TransactionResponse;
 import org.example.backend.payments.dto.response.WalletContributionResponse;
 import org.example.backend.payments.dto.response.WalletResponse;
 import org.example.backend.payments.dto.response.WalletSummaryResponse;
-import org.example.backend.payments.entity.SavedAccount;
 import org.example.backend.payments.utils.HistorySpecifications;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -47,7 +46,6 @@ public class PaymentsService {
     private final TransactionRepository transactionRepository;
     private final FundraisingContributionRepository contributionRepository;
     private final LedgerService ledgerService;
-    private final SavedAccountService savedAccountService;
 
     @Transactional(readOnly = true)
     public WalletResponse getWallet(Integer userId) {
@@ -80,31 +78,7 @@ public class PaymentsService {
         Integer userId,
         WithdrawRequest request
     ) {
-        String recipientName;
-        String iban;
-
-        if (request.savedAccountId() != null) {
-            SavedAccount saved = savedAccountService.findOwned(
-                userId,
-                request.savedAccountId()
-            );
-            recipientName = saved.getRecipientName();
-            iban = saved.getIban();
-        } else {
-            if (
-                request.recipientName() == null ||
-                request.recipientName().isBlank() ||
-                request.iban() == null
-            ) {
-                throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Recipient name and IBAN are required"
-                );
-            }
-            recipientName = request.recipientName().trim();
-            iban = request.iban().toUpperCase(Locale.ROOT);
-        }
-
+        String iban = request.iban().toUpperCase(Locale.ROOT);
         if (walletRepository.existsByIban(iban)) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
@@ -113,7 +87,11 @@ public class PaymentsService {
         }
 
         Integer walletId = findUserWalletId(userId);
-        String title = WITHDRAWAL_TITLE_PREFIX + recipientName + ", " + iban;
+        String title =
+            WITHDRAWAL_TITLE_PREFIX +
+            request.recipientName().trim() +
+            ", " +
+            iban;
         Transaction transaction = ledgerService.withdraw(
             walletId,
             request.amount(),
