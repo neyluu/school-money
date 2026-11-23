@@ -27,7 +27,6 @@ function AppShell({
   sidebar,
   topbar,
   bottomNavigation,
-  unreadCount,
   className,
   ...props
 }: React.ComponentProps<"div"> & {
@@ -37,7 +36,6 @@ function AppShell({
   sidebar?: React.ReactNode;
   topbar?: React.ReactNode;
   bottomNavigation?: React.ReactNode;
-  unreadCount?: number;
 }) {
   React.useEffect(() => {
     if (!SUPPORTS_VIEW_TRANSITIONS) {
@@ -84,7 +82,7 @@ function AppShell({
         />
       )}
       <div className="flex min-w-0 flex-1 flex-col md:pl-60">
-        {topbar ?? <Topbar unreadCount={unreadCount} />}
+        {topbar ?? <Topbar />}
         <main className="flex-1 overflow-y-auto px-4 pt-20 pb-24 md:px-6 md:pt-24 md:pb-8">
           <div className="mx-auto w-full max-w-5xl">
             <RouteTransition>{children}</RouteTransition>
