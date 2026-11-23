@@ -22,6 +22,7 @@ export type Chat = {
   otherUser: ChatUser | null;
   lastMessage: ChatMessage | null;
   unreadCount: number;
+  canSend: boolean;
   createdAt: string;
 };
 

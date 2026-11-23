@@ -8,9 +8,10 @@ import type { Chat } from "@/lib/chat";
 
 const REFRESH_INTERVAL_MS = 10000;
 
-function useChatList() {
+function useChatList(focusedId: number | null) {
   const navigate = useNavigate();
   const [chats, setChats] = React.useState<Chat[] | null>(null);
+  const [draft, setDraft] = React.useState<Chat | null>(null);
   const [userId, setUserId] = React.useState<number | null>(null);
   const [failed, setFailed] = React.useState(false);
   const [reloadKey, setReloadKey] = React.useState(0);
@@ -66,6 +67,10 @@ function useChatList() {
   }
 
   function addChat(chat: Chat) {
+    if (chat.type === "PRIVATE" && chat.lastMessage == null) {
+      setDraft(chat);
+      return;
+    }
     latestRequest.current += 1;
     setChats((current) => [
       chat,
@@ -73,8 +78,21 @@ function useChatList() {
     ]);
   }
 
+  function discardDraft() {
+    setDraft(null);
+  }
+
+  const loaded = chats ?? [];
+  const visibleDraft =
+    draft != null &&
+    draft.id === focusedId &&
+    !loaded.some((chat) => chat.id === draft.id)
+      ? draft
+      : null;
+
   return {
-    chats: chats ?? [],
+    chats: visibleDraft != null ? [visibleDraft, ...loaded] : loaded,
+    discardDraft,
     userId,
     failed,
     isLoading: !isReady && !failed,

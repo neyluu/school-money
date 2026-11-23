@@ -17,13 +17,24 @@ const CHAT_PARAM = "id";
 
 function ChatPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { chats, userId, failed, isLoading, refresh, retry, addChat } =
-    useChatList();
-
   const requestedId = searchParams.get(CHAT_PARAM);
+  const {
+    chats,
+    userId,
+    failed,
+    isLoading,
+    refresh,
+    retry,
+    addChat,
+    discardDraft,
+  } = useChatList(requestedId != null ? Number(requestedId) : null);
+
   const selected = chats.find((chat) => String(chat.id) === requestedId);
 
   function selectChat(chat: Chat) {
+    if (chat.id !== selected?.id) {
+      discardDraft();
+    }
     setSearchParams(
       { [CHAT_PARAM]: String(chat.id) },
       { replace: selected != null },
@@ -31,6 +42,7 @@ function ChatPage() {
   }
 
   function closeChat() {
+    discardDraft();
     setSearchParams({}, { replace: true });
   }
 
@@ -44,8 +56,8 @@ function ChatPage() {
             actions={
               <NewChatDialog
                 onOpened={(chat) => {
-                  addChat(chat);
                   selectChat(chat);
+                  addChat(chat);
                 }}
               />
             }
