@@ -184,9 +184,7 @@ public class ChatService
             List<User> classmates = classIds.isEmpty()
                     ? List.of()
                     : conversationRepository.findContacts(user.id(), classIds, MembershipStatus.ACCEPTED);
-            List<User> admins = conversationRepository.isClassOwner(user.id())
-                    ? userRepository.findAllByRoleAndIsBlocked(UserRole.ADMIN, false)
-                    : List.of();
+            List<User> admins = userRepository.findAllByRoleAndIsBlocked(UserRole.ADMIN, false);
 
             contacts = Stream.concat(classmates.stream(), admins.stream());
         }
@@ -208,7 +206,7 @@ public class ChatService
         }
         if(target.getRole() == UserRole.ADMIN)
         {
-            return conversationRepository.isClassOwner(user.id());
+            return !target.getIsBlocked();
         }
         return conversationRepository.shareClass(user.id(), target.getId(), MembershipStatus.ACCEPTED);
     }
