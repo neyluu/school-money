@@ -7,9 +7,7 @@ import org.example.backend.chat.dto.response.ChatResponse;
 import org.example.backend.chat.dto.response.ChatUserResponse;
 import org.example.backend.chat.dto.response.MessageResponse;
 import org.example.backend.core.entity.Conversation;
-import org.example.backend.core.entity.ConversationReadState;
 import org.example.backend.core.entity.Message;
-import org.example.backend.core.entity.SchoolClass;
 import org.example.backend.core.entity.User;
 import org.example.backend.core.entity.types.ConversationType;
 import org.example.backend.core.entity.types.MembershipStatus;
@@ -102,11 +100,8 @@ public class ChatService
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only start a chat with members of your classes");
             }
 
-            conversation = new Conversation();
-            conversation.setType(ConversationType.PRIVATE);
-            conversation.setUserA(userRepository.getReferenceById(userAId));
-            conversation.setUserB(userRepository.getReferenceById(userBId));
-            conversationRepository.saveAndFlush(conversation);
+            conversationRepository.createPrivateIfMissing(userAId, userBId);
+            conversation = conversationRepository.findPrivate(userAId, userBId).orElseThrow();
         }
 
         return toResponses(List.of(findAccessibleConversation(conversation.getId(), user.id())), user.id()).getFirst();
@@ -237,22 +232,19 @@ public class ChatService
             return List.of();
         }
 
-        List<Conversation> conversations = new ArrayList<>(conversationRepository.findAllByClassIds(classIds));
+        List<Conversation> conversations = conversationRepository.findAllByClassIds(classIds);
         Set<Integer> existing = conversations.stream()
                 .map(conversation -> conversation.getSchoolClass().getId())
                 .collect(Collectors.toSet());
 
-        List<Integer> missing = classIds.stream().filter(id -> !existing.contains(id)).toList();
-        for(SchoolClass schoolClass : schoolClassRepository.findAllById(missing))
+        List<Integer> missing = classIds.stream().filter(id -> !existing.contains(id)).sorted().toList();
+        if(missing.isEmpty())
         {
-            Conversation conversation = new Conversation();
-            conversation.setType(ConversationType.CLASS);
-            conversation.setSchoolClass(schoolClass);
-            conversations.add(conversationRepository.save(conversation));
+            return conversations;
         }
-        conversationRepository.flush();
 
-        return conversations;
+        missing.forEach(conversationRepository::createClassIfMissing);
+        return conversationRepository.findAllByClassIds(classIds);
     }
 
     private List<ChatResponse> toResponses(Collection<Conversation> conversations, Integer userId)
@@ -280,19 +272,7 @@ public class ChatService
 
     private void updateReadState(Conversation conversation, Integer userId, Integer messageId)
     {
-        ConversationReadState state = readStateRepository.findByConversationIdAndUserId(conversation.getId(), userId)
-                .orElseGet(() -> {
-                    ConversationReadState created = new ConversationReadState();
-                    created.setConversation(conversation);
-                    created.setUser(userRepository.getReferenceById(userId));
-                    return created;
-                });
-
-        if(state.getLastReadMessageId() == null || state.getLastReadMessageId() < messageId)
-        {
-            state.setLastReadMessageId(messageId);
-            readStateRepository.save(state);
-        }
+        readStateRepository.markReadUpTo(conversation.getId(), userId, messageId);
     }
 
     private List<Integer> findClassIds(Integer userId)

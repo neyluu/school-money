@@ -1,7 +1,8 @@
 import * as React from "react";
+import { Link } from "react-router";
 import { cn } from "cn";
-import { Bell, LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Bell, LogOut, MessageCircle } from "lucide-react";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -85,6 +86,16 @@ function Topbar({
               Szukaj
             </Button>
           ) : null)}
+        <Link
+          to="/dashboard/chat"
+          aria-label="Czat"
+          className={cn(
+            buttonVariants({ variant: "ghost", size: "icon" }),
+            "md:hidden",
+          )}
+        >
+          <MessageCircle />
+        </Link>
         <Button
           variant="ghost"
           size="icon"

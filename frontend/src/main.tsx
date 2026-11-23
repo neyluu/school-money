@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.tsx'
 import { Demo } from './components/demo.tsx'
 import { RequireAuth } from './components/require-auth.tsx'
+import { ChatPage } from './pages/chat-page.tsx'
 import { DashboardPage } from './pages/dashboard-page.tsx'
 import { FundraisingDetailsPage } from './pages/fundraising-details-page.tsx'
 import { FundraisingEditPage } from './pages/fundraising-edit-page.tsx'
@@ -29,6 +30,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="children" element={<ChildrenPage />} />
           <Route path="class" element={<ClassesPage />} />
           <Route path="class/:classId" element={<ClassDetailsPage />} />
+          <Route path="chat" element={<ChatPage />} />
           <Route path="fundraisers" element={<FundraisingsPage />} />
           <Route path="fundraisers/new" element={<FundraisingNewPage />} />
           <Route
