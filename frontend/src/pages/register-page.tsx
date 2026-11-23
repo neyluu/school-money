@@ -17,17 +17,24 @@ import { ROLE_PARAM, parseRole } from "@/lib/account-role";
 import type { AccountRole } from "@/lib/account-role";
 import { ApiError } from "@/lib/api-client";
 import { register } from "@/lib/auth";
+import { saveIntendedRole } from "@/lib/auth-store";
 import { EMAIL_MAX_LENGTH, maskPassword } from "@/lib/input-rules";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
 const MAX_PASSWORD_LENGTH = 72;
 const MAX_NAME_LENGTH = 100;
+const ONBOARDING_PARAM = "onboarding";
 
 const ROLE_HINTS: Record<AccountRole, string> = {
   parent: "Po założeniu konta dodasz dziecko do klasy kodem od skarbnika.",
   treasurer:
     "Po założeniu konta utworzysz klasę i dostaniesz kod dostępu dla rodziców.",
+};
+
+const AFTER_REGISTER_PATH: Record<AccountRole, string> = {
+  parent: "/dashboard",
+  treasurer: `/dashboard?${ONBOARDING_PARAM}=treasurer`,
 };
 
 type RegisterErrors = {
@@ -72,20 +79,6 @@ function RegisterPage() {
 
   const hasFullName = splitName(fullName).lastName !== "";
   const hasValidEmail = EMAIL_PATTERN.test(email.trim());
-
-  const confirmError =
-    confirmPassword !== "" &&
-    confirmPassword.length >= password.length &&
-    confirmPassword !== password
-      ? "Hasła muszą być takie same."
-      : errors.confirmPassword;
-
-  const canSubmit =
-    hasFullName &&
-    hasValidEmail &&
-    password.length >= MIN_PASSWORD_LENGTH &&
-    password.length <= MAX_PASSWORD_LENGTH &&
-    confirmPassword === password;
 
   function clearError(field: keyof RegisterErrors) {
     setErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -140,6 +133,8 @@ function RegisterPage() {
     try {
       const { firstName, lastName: splitLastName } = splitName(fullName);
 
+      saveIntendedRole(role);
+
       await register({
         firstName,
         lastName: splitLastName,
@@ -154,7 +149,7 @@ function RegisterPage() {
         type: "success",
       });
 
-      navigate("/dashboard", { replace: true });
+      navigate(AFTER_REGISTER_PATH[role], { replace: true });
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         setErrors((prev) => ({
@@ -297,7 +292,7 @@ function RegisterPage() {
             )}
           </Field>
 
-          <Field data-invalid={confirmError != null}>
+          <Field data-invalid={errors.confirmPassword != null}>
             <FieldLabel htmlFor="register-confirm">Powtórz hasło</FieldLabel>
 
             <MaskedInput
@@ -310,11 +305,11 @@ function RegisterPage() {
                 setConfirmPassword(value);
                 clearError("confirmPassword");
               }}
-              aria-invalid={confirmError != null}
+              aria-invalid={errors.confirmPassword != null}
             />
 
-            {confirmError != null ? (
-              <FieldError>{confirmError}</FieldError>
+            {errors.confirmPassword != null ? (
+              <FieldError>{errors.confirmPassword}</FieldError>
             ) : null}
           </Field>
 
@@ -324,8 +319,7 @@ function RegisterPage() {
             type="submit"
             size="lg"
             loading={isSubmitting}
-            disabled={!canSubmit}
-            className="w-full bg-foreground text-background hover:bg-foreground/90 cursor-pointer"
+            className="w-full bg-foreground text-background hover:bg-foreground/90"
           >
             Utwórz konto
           </Button>
