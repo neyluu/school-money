@@ -5,6 +5,7 @@ import org.example.backend.core.entity.types.TransactionStatus;
 import org.example.backend.core.entity.types.TransactionType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -13,14 +14,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-public interface TransactionRepository extends JpaRepository<Transaction, Integer> {
-    @Query("""
-        SELECT t FROM Transaction t
-        WHERE t.fromWallet.id = :walletId OR t.toWallet.id = :walletId
-        ORDER BY t.id DESC
-        """)
-    List<Transaction> findAllByWalletId(@Param("walletId") Integer walletId, Pageable pageable);
-
+public interface TransactionRepository extends JpaRepository<Transaction, Integer>, JpaSpecificationExecutor<Transaction> {
     @Query("""
         SELECT t FROM Transaction t
         WHERE (t.fromWallet.id = :walletId OR t.toWallet.id = :walletId)

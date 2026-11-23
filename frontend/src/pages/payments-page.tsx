@@ -73,7 +73,7 @@ function PaymentsPage() {
                   </CardContent>
                 </Card>
               </div>
-              <WalletHistory key={refreshToken} />
+              <WalletHistory refreshToken={refreshToken} />
             </>
           ) : null}
         </DataState>

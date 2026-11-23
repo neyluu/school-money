@@ -59,6 +59,8 @@ export type WalletContribution = {
   refundedAt: string | null
 }
 
+export type ContributionFilter = "all" | "completed" | "refunded"
+
 export type WithdrawInput = {
   recipientName: string
   iban: string
@@ -69,12 +71,24 @@ function getWallet(): Promise<Wallet> {
   return authorizedRequest<Wallet>("/payments/wallet")
 }
 
+function buildHistoryQuery(
+  page: number,
+  size: number,
+  filters?: URLSearchParams
+): string {
+  const query = new URLSearchParams(filters)
+  query.set("page", String(page))
+  query.set("size", String(size))
+  return query.toString()
+}
+
 function getTransactions(
   page = 0,
-  size = DEFAULT_PAGE_SIZE
+  size = DEFAULT_PAGE_SIZE,
+  filters?: URLSearchParams
 ): Promise<Transaction[]> {
   return authorizedRequest<Transaction[]>(
-    `/payments/wallet/transactions?page=${page}&size=${size}`
+    `/payments/wallet/transactions?${buildHistoryQuery(page, size, filters)}`
   )
 }
 
@@ -86,10 +100,11 @@ function getSummary(days = DEFAULT_SUMMARY_DAYS): Promise<WalletSummary> {
 
 function getContributions(
   page = 0,
-  size = DEFAULT_PAGE_SIZE
+  size = DEFAULT_PAGE_SIZE,
+  filters?: URLSearchParams
 ): Promise<WalletContribution[]> {
   return authorizedRequest<WalletContribution[]>(
-    `/payments/wallet/contributions?page=${page}&size=${size}`
+    `/payments/wallet/contributions?${buildHistoryQuery(page, size, filters)}`
   )
 }
 

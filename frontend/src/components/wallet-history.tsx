@@ -1,6 +1,10 @@
+import * as React from "react"
 import { ReceiptText } from "lucide-react"
 import { DataState } from "@/components/data-state"
 import { EmptyState } from "@/components/empty-state"
+import { HistoryFilterChips } from "@/components/history-filter-chips"
+import { HistoryFilterDialog } from "@/components/history-filter-dialog"
+import type { FilterConfig } from "@/components/history-filter-dialog"
 import { MoneyAmount } from "@/components/money-amount"
 import { TransactionStatusBadge } from "@/components/transaction-status-badge"
 import { Badge } from "@/components/ui/badge"
@@ -8,8 +12,41 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { usePagedList } from "@/hooks/use-paged-list"
+import {
+  EMPTY_HISTORY_FILTERS,
+  getFilterChips,
+  toHistoryParams,
+} from "@/lib/history-filters"
+import type { HistoryFilters } from "@/lib/history-filters"
+import {
+  CONTRIBUTION_FILTER_OPTIONS,
+  TRANSACTION_FILTER_OPTIONS,
+} from "@/lib/transaction-filters"
+import type { TransactionFilter } from "@/lib/transaction-filters"
 import { getContributions, getTransactions } from "@/lib/wallet"
-import type { Transaction, WalletContribution } from "@/lib/wallet"
+import type {
+  ContributionFilter,
+  Transaction,
+  WalletContribution,
+} from "@/lib/wallet"
+
+type HistoryTab = "transactions" | "contributions"
+
+const TRANSACTION_FILTERS: FilterConfig<TransactionFilter> = {
+  title: "Filtry transakcji",
+  kindLabel: "Rodzaj",
+  kinds: TRANSACTION_FILTER_OPTIONS,
+  searchLabel: "Szukaj w opisie",
+  searchPlaceholder: "Np. wycieczka",
+}
+
+const CONTRIBUTION_FILTERS: FilterConfig<ContributionFilter> = {
+  title: "Filtry wpłat",
+  kindLabel: "Status",
+  kinds: CONTRIBUTION_FILTER_OPTIONS,
+  searchLabel: "Szukaj zbiórki lub dziecka",
+  searchPlaceholder: "Np. wycieczka albo Zofia",
+}
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", {
   day: "2-digit",
@@ -119,8 +156,36 @@ function ContributionsTable({
   )
 }
 
-function TransactionsTab() {
-  const list = usePagedList(getTransactions)
+function FilteredEmptyState({ onClear }: { onClear: () => void }) {
+  return (
+    <EmptyState
+      icon={<ReceiptText />}
+      title="Brak wyników"
+      description="Żadna pozycja nie pasuje do wybranych filtrów."
+      action={
+        <Button variant="outline" onClick={onClear}>
+          Wyczyść filtry
+        </Button>
+      }
+    />
+  )
+}
+
+function TransactionsTab({
+  filters,
+  onClear,
+}: {
+  filters: HistoryFilters<TransactionFilter>
+  onClear: () => void
+}) {
+  const load = React.useCallback(
+    (page: number, size: number) =>
+      getTransactions(page, size, toHistoryParams(filters)),
+    [filters]
+  )
+  const list = usePagedList(load)
+  const isFiltered =
+    getFilterChips(filters, TRANSACTION_FILTERS.kinds).length > 0
 
   return (
     <DataState
@@ -129,11 +194,15 @@ function TransactionsTab() {
       isEmpty={list.items.length === 0}
       onRetry={list.reload}
       emptyState={
-        <EmptyState
-          icon={<ReceiptText />}
-          title="Brak transakcji"
-          description="Doładowania, wypłaty i wpłaty na zbiórki pojawią się tutaj."
-        />
+        !isFiltered ? (
+          <EmptyState
+            icon={<ReceiptText />}
+            title="Brak transakcji"
+            description="Doładowania, wypłaty i wpłaty na zbiórki pojawią się tutaj."
+          />
+        ) : (
+          <FilteredEmptyState onClear={onClear} />
+        )
       }
     >
       <TransactionsTable transactions={list.items} />
@@ -146,8 +215,21 @@ function TransactionsTab() {
   )
 }
 
-function ContributionsTab() {
-  const list = usePagedList(getContributions)
+function ContributionsTab({
+  filters,
+  onClear,
+}: {
+  filters: HistoryFilters<ContributionFilter>
+  onClear: () => void
+}) {
+  const load = React.useCallback(
+    (page: number, size: number) =>
+      getContributions(page, size, toHistoryParams(filters)),
+    [filters]
+  )
+  const list = usePagedList(load)
+  const isFiltered =
+    getFilterChips(filters, CONTRIBUTION_FILTERS.kinds).length > 0
 
   return (
     <DataState
@@ -156,11 +238,15 @@ function ContributionsTab() {
       isEmpty={list.items.length === 0}
       onRetry={list.reload}
       emptyState={
-        <EmptyState
-          icon={<ReceiptText />}
-          title="Brak wpłat na zbiórki"
-          description="Twoje wpłaty na zbiórki, także za cudze dzieci, pojawią się tutaj."
-        />
+        !isFiltered ? (
+          <EmptyState
+            icon={<ReceiptText />}
+            title="Brak wpłat na zbiórki"
+            description="Twoje wpłaty na zbiórki, także za cudze dzieci, pojawią się tutaj."
+          />
+        ) : (
+          <FilteredEmptyState onClear={onClear} />
+        )
       }
     >
       <ContributionsTable contributions={list.items} />
@@ -173,23 +259,69 @@ function ContributionsTab() {
   )
 }
 
-function WalletHistory() {
+function WalletHistory({ refreshToken }: { refreshToken: number }) {
+  const [tab, setTab] = React.useState<HistoryTab>("transactions")
+  const [transactionFilters, setTransactionFilters] = React.useState<
+    HistoryFilters<TransactionFilter>
+  >(EMPTY_HISTORY_FILTERS)
+  const [contributionFilters, setContributionFilters] = React.useState<
+    HistoryFilters<ContributionFilter>
+  >(EMPTY_HISTORY_FILTERS)
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Historia</CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="transactions">
-          <TabsList>
-            <TabsTrigger value="transactions">Transakcje</TabsTrigger>
-            <TabsTrigger value="contributions">Wpłaty</TabsTrigger>
-          </TabsList>
+        <Tabs value={tab} onValueChange={(value: HistoryTab) => setTab(value)}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <TabsList>
+              <TabsTrigger value="transactions">Transakcje</TabsTrigger>
+              <TabsTrigger value="contributions">Wpłaty</TabsTrigger>
+            </TabsList>
+            {tab === "transactions" ? (
+              <HistoryFilterDialog
+                key="transactions"
+                config={TRANSACTION_FILTERS}
+                value={transactionFilters}
+                onChange={setTransactionFilters}
+              />
+            ) : (
+              <HistoryFilterDialog
+                key="contributions"
+                config={CONTRIBUTION_FILTERS}
+                value={contributionFilters}
+                onChange={setContributionFilters}
+              />
+            )}
+          </div>
+          {tab === "transactions" ? (
+            <HistoryFilterChips
+              kinds={TRANSACTION_FILTERS.kinds}
+              value={transactionFilters}
+              onChange={setTransactionFilters}
+            />
+          ) : (
+            <HistoryFilterChips
+              kinds={CONTRIBUTION_FILTERS.kinds}
+              value={contributionFilters}
+              onChange={setContributionFilters}
+            />
+          )}
           <TabsContent value="transactions" className="pt-4">
-            <TransactionsTab />
+            <TransactionsTab
+              key={`${JSON.stringify(transactionFilters)}-${refreshToken}`}
+              filters={transactionFilters}
+              onClear={() => setTransactionFilters(EMPTY_HISTORY_FILTERS)}
+            />
           </TabsContent>
           <TabsContent value="contributions" className="pt-4">
-            <ContributionsTab />
+            <ContributionsTab
+              key={`${JSON.stringify(contributionFilters)}-${refreshToken}`}
+              filters={contributionFilters}
+              onClear={() => setContributionFilters(EMPTY_HISTORY_FILTERS)}
+            />
           </TabsContent>
         </Tabs>
       </CardContent>

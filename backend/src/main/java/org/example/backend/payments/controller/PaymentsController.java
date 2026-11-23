@@ -6,10 +6,13 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.backend.auth.security.AuthenticatedUser;
+import org.example.backend.payments.dto.request.ContributionFilter;
 import org.example.backend.payments.dto.request.DepositRequest;
 import org.example.backend.payments.dto.request.FundraisePaymentRequest;
 import org.example.backend.payments.dto.request.FundraiseReplenishRequest;
 import org.example.backend.payments.dto.request.FundraiseWithdrawRequest;
+import org.example.backend.payments.dto.request.HistorySearchRequest;
+import org.example.backend.payments.dto.request.TransactionFilter;
 import org.example.backend.payments.dto.request.WithdrawRequest;
 import org.example.backend.payments.dto.response.ContributionResponse;
 import org.example.backend.payments.dto.response.FundraisingTransferResponse;
@@ -20,6 +23,7 @@ import org.example.backend.payments.dto.response.WalletSummaryResponse;
 import org.example.backend.payments.service.FundraisingFundsService;
 import org.example.backend.payments.service.FundraisingPaymentsService;
 import org.example.backend.payments.service.PaymentsService;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -51,13 +55,16 @@ public class PaymentsController
     @GetMapping("/wallet/transactions")
     public ResponseEntity<List<TransactionResponse>> getTransactions(
         @AuthenticationPrincipal AuthenticatedUser user,
+        @Parameter(description = "Income and outcome do not include refunds")
+        @RequestParam(defaultValue = "ALL") TransactionFilter filter,
+        @ParameterObject @Valid HistorySearchRequest search,
         @Parameter(description = "Page number starting from 0")
         @RequestParam(defaultValue = "0") int page,
         @Parameter(description = "Page size, default 20, max 100")
         @RequestParam(defaultValue = "20") int size
     )
     {
-        return ResponseEntity.ok(paymentsService.getTransactions(user.id(), page, size));
+        return ResponseEntity.ok(paymentsService.getTransactions(user.id(), filter, search, page, size));
     }
 
 
@@ -83,13 +90,16 @@ public class PaymentsController
     @GetMapping("/wallet/contributions")
     public ResponseEntity<List<WalletContributionResponse>> getContributions(
         @AuthenticationPrincipal AuthenticatedUser user,
+        @Parameter(description = "Completed contributions are the ones which were not refunded")
+        @RequestParam(defaultValue = "ALL") ContributionFilter filter,
+        @ParameterObject @Valid HistorySearchRequest search,
         @Parameter(description = "Page number starting from 0")
         @RequestParam(defaultValue = "0") int page,
         @Parameter(description = "Page size, default 20, max 100")
         @RequestParam(defaultValue = "20") int size
     )
     {
-        return ResponseEntity.ok(paymentsService.getContributions(user.id(), page, size));
+        return ResponseEntity.ok(paymentsService.getContributions(user.id(), filter, search, page, size));
     }
 
 
