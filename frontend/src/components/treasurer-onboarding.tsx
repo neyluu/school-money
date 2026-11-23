@@ -19,6 +19,8 @@ import { getOwnedFundraisings } from "@/lib/dashboard";
 const POLL_INTERVAL_MS = 10000;
 const CONTROL_HEIGHT = "h-9";
 const CONTROL_RADIUS = "rounded-lg";
+const ROLE_KEY = "sm.accountRole";
+const DONE_KEY_PREFIX = "sm.onboardingDone.";
 
 type Snapshot = {
   ownedClass: ClassSummary | undefined;
@@ -45,6 +47,15 @@ function pluralRequests(count: number): string {
     return `${count} zgłoszenia`;
   }
   return `${count} zgłoszeń`;
+}
+
+function isDone(classId: number): boolean {
+  return localStorage.getItem(`${DONE_KEY_PREFIX}${classId}`) === "1";
+}
+
+function finishOnboarding(classId: number): void {
+  localStorage.removeItem(ROLE_KEY);
+  localStorage.setItem(`${DONE_KEY_PREFIX}${classId}`, "1");
 }
 
 function StepIcon({ done }: { done: boolean }) {
@@ -149,6 +160,11 @@ function TreasurerOnboarding({
 
   const { ownedClass, fundraisingsCount, accessCode, pendingCount } = snapshot;
   const hasClass = ownedClass != null;
+
+  if (hasClass && isDone(ownedClass.id)) {
+    return null;
+  }
+
   const hasMembers = hasClass && ownedClass.childrenCount + pendingCount > 0;
   const approved = hasMembers && pendingCount === 0;
 
@@ -207,6 +223,9 @@ function TreasurerOnboarding({
 
   const doneCount = steps.filter((step) => step.done).length;
   if (doneCount === steps.length) {
+    if (hasClass) {
+      finishOnboarding(ownedClass.id);
+    }
     return null;
   }
 
@@ -233,7 +252,7 @@ function TreasurerOnboarding({
         <ol className="flex flex-col gap-2">
           {steps.map((step, index) => {
             const isCurrent = index === currentIndex;
-            const isDone = step.done;
+            const stepDone = step.done;
             const action = step.alwaysShown ?? (isCurrent ? step.action : null);
             return (
               <li
@@ -242,12 +261,12 @@ function TreasurerOnboarding({
                   "flex flex-wrap items-center gap-3 rounded-lg p-3 transition-[background-color,opacity] duration-500 ease-out " +
                   (isCurrent
                     ? "bg-muted motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-500"
-                    : isDone
+                    : stepDone
                       ? "opacity-70"
                       : "")
                 }
               >
-                <StepIcon done={isDone} />
+                <StepIcon done={stepDone} />
                 <div className="min-w-0 flex-1 basis-56">
                   <p className="text-sm font-medium">
                     <span className="mr-2 tabular-nums text-muted-foreground">
