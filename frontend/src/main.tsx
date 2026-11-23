@@ -17,6 +17,7 @@ import { RegisterPage } from './pages/register-page.tsx'
 import { ChildrenPage } from './pages/children-page.tsx'
 import { ClassesPage } from "./pages/classes-page.tsx";
 import { ClassDetailsPage } from './pages/class-details-page.tsx'
+import { SettingsPage } from './pages/settings-page.tsx'
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -31,6 +32,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="class" element={<ClassesPage />} />
           <Route path="class/:classId" element={<ClassDetailsPage />} />
           <Route path="chat" element={<ChatPage />} />
+          <Route path="settings" element={<SettingsPage />} />
           <Route path="fundraisers" element={<FundraisingsPage />} />
           <Route path="fundraisers/new" element={<FundraisingNewPage />} />
           <Route
