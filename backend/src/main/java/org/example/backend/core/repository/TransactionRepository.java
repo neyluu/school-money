@@ -1,5 +1,10 @@
 package org.example.backend.core.repository;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import org.example.backend.core.entity.Transaction;
 import org.example.backend.core.entity.types.TransactionStatus;
 import org.example.backend.core.entity.types.TransactionType;
@@ -9,39 +14,56 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-
-public interface TransactionRepository extends JpaRepository<Transaction, Integer>, JpaSpecificationExecutor<Transaction> {
-    @Query("""
+public interface TransactionRepository
+    extends
+        JpaRepository<Transaction, Integer>,
+        JpaSpecificationExecutor<Transaction>
+{
+    @Query(
+        """
         SELECT t FROM Transaction t
         WHERE (t.fromWallet.id = :walletId OR t.toWallet.id = :walletId)
           AND t.status = :status AND t.completedAt >= :since
         ORDER BY t.completedAt
-        """)
+        """
+    )
     List<Transaction> findAllByWalletIdAndStatusSince(
         @Param("walletId") Integer walletId,
         @Param("status") TransactionStatus status,
         @Param("since") Instant since
     );
 
-    @Query("""
+    @Query(
+        """
         SELECT t FROM Transaction t
         WHERE t.type = :type AND (t.fromWallet.id = :walletId OR t.toWallet.id = :walletId)
         ORDER BY t.id DESC
-        """)
+        """
+    )
     List<Transaction> findAllByWalletIdAndType(
         @Param("walletId") Integer walletId,
         @Param("type") TransactionType type,
         Pageable pageable
     );
 
-    @Query("""
+    @Query(
+        """
+        SELECT t FROM Transaction t
+        WHERE t.type IN :types AND (t.fromWallet.id = :walletId OR t.toWallet.id = :walletId)
+        ORDER BY t.id
+        """
+    )
+    List<Transaction> findAllByWalletIdAndTypeIn(
+        @Param("walletId") Integer walletId,
+        @Param("types") Collection<TransactionType> types
+    );
+
+    @Query(
+        """
         SELECT SUM(t.amount) FROM Transaction t
         WHERE t.type = :type AND (t.fromWallet.id = :walletId OR t.toWallet.id = :walletId)
-        """)
+        """
+    )
     Optional<BigDecimal> sumByWalletIdAndType(
         @Param("walletId") Integer walletId,
         @Param("type") TransactionType type
