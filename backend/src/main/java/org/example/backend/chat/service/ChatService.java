@@ -58,6 +58,7 @@ public class ChatService
         conversations.addAll(conversationRepository.findAllPrivateForUser(userId));
 
         return toResponses(conversations, userId).stream()
+                .filter(chat -> chat.type() == ConversationType.CLASS || chat.lastMessage() != null)
                 .sorted(Comparator.comparing(ChatService::lastActivity).reversed())
                 .toList();
     }
@@ -142,6 +143,10 @@ public class ChatService
     public MessageResponse sendMessage(Integer chatId, MessageCreateRequest request, Integer userId)
     {
         Conversation conversation = findAccessibleConversation(chatId, userId);
+        if(!canSend(conversation, userId))
+        {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can no longer message this user");
+        }
 
         Message message = new Message();
         message.setConversation(conversation);
@@ -265,9 +270,32 @@ public class ChatService
                     conversation,
                     userId,
                     lastMessages.get(conversation.getId()),
-                    unreadCounts.getOrDefault(conversation.getId(), 0L)
+                    unreadCounts.getOrDefault(conversation.getId(), 0L),
+                    canSend(conversation, userId)
                 ))
                 .toList();
+    }
+
+    private boolean canSend(Conversation conversation, Integer userId)
+    {
+        if(conversation.getType() == ConversationType.CLASS)
+        {
+            return true;
+        }
+
+        boolean isUserA = conversation.getUserA().getId().equals(userId);
+        User sender = isUserA ? conversation.getUserA() : conversation.getUserB();
+        User recipient = isUserA ? conversation.getUserB() : conversation.getUserA();
+
+        if(sender.getIsBlocked() || recipient.getIsBlocked())
+        {
+            return false;
+        }
+        if(sender.getRole() == UserRole.ADMIN || recipient.getRole() == UserRole.ADMIN)
+        {
+            return true;
+        }
+        return conversationRepository.shareClass(sender.getId(), recipient.getId(), MembershipStatus.ACCEPTED);
     }
 
     private void updateReadState(Conversation conversation, Integer userId, Integer messageId)
