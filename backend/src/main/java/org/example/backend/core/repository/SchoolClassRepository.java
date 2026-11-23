@@ -15,6 +15,8 @@ public interface SchoolClassRepository extends JpaRepository<SchoolClass, Intege
 
     boolean existsByIdAndDeletedAtIsNull(Integer id);
 
+    boolean existsByOwnerIdAndDeletedAtIsNull(Integer ownerId);
+
     @Query("SELECT c FROM SchoolClass c JOIN FETCH c.owner WHERE c.id = :id AND c.deletedAt IS NULL")
     Optional<SchoolClass> findByIdWithOwner(@Param("id") Integer id);
 
