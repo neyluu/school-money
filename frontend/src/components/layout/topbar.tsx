@@ -1,7 +1,8 @@
 import * as React from "react";
 import { Link, useNavigate } from "react-router";
 import { cn } from "cn";
-import { Bell, LogOut, MessageCircle, Settings } from "lucide-react";
+import { LogOut, MessageCircle, Settings } from "lucide-react";
+import { NotificationsBell } from "@/components/notifications-bell";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -38,15 +39,11 @@ function useCurrentUser(): AuthUser | null {
 
 function Topbar({
   onSearch,
-  onNotifications,
-  unreadCount = 0,
   searchSlot,
   className,
   ...props
 }: React.ComponentProps<"header"> & {
   onSearch?: () => void;
-  onNotifications?: () => void;
-  unreadCount?: number;
   searchSlot?: React.ReactNode;
 }) {
   const navigate = useNavigate();
@@ -89,21 +86,7 @@ function Topbar({
         >
           <MessageCircle />
         </Link>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Powiadomienia"
-          onClick={onNotifications}
-          className="cursor-pointer relative"
-        >
-          <Bell />
-          {unreadCount > 0 ? (
-            <span
-              aria-hidden
-              className="absolute top-1 right-1 size-2 rounded-full bg-danger"
-            />
-          ) : null}
-        </Button>
+        <NotificationsBell />
 
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -134,7 +117,11 @@ function Topbar({
               Ustawienia konta
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onClick={logout} className="cursor-pointer">
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={logout}
+              className="cursor-pointer"
+            >
               <LogOut />
               Wyloguj się
             </DropdownMenuItem>
