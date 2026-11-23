@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/empty-state";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
-import { Toaster } from "@/components/ui/toast";
+import { toast, Toaster } from "@/components/ui/toast";
 import { useChatList } from "@/hooks/use-chat-list";
 import type { Chat } from "@/lib/chat";
 
@@ -17,13 +17,26 @@ const CHAT_PARAM = "id";
 
 function ChatPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { chats, userId, failed, isLoading, refresh, retry, addChat } =
-    useChatList();
-
   const requestedId = searchParams.get(CHAT_PARAM);
+  const {
+    chats,
+    userId,
+    failed,
+    isLoading,
+    refresh,
+    retry,
+    addChat,
+    discardDraft,
+    hide,
+    isOpeningFocused,
+  } = useChatList(requestedId != null ? Number(requestedId) : null);
+
   const selected = chats.find((chat) => String(chat.id) === requestedId);
 
   function selectChat(chat: Chat) {
+    if (chat.id !== selected?.id) {
+      discardDraft();
+    }
     setSearchParams(
       { [CHAT_PARAM]: String(chat.id) },
       { replace: selected != null },
@@ -31,7 +44,24 @@ function ChatPage() {
   }
 
   function closeChat() {
+    discardDraft();
     setSearchParams({}, { replace: true });
+  }
+
+  async function hideChat(chat: Chat) {
+    if (chat.id === selected?.id) {
+      closeChat();
+    }
+    const hidden = await hide(chat);
+    toast.add(
+      hidden
+        ? {
+            title: "Rozmowa została ukryta.",
+            description: "Wróci na listę, gdy pojawi się nowa wiadomość.",
+            type: "success",
+          }
+        : { title: "Nie udało się ukryć rozmowy.", type: "error" },
+    );
   }
 
   return (
@@ -44,8 +74,8 @@ function ChatPage() {
             actions={
               <NewChatDialog
                 onOpened={(chat) => {
-                  addChat(chat);
                   selectChat(chat);
+                  addChat(chat);
                 }}
               />
             }
@@ -66,6 +96,7 @@ function ChatPage() {
                 userId={userId}
                 selectedId={selected?.id ?? null}
                 onSelect={selectChat}
+                onHide={(chat) => void hideChat(chat)}
                 className={cn(selected && "hidden lg:flex")}
               />
               {selected != null ? (
@@ -76,6 +107,10 @@ function ChatPage() {
                   onBack={closeChat}
                   onActivity={() => void refresh()}
                 />
+              ) : isOpeningFocused ? (
+                <Card className="hidden items-center justify-center text-sm text-muted-foreground lg:flex">
+                  Otwieranie rozmowy…
+                </Card>
               ) : (
                 <Card className="hidden items-center justify-center lg:flex">
                   <EmptyState

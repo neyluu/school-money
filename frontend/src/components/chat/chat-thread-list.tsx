@@ -1,6 +1,7 @@
 import * as React from "react";
 import { cn } from "cn";
-import { MessageCircle, Search } from "lucide-react";
+import { EyeOff, MessageCircle, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ChatAvatar } from "@/components/chat/chat-avatar";
 import { formatListTime } from "@/components/chat/chat-format";
 import { EmptyState } from "@/components/empty-state";
@@ -30,24 +31,28 @@ function ThreadRow({
   userId,
   isSelected,
   onSelect,
+  onHide,
 }: {
   chat: Chat;
   userId: number;
   isSelected: boolean;
   onSelect: () => void;
+  onHide: () => void;
 }) {
   const isUnread = chat.unreadCount > 0;
 
   return (
-    <li>
+    <li
+      className={cn(
+        "flex items-center transition-colors hover:bg-muted/50",
+        isSelected && "bg-accent hover:bg-accent",
+      )}
+    >
       <button
         type="button"
         onClick={onSelect}
         aria-current={isSelected ? "true" : undefined}
-        className={cn(
-          "flex w-full cursor-pointer items-center gap-3 p-3 text-left transition-colors outline-none hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
-          isSelected && "bg-accent hover:bg-accent",
-        )}
+        className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 py-3 pl-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
       >
         <ChatAvatar user={chat.otherUser} />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -77,6 +82,17 @@ function ThreadRow({
           </span>
         </span>
       </button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        onClick={onHide}
+        aria-label={`Ukryj rozmowę: ${chat.title}`}
+        title="Ukryj rozmowę"
+        className="mx-1.5 shrink-0 text-muted-foreground"
+      >
+        <EyeOff />
+      </Button>
     </li>
   );
 }
@@ -86,12 +102,14 @@ function ChatThreadList({
   userId,
   selectedId,
   onSelect,
+  onHide,
   className,
 }: {
   chats: Chat[];
   userId: number;
   selectedId: number | null;
   onSelect: (chat: Chat) => void;
+  onHide: (chat: Chat) => void;
   className?: string;
 }) {
   const [query, setQuery] = React.useState("");
@@ -138,6 +156,7 @@ function ChatThreadList({
                 userId={userId}
                 isSelected={chat.id === selectedId}
                 onSelect={() => onSelect(chat)}
+                onHide={() => onHide(chat)}
               />
             ))}
           </ul>

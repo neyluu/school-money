@@ -33,6 +33,9 @@ public class ConversationReadState {
     @Column(name = "last_read_message_id")
     private Integer lastReadMessageId;
 
+    @Column(name = "hidden_up_to_message_id")
+    private Integer hiddenUpToMessageId;
+
     @ColumnDefault("now()")
     @Column(name = "updated_at", nullable = false)
     @UpdateTimestamp

@@ -95,6 +95,18 @@ public class ChatController
     }
 
 
+    @Operation(
+        summary = "Hide chat from the list of the current user",
+        description = "The chat comes back when a new message arrives or a private chat is opened again"
+    )
+    @PostMapping("/{chatId}/hide")
+    public ResponseEntity<Void> hide(@PathVariable Integer chatId, @AuthenticationPrincipal AuthenticatedUser user)
+    {
+        chatService.hide(chatId, user.id());
+        return ResponseEntity.noContent().build();
+    }
+
+
     @Operation(summary = "Mark all chat messages as read")
     @PostMapping("/{chatId}/read")
     public ResponseEntity<Void> markAsRead(@PathVariable Integer chatId, @AuthenticationPrincipal AuthenticatedUser user)

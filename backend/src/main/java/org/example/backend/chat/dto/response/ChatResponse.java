@@ -15,9 +15,10 @@ public record ChatResponse(
     ChatUserResponse otherUser,
     MessageResponse lastMessage,
     long unreadCount,
+    boolean canSend,
     Instant createdAt
 ) {
-    public static ChatResponse from(Conversation conversation, Integer userId, Message lastMessage, long unreadCount)
+    public static ChatResponse from(Conversation conversation, Integer userId, Message lastMessage, long unreadCount, boolean canSend)
     {
         boolean isClass = conversation.getType() == ConversationType.CLASS;
         User otherUser = isClass ? null : otherUser(conversation, userId);
@@ -30,6 +31,7 @@ public record ChatResponse(
             otherUser != null ? ChatUserResponse.from(otherUser) : null,
             lastMessage != null ? MessageResponse.from(lastMessage) : null,
             unreadCount,
+            canSend,
             conversation.getCreatedAt()
         );
     }
