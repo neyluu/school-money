@@ -1,174 +1,173 @@
-import * as React from "react"
-import { Link, useNavigate, useSearchParams } from "react-router"
-import { AuthLayout, AuthLogo } from "@/components/auth-layout"
-import { MaskedInput } from "@/components/masked-input"
-import { SegmentedControl } from "@/components/segmented-control"
-import { Button } from "@/components/ui/button"
+import * as React from "react";
+import { Link, useNavigate, useSearchParams } from "react-router";
+import { AuthLayout, AuthLogo } from "@/components/auth-layout";
+import { MaskedInput } from "@/components/masked-input";
+import { SegmentedControl } from "@/components/segmented-control";
+import { Button } from "@/components/ui/button";
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldLabel,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { toast } from "@/components/ui/toast"
-import { ROLE_PARAM, parseRole } from "@/lib/account-role"
-import type { AccountRole } from "@/lib/account-role"
-import { ApiError } from "@/lib/api-client"
-import { register } from "@/lib/auth"
-import { EMAIL_MAX_LENGTH, maskPassword } from "@/lib/input-rules"
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { toast } from "@/components/ui/toast";
+import { ROLE_PARAM, parseRole } from "@/lib/account-role";
+import type { AccountRole } from "@/lib/account-role";
+import { ApiError } from "@/lib/api-client";
+import { register } from "@/lib/auth";
+import { EMAIL_MAX_LENGTH, maskPassword } from "@/lib/input-rules";
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const MIN_PASSWORD_LENGTH = 8
-const MAX_PASSWORD_LENGTH = 72
-const MAX_NAME_LENGTH = 100
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MIN_PASSWORD_LENGTH = 8;
+const MAX_PASSWORD_LENGTH = 72;
+const MAX_NAME_LENGTH = 100;
 
 const ROLE_HINTS: Record<AccountRole, string> = {
-  parent:
-    "Po założeniu konta dodasz dziecko do klasy kodem od skarbnika.",
+  parent: "Po założeniu konta dodasz dziecko do klasy kodem od skarbnika.",
   treasurer:
     "Po założeniu konta utworzysz klasę i dostaniesz kod dostępu dla rodziców.",
-}
+};
 
 type RegisterErrors = {
-  fullName?: string
-  email?: string
-  password?: string
-  confirmPassword?: string
-}
+  fullName?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+};
 
 function splitName(value: string): { firstName: string; lastName: string } {
-  const parts = value.trim().split(/\s+/)
+  const parts = value.trim().split(/\s+/);
   return {
     firstName: parts[0] ?? "",
     lastName: parts.slice(1).join(" "),
-  }
+  };
 }
 
 function maskFullName(value: string): string | null {
-  const { firstName, lastName } = splitName(value)
+  const { firstName, lastName } = splitName(value);
   return firstName.length <= MAX_NAME_LENGTH &&
     lastName.length <= MAX_NAME_LENGTH
     ? value
-    : null
+    : null;
 }
 
 function RegisterPage() {
-  const navigate = useNavigate()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [fullName, setFullName] = React.useState("")
-  const [email, setEmail] = React.useState("")
-  const [password, setPassword] = React.useState("")
-  const [confirmPassword, setConfirmPassword] = React.useState("")
-  const [errors, setErrors] = React.useState<RegisterErrors>({})
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [fullName, setFullName] = React.useState("");
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [confirmPassword, setConfirmPassword] = React.useState("");
+  const [errors, setErrors] = React.useState<RegisterErrors>({});
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const role = parseRole(searchParams.get(ROLE_PARAM))
-  const loginPath = `/login?${ROLE_PARAM}=${role}`
+  const role = parseRole(searchParams.get(ROLE_PARAM));
+  const loginPath = `/login?${ROLE_PARAM}=${role}`;
 
-  const hasFullName = splitName(fullName).lastName !== ""
-  const hasValidEmail = EMAIL_PATTERN.test(email.trim())
+  const hasFullName = splitName(fullName).lastName !== "";
+  const hasValidEmail = EMAIL_PATTERN.test(email.trim());
   const confirmError =
     confirmPassword !== "" &&
     confirmPassword.length >= password.length &&
     confirmPassword !== password
       ? "Hasła muszą być takie same."
-      : errors.confirmPassword
+      : errors.confirmPassword;
   const canSubmit =
     hasFullName &&
     hasValidEmail &&
     password.length >= MIN_PASSWORD_LENGTH &&
-    confirmPassword === password
+    confirmPassword === password;
 
   function clearError(field: keyof RegisterErrors) {
-    setErrors((prev) => ({ ...prev, [field]: undefined }))
+    setErrors((prev) => ({ ...prev, [field]: undefined }));
   }
 
   function handleRoleChange(nextRole: AccountRole) {
-    setSearchParams({ [ROLE_PARAM]: nextRole }, { replace: true })
+    setSearchParams({ [ROLE_PARAM]: nextRole }, { replace: true });
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+    event.preventDefault();
     if (isSubmitting) {
-      return
+      return;
     }
 
-    const nextErrors: RegisterErrors = {}
-    const { lastName } = splitName(fullName)
+    const nextErrors: RegisterErrors = {};
+    const { lastName } = splitName(fullName);
     if (lastName === "") {
-      nextErrors.fullName = "Podaj imię i nazwisko."
+      nextErrors.fullName = "Podaj imię i nazwisko.";
     }
     if (email.trim() === "") {
-      nextErrors.email = "Podaj adres e-mail."
+      nextErrors.email = "Podaj adres e-mail.";
     } else if (!EMAIL_PATTERN.test(email.trim())) {
-      nextErrors.email = "Podaj poprawny adres e-mail."
+      nextErrors.email = "Podaj poprawny adres e-mail.";
     }
     if (password === "") {
-      nextErrors.password = "Podaj hasło."
+      nextErrors.password = "Podaj hasło.";
     } else if (password.length < MIN_PASSWORD_LENGTH) {
-      nextErrors.password = "Hasło musi mieć min. 8 znaków."
+      nextErrors.password = "Hasło musi mieć min. 8 znaków.";
     } else if (password.length > MAX_PASSWORD_LENGTH) {
-      nextErrors.password = "Hasło może mieć maks. 72 znaki."
+      nextErrors.password = "Hasło może mieć maks. 72 znaki.";
     }
     if (confirmPassword === "") {
-      nextErrors.confirmPassword = "Powtórz hasło."
+      nextErrors.confirmPassword = "Powtórz hasło.";
     } else if (confirmPassword !== password) {
-      nextErrors.confirmPassword = "Hasła muszą być takie same."
+      nextErrors.confirmPassword = "Hasła muszą być takie same.";
     }
-    setErrors(nextErrors)
+    setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
-      return
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      const { firstName, lastName: splitLastName } = splitName(fullName)
+      const { firstName, lastName: splitLastName } = splitName(fullName);
       await register({
         firstName,
         lastName: splitLastName,
         email: email.trim(),
         password,
-      })
+      });
       toast.add({
         title: "Konto zostało utworzone.",
         type: "success",
-      })
-      navigate("/dashboard", { replace: true })
+      });
+      navigate("/dashboard", { replace: true });
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         setErrors((prev) => ({
           ...prev,
           email: "Ten adres e-mail jest już zajęty.",
-        }))
-        return
+        }));
+        return;
       }
       if (error instanceof ApiError && error.status === 400) {
-        const fieldErrors: RegisterErrors = {}
+        const fieldErrors: RegisterErrors = {};
         if (error.fieldErrors?.email != null) {
-          fieldErrors.email = "Podaj poprawny adres e-mail."
+          fieldErrors.email = "Podaj poprawny adres e-mail.";
         }
         if (error.fieldErrors?.password != null) {
-          fieldErrors.password = "Hasło musi mieć min. 8 znaków."
+          fieldErrors.password = "Hasło musi mieć min. 8 znaków.";
         }
         if (
           error.fieldErrors?.firstName != null ||
           error.fieldErrors?.lastName != null
         ) {
-          fieldErrors.fullName = "Podaj imię i nazwisko."
+          fieldErrors.fullName = "Podaj imię i nazwisko.";
         }
         if (Object.keys(fieldErrors).length > 0) {
-          setErrors((prev) => ({ ...prev, ...fieldErrors }))
-          return
+          setErrors((prev) => ({ ...prev, ...fieldErrors }));
+          return;
         }
       }
       toast.add({
         title: registerErrorTitle(error),
         type: "error",
-      })
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
@@ -192,9 +191,7 @@ function RegisterPage() {
           className="flex flex-col gap-5"
         >
           <Field data-invalid={errors.fullName != null}>
-            <FieldLabel htmlFor="register-fullname">
-              Imię i nazwisko
-            </FieldLabel>
+            <FieldLabel htmlFor="register-fullname">Imię i nazwisko</FieldLabel>
             <MaskedInput
               id="register-fullname"
               type="text"
@@ -203,8 +200,8 @@ function RegisterPage() {
               value={fullName}
               mask={maskFullName}
               onValueChange={(value) => {
-                setFullName(value)
-                clearError("fullName")
+                setFullName(value);
+                clearError("fullName");
               }}
               aria-invalid={errors.fullName != null}
             />
@@ -226,8 +223,8 @@ function RegisterPage() {
               maxLength={EMAIL_MAX_LENGTH}
               value={email}
               onChange={(event) => {
-                setEmail(event.target.value)
-                clearError("email")
+                setEmail(event.target.value);
+                clearError("email");
               }}
               aria-invalid={errors.email != null}
             />
@@ -249,8 +246,8 @@ function RegisterPage() {
               value={password}
               mask={maskPassword}
               onValueChange={(value) => {
-                setPassword(value)
-                clearError("password")
+                setPassword(value);
+                clearError("password");
               }}
               aria-invalid={errors.password != null}
             />
@@ -259,14 +256,11 @@ function RegisterPage() {
             ) : (
               <FieldDescription className="text-xs">
                 Od {MIN_PASSWORD_LENGTH} do {MAX_PASSWORD_LENGTH} znaków.
-                Polskie litery liczą się podwójnie do górnego limitu.
               </FieldDescription>
             )}
           </Field>
           <Field data-invalid={confirmError != null}>
-            <FieldLabel htmlFor="register-confirm">
-              Powtórz hasło
-            </FieldLabel>
+            <FieldLabel htmlFor="register-confirm">Powtórz hasło</FieldLabel>
             <MaskedInput
               id="register-confirm"
               type="password"
@@ -274,8 +268,8 @@ function RegisterPage() {
               value={confirmPassword}
               mask={maskPassword}
               onValueChange={(value) => {
-                setConfirmPassword(value)
-                clearError("confirmPassword")
+                setConfirmPassword(value);
+                clearError("confirmPassword");
               }}
               aria-invalid={confirmError != null}
             />
@@ -305,14 +299,14 @@ function RegisterPage() {
         </p>
       </div>
     </AuthLayout>
-  )
+  );
 }
 
 function registerErrorTitle(error: unknown): string {
   if (error instanceof ApiError && error.status === 0) {
-    return "Brak połączenia z serwerem. Spróbuj ponownie."
+    return "Brak połączenia z serwerem. Spróbuj ponownie.";
   }
-  return "Wystąpił nieoczekiwany błąd. Spróbuj ponownie później."
+  return "Wystąpił nieoczekiwany błąd. Spróbuj ponownie później.";
 }
 
-export { RegisterPage }
+export { RegisterPage };
