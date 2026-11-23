@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/empty-state";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
-import { Toaster } from "@/components/ui/toast";
+import { toast, Toaster } from "@/components/ui/toast";
 import { useChatList } from "@/hooks/use-chat-list";
 import type { Chat } from "@/lib/chat";
 
@@ -27,6 +27,7 @@ function ChatPage() {
     retry,
     addChat,
     discardDraft,
+    hide,
   } = useChatList(requestedId != null ? Number(requestedId) : null);
 
   const selected = chats.find((chat) => String(chat.id) === requestedId);
@@ -44,6 +45,22 @@ function ChatPage() {
   function closeChat() {
     discardDraft();
     setSearchParams({}, { replace: true });
+  }
+
+  async function hideChat(chat: Chat) {
+    if (chat.id === selected?.id) {
+      closeChat();
+    }
+    const hidden = await hide(chat);
+    toast.add(
+      hidden
+        ? {
+            title: "Rozmowa została ukryta.",
+            description: "Wróci na listę, gdy pojawi się nowa wiadomość.",
+            type: "success",
+          }
+        : { title: "Nie udało się ukryć rozmowy.", type: "error" },
+    );
   }
 
   return (
@@ -78,6 +95,7 @@ function ChatPage() {
                 userId={userId}
                 selectedId={selected?.id ?? null}
                 onSelect={selectChat}
+                onHide={(chat) => void hideChat(chat)}
                 className={cn(selected && "hidden lg:flex")}
               />
               {selected != null ? (

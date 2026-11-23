@@ -69,6 +69,10 @@ async function sendMessage(
   });
 }
 
+async function hideChat(chatId: number): Promise<void> {
+  await authorizedRequest<void>(`/chats/${chatId}/hide`, { method: "POST" });
+}
+
 async function markAsRead(chatId: number): Promise<void> {
   await authorizedRequest<void>(`/chats/${chatId}/read`, { method: "POST" });
 }
@@ -77,6 +81,7 @@ export {
   getChatContacts,
   getChats,
   getMessages,
+  hideChat,
   markAsRead,
   MESSAGE_MAX_LENGTH,
   MESSAGES_PAGE_SIZE,

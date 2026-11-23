@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import { usePolling } from "@/hooks/use-polling";
 import { ApiError } from "@/lib/api-client";
 import { me } from "@/lib/auth";
-import { getChats } from "@/lib/chat";
+import { getChats, hideChat } from "@/lib/chat";
 import type { Chat } from "@/lib/chat";
 
 const REFRESH_INTERVAL_MS = 10000;
@@ -82,6 +82,20 @@ function useChatList(focusedId: number | null) {
     setDraft(null);
   }
 
+  async function hide(chat: Chat): Promise<boolean> {
+    latestRequest.current += 1;
+    setDraft((current) => (current?.id === chat.id ? null : current));
+    setChats((current) => (current ?? []).filter((item) => item.id !== chat.id));
+    try {
+      await hideChat(chat.id);
+      return true;
+    } catch (error) {
+      handleError(error);
+      void refresh();
+      return false;
+    }
+  }
+
   const loaded = chats ?? [];
   const visibleDraft =
     draft != null &&
@@ -93,6 +107,7 @@ function useChatList(focusedId: number | null) {
   return {
     chats: visibleDraft != null ? [visibleDraft, ...loaded] : loaded,
     discardDraft,
+    hide,
     userId,
     failed,
     isLoading: !isReady && !failed,
