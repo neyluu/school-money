@@ -1,32 +1,37 @@
 package org.example.backend.core.repository;
 
 import jakarta.persistence.LockModeType;
+import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import org.example.backend.core.entity.Wallet;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-
-public interface WalletRepository extends JpaRepository<Wallet, Integer>
-{
+public interface WalletRepository extends JpaRepository<Wallet, Integer> {
     Optional<Wallet> findByUserId(Integer id);
     Optional<Wallet> findByFundraisingId(Integer id);
     List<Wallet> findAllByFundraisingIdIn(Collection<Integer> fundraisingIds);
+    List<Wallet> findAllByFundraisingSchoolClassId(Integer classId);
     boolean existsByIban(String iban);
 
     @Query("SELECT w.id FROM Wallet w WHERE w.user.id = :userId")
     Optional<Integer> findIdByUserId(@Param("userId") Integer userId);
 
     @Query("SELECT w.id FROM Wallet w WHERE w.fundraising.id = :fundraisingId")
-    Optional<Integer> findIdByFundraisingId(@Param("fundraisingId") Integer fundraisingId);
+    Optional<Integer> findIdByFundraisingId(
+        @Param("fundraisingId") Integer fundraisingId
+    );
 
-    @Query("SELECT w.balance FROM Wallet w WHERE w.fundraising.id = :fundraisingId")
-    Optional<BigDecimal> findBalanceByFundraisingId(@Param("fundraisingId") Integer fundraisingId);
+    @Query(
+        "SELECT w.balance FROM Wallet w WHERE w.fundraising.id = :fundraisingId"
+    )
+    Optional<BigDecimal> findBalanceByFundraisingId(
+        @Param("fundraisingId") Integer fundraisingId
+    );
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT w FROM Wallet w WHERE w.id = :id")
