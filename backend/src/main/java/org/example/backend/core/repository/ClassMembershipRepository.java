@@ -70,6 +70,16 @@ public interface ClassMembershipRepository
             @Param("status") MembershipStatus status
     );
 
+    @Query("""
+        SELECT m.schoolClass.id AS classId, COUNT(m) AS count FROM ClassMembership m
+        WHERE m.schoolClass.id IN :classIds AND m.status = :status AND m.child.active = true
+        GROUP BY m.schoolClass.id
+        """)
+    List<ClassMembershipCount> countByClassIdsAndStatus(
+        @Param("classIds") Collection<Integer> classIds,
+        @Param("status") MembershipStatus status
+    );
+
     @Modifying(clearAutomatically = true)
     @Query("""
         UPDATE ClassMembership m SET m.status = :newStatus, m.decidedAt = :decidedAt
