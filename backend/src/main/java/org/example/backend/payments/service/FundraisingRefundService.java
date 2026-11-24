@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 public class FundraisingRefundService
 {
     private static final String REFUND_TITLE_PREFIX = "Zwrot ze zbiórki ";
+    private static final String ADMIN_REFUND_TITLE_SUFFIX = " (decyzja administratora)";
 
     private final FundraisingAccessService accessService;
     private final FundraisingContributionRepository contributionRepository;
@@ -39,6 +40,25 @@ public class FundraisingRefundService
         Fundraising fundraising = accessService.findForUpdate(fundraisingId);
         accessService.requireOwner(fundraising, userId);
         accessService.requireNotBlocked(fundraising);
+
+        return refundContributions(fundraising, REFUND_TITLE_PREFIX + fundraising.getName());
+    }
+
+    @Transactional
+    public RefundSummaryResponse refundAsAdmin(Integer fundraisingId)
+    {
+        Fundraising fundraising = accessService.findForUpdate(fundraisingId);
+        accessService.requireBlocked(fundraising);
+
+        return refundContributions(
+            fundraising,
+            REFUND_TITLE_PREFIX + fundraising.getName() + ADMIN_REFUND_TITLE_SUFFIX
+        );
+    }
+
+    private RefundSummaryResponse refundContributions(Fundraising fundraising, String title)
+    {
+        Integer fundraisingId = fundraising.getId();
         accessService.requireActive(fundraising);
 
         List<FundraisingContribution> contributions = contributionRepository.findAllActiveByFundraisingId(fundraisingId);
@@ -67,7 +87,7 @@ public class FundraisingRefundService
                 payerWalletIds.get(contribution.getPayer().getId()),
                 contribution.getTransaction().getAmount(),
                 TransactionType.REFUND,
-                REFUND_TITLE_PREFIX + fundraising.getName()
+                title
             );
             contribution.setRefundTransaction(refund);
         }

@@ -29,8 +29,7 @@ public interface FundraisingContributionRepository
         LEFT JOIN FETCH c.refundTransaction
         WHERE c.fundraising.id = :fundraisingId
         ORDER BY c.id DESC
-        """
-    )
+        """)
     List<FundraisingContribution> findAllByFundraisingId(
         @Param("fundraisingId") Integer fundraisingId,
         Pageable pageable
@@ -50,8 +49,7 @@ public interface FundraisingContributionRepository
         Pageable pageable
     );
 
-    @Query(
-        """
+    @Query("""
         SELECT c FROM FundraisingContribution c
         JOIN FETCH c.payer
         JOIN FETCH c.transaction
@@ -125,67 +123,59 @@ public interface FundraisingContributionRepository
         @Param("childId") Integer childId
     );
 
-    @Query(
-        """
+    @Query("""
         SELECT SUM(c.transaction.amount) FROM FundraisingContribution c
         WHERE c.fundraising.id = :fundraisingId AND c.refundTransaction IS NULL
-        """
-    )
-    Optional<BigDecimal> sumActiveAmountByFundraisingId(
-        @Param("fundraisingId") Integer fundraisingId
-    );
+        """)
+    Optional<BigDecimal> sumActiveAmountByFundraisingId(@Param("fundraisingId") Integer fundraisingId);
 
-    @Query(
-        """
+    @Query("""
         SELECT c.child.id AS childId, SUM(c.transaction.amount) AS amount
         FROM FundraisingContribution c
         WHERE c.fundraising.id = :fundraisingId AND c.refundTransaction IS NULL
         GROUP BY c.child.id
-        """
-    )
-    List<ChildPaidAmount> sumActiveAmountsByChild(
-        @Param("fundraisingId") Integer fundraisingId
-    );
+        """)
+    List<ChildPaidAmount> sumActiveAmountsByChild(@Param("fundraisingId") Integer fundraisingId);
 
-    @Query(
-        """
+    @Query("""
         SELECT c.fundraising.id AS fundraisingId, c.child.id AS childId, SUM(c.transaction.amount) AS amount
         FROM FundraisingContribution c
         WHERE c.child.id IN :childIds AND c.refundTransaction IS NULL
         GROUP BY c.fundraising.id, c.child.id
-        """
-    )
-    List<FundraisingChildPaidAmount> sumActiveAmountsByChildIds(
-        @Param("childIds") Collection<Integer> childIds
-    );
+        """)
+    List<FundraisingChildPaidAmount> sumActiveAmountsByChildIds(@Param("childIds") Collection<Integer> childIds);
 
-    @Query(
-        """
+    @Query("""
         SELECT c.fundraising.id AS fundraisingId, c.child.id AS childId, SUM(c.transaction.amount) AS amount
         FROM FundraisingContribution c
         WHERE c.fundraising.id IN :fundraisingIds AND c.refundTransaction IS NULL
         GROUP BY c.fundraising.id, c.child.id
-        """
-    )
+        """)
     List<FundraisingChildPaidAmount> sumActiveAmountsByFundraisingIds(
         @Param("fundraisingIds") Collection<Integer> fundraisingIds
     );
 
-    @Query(
-        """
-            SELECT fc.payer.id AS payerId,
-                   fc.child.id AS childId,
-                   SUM(t.amount - COALESCE(rt.amount, 0)) AS netPaid
-            FROM FundraisingContribution fc
-                JOIN fc.transaction t
-                LEFT JOIN fc.refundTransaction rt
-            WHERE
-                fc.fundraising.id = :fundraisingId
-                AND t.type = :type
-            GROUP BY fc.payer.id, fc.child.id
-            HAVING SUM(t.amount - COALESCE(rt.amount, 0)) > :newValue
-        """
-    )
+    @Query("""
+        SELECT c.fundraising.id AS fundraisingId, SUM(c.transaction.amount) AS amount
+        FROM FundraisingContribution c
+        WHERE c.fundraising.id IN :fundraisingIds AND c.refundTransaction IS NULL
+        GROUP BY c.fundraising.id
+        """)
+    List<FundraisingPaidAmount> sumActiveAmountsByFundraisingIdIn(@Param("fundraisingIds") Collection<Integer> fundraisingIds);
+
+    @Query("""
+        SELECT fc.payer.id AS payerId,
+               fc.child.id AS childId,
+               SUM(t.amount - COALESCE(rt.amount, 0)) AS netPaid
+        FROM FundraisingContribution fc
+            JOIN fc.transaction t
+            LEFT JOIN fc.refundTransaction rt
+        WHERE
+            fc.fundraising.id = :fundraisingId
+            AND t.type = :type
+        GROUP BY fc.payer.id, fc.child.id
+        HAVING SUM(t.amount - COALESCE(rt.amount, 0)) > :newValue
+        """)
     List<ChildOverpayment> findOverpaidChildren(
         @Param("fundraisingId") Integer fundraisingId,
         @Param("newValue") BigDecimal newValue,
@@ -197,17 +187,20 @@ public interface FundraisingContributionRepository
         Integer childId
     );
 
+
     interface ChildPaidAmount {
         Integer getChildId();
-
         BigDecimal getAmount();
     }
 
     interface FundraisingChildPaidAmount {
         Integer getFundraisingId();
-
         Integer getChildId();
+        BigDecimal getAmount();
+    }
 
+    interface FundraisingPaidAmount {
+        Integer getFundraisingId();
         BigDecimal getAmount();
     }
 

@@ -97,6 +97,11 @@ public class ChatService
         User target = userRepository.findById(targetUserId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User with id " + targetUserId + " not found"));
 
+        if(target.getIsBlocked())
+        {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This user is blocked");
+        }
+
         Integer userAId = Math.min(user.id(), target.getId());
         Integer userBId = Math.max(user.id(), target.getId());
 
@@ -154,6 +159,8 @@ public class ChatService
     public MessageResponse sendMessage(Integer chatId, MessageCreateRequest request, Integer userId)
     {
         Conversation conversation = findAccessibleConversation(chatId, userId);
+        requireCanSend(conversation, userId);
+
         if(!canSend(conversation, userId))
         {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can no longer message this user");
@@ -233,6 +240,27 @@ public class ChatService
             return true;
         }
         return conversationRepository.shareClass(user.id(), target.getId(), MembershipStatus.ACCEPTED);
+    }
+
+    private void requireCanSend(Conversation conversation, Integer userId)
+    {
+        if(conversation.getType() == ConversationType.CLASS)
+        {
+            if(conversation.getSchoolClass().getIsBlocked())
+            {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Class is blocked");
+            }
+            return;
+        }
+
+        User recipient = conversation.getUserA().getId().equals(userId)
+                ? conversation.getUserB()
+                : conversation.getUserA();
+
+        if(recipient.getIsBlocked())
+        {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Recipient is blocked");
+        }
     }
 
     private Conversation findAccessibleConversation(Integer chatId, Integer userId)
