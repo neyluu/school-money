@@ -32,6 +32,8 @@ import org.example.backend.core.repository.SchoolClassRepository;
 import org.example.backend.core.repository.TransactionRepository;
 import org.example.backend.core.repository.UserRepository;
 import org.example.backend.core.repository.WalletRepository;
+import org.example.backend.payments.dto.response.RefundSummaryResponse;
+import org.example.backend.payments.service.FundraisingRefundService;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -65,6 +67,7 @@ public class AdminService
     private final ChildRepository childRepository;
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
+    private final FundraisingRefundService fundraisingRefundService;
 
     @Transactional(readOnly = true)
     public List<AdminUserResponse> getUsers(AdminUserFilter filter)
@@ -225,6 +228,12 @@ public class AdminService
     public AdminFundraisingResponse unblockFundraising(Integer fundraisingId)
     {
         return setFundraisingBlocked(fundraisingId, false);
+    }
+
+    @Transactional
+    public RefundSummaryResponse refundFundraising(Integer fundraisingId)
+    {
+        return fundraisingRefundService.refundAsAdmin(fundraisingId);
     }
 
     @Transactional(readOnly = true)

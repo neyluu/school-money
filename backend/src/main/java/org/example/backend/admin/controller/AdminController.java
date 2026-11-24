@@ -15,6 +15,7 @@ import org.example.backend.admin.dto.response.AdminStatsResponse;
 import org.example.backend.admin.dto.response.AdminTreasurerResponse;
 import org.example.backend.admin.dto.response.AdminUserResponse;
 import org.example.backend.admin.service.AdminService;
+import org.example.backend.payments.dto.response.RefundSummaryResponse;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -154,6 +155,14 @@ public class AdminController
     public ResponseEntity<AdminFundraisingResponse> unblockFundraising(@PathVariable Integer id)
     {
         return ResponseEntity.ok(adminService.unblockFundraising(id));
+    }
+
+
+    @Operation(summary = "Refund all contributions of a blocked fundraising as administrator")
+    @PostMapping("/fundraisings/{id}/refund")
+    public ResponseEntity<RefundSummaryResponse> refundFundraising(@PathVariable Integer id)
+    {
+        return ResponseEntity.ok(adminService.refundFundraising(id));
     }
 
 

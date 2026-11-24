@@ -63,6 +63,17 @@ public class FundraisingAccessService
         }
     }
 
+    public void requireBlocked(Fundraising fundraising)
+    {
+        if(!fundraising.getIsBlocked() && !fundraising.getSchoolClass().getIsBlocked())
+        {
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Fundraising is not blocked, only blocked fundraisings can be refunded by an administrator"
+            );
+        }
+    }
+
     public void requireActive(Fundraising fundraising)
     {
         if(fundraising.getStatus() != FundraisingStatus.ACTIVE)
