@@ -4,6 +4,9 @@ public record AdminStatsResponse(
     long users,
     long treasurers,
     long activeFundraisings,
+    long finishedFundraisings,
+    long closedFundraisings,
+    long cancelledFundraisings,
     long blockedUsers,
     long blockedClasses,
     long blockedFundraisings

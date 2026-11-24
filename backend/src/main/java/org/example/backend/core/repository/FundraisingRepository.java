@@ -160,4 +160,6 @@ public interface FundraisingRepository extends JpaRepository<Fundraising, Intege
         nativeQuery = true
     )
     Optional<Fundraising> findByIdAndUserId(Integer fundraisingId, Integer userId);
+
+    long countByStatus(FundraisingStatus status);
 }

@@ -44,11 +44,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -239,10 +235,16 @@ public class AdminService
     @Transactional(readOnly = true)
     public AdminStatsResponse getStats()
     {
+        long closed = fundraisingRepository.countByStatus(FundraisingStatus.CLOSED);
+        long cancelled = fundraisingRepository.countByStatus(FundraisingStatus.CANCELLED);
+
         return new AdminStatsResponse(
             userRepository.count(),
             schoolClassRepository.countDistinctOwners(),
             fundraisingRepository.countByStatusAndIsBlocked(FundraisingStatus.ACTIVE, false),
+            closed + cancelled,
+            closed,
+            cancelled,
             userRepository.countByIsBlocked(true),
             schoolClassRepository.countByIsBlockedAndDeletedAtIsNull(true),
             fundraisingRepository.countByIsBlocked(true)
