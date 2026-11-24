@@ -2,6 +2,13 @@ import * as React from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { AuthLayout, AuthLogo } from "@/components/auth-layout";
 import { MaskedInput } from "@/components/masked-input";
+import {
+  MAX_PASSWORD_LENGTH,
+  MIN_PASSWORD_LENGTH,
+  NewPasswordFields,
+  PASSWORD_INVALID,
+  PASSWORD_MISMATCH,
+} from "@/components/new-password-fields";
 import { SegmentedControl } from "@/components/segmented-control";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,21 +19,27 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
+import { useAuth } from "@/hooks/use-auth";
 import { ROLE_PARAM, parseRole } from "@/lib/account-role";
 import type { AccountRole } from "@/lib/account-role";
 import { ApiError } from "@/lib/api-client";
 import { register } from "@/lib/auth";
-import { EMAIL_MAX_LENGTH, maskPassword } from "@/lib/input-rules";
+import { saveIntendedRole } from "@/lib/auth-store";
+import { EMAIL_MAX_LENGTH } from "@/lib/input-rules";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MIN_PASSWORD_LENGTH = 8;
-const MAX_PASSWORD_LENGTH = 72;
 const MAX_NAME_LENGTH = 100;
+const ONBOARDING_PARAM = "onboarding";
 
 const ROLE_HINTS: Record<AccountRole, string> = {
   parent: "Po założeniu konta dodasz dziecko do klasy kodem od skarbnika.",
   treasurer:
     "Po założeniu konta utworzysz klasę i dostaniesz kod dostępu dla rodziców.",
+};
+
+const AFTER_REGISTER_PATH: Record<AccountRole, string> = {
+  parent: "/dashboard",
+  treasurer: `/dashboard?${ONBOARDING_PARAM}=treasurer`,
 };
 
 type RegisterErrors = {
@@ -38,6 +51,7 @@ type RegisterErrors = {
 
 function splitName(value: string): { firstName: string; lastName: string } {
   const parts = value.trim().split(/\s+/);
+
   return {
     firstName: parts[0] ?? "",
     lastName: parts.slice(1).join(" "),
@@ -46,6 +60,7 @@ function splitName(value: string): { firstName: string; lastName: string } {
 
 function maskFullName(value: string): string | null {
   const { firstName, lastName } = splitName(value);
+
   return firstName.length <= MAX_NAME_LENGTH &&
     lastName.length <= MAX_NAME_LENGTH
     ? value
@@ -55,6 +70,7 @@ function maskFullName(value: string): string | null {
 function RegisterPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { refreshUser } = useAuth();
 
   const [fullName, setFullName] = React.useState("");
   const [email, setEmail] = React.useState("");
@@ -68,17 +84,6 @@ function RegisterPage() {
 
   const hasFullName = splitName(fullName).lastName !== "";
   const hasValidEmail = EMAIL_PATTERN.test(email.trim());
-  const confirmError =
-    confirmPassword !== "" &&
-    confirmPassword.length >= password.length &&
-    confirmPassword !== password
-      ? "Hasła muszą być takie same."
-      : errors.confirmPassword;
-  const canSubmit =
-    hasFullName &&
-    hasValidEmail &&
-    password.length >= MIN_PASSWORD_LENGTH &&
-    confirmPassword === password;
 
   function clearError(field: keyof RegisterErrors) {
     setErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -90,20 +95,24 @@ function RegisterPage() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
     if (isSubmitting) {
       return;
     }
 
     const nextErrors: RegisterErrors = {};
     const { lastName } = splitName(fullName);
+
     if (lastName === "") {
       nextErrors.fullName = "Podaj imię i nazwisko.";
     }
+
     if (email.trim() === "") {
       nextErrors.email = "Podaj adres e-mail.";
     } else if (!EMAIL_PATTERN.test(email.trim())) {
       nextErrors.email = "Podaj poprawny adres e-mail.";
     }
+
     if (password === "") {
       nextErrors.password = "Podaj hasło.";
     } else if (password.length < MIN_PASSWORD_LENGTH) {
@@ -111,30 +120,41 @@ function RegisterPage() {
     } else if (password.length > MAX_PASSWORD_LENGTH) {
       nextErrors.password = "Hasło może mieć maks. 72 znaki.";
     }
+
     if (confirmPassword === "") {
       nextErrors.confirmPassword = "Powtórz hasło.";
     } else if (confirmPassword !== password) {
-      nextErrors.confirmPassword = "Hasła muszą być takie same.";
+      nextErrors.confirmPassword = PASSWORD_MISMATCH;
     }
+
     setErrors(nextErrors);
+
     if (Object.keys(nextErrors).length > 0) {
       return;
     }
 
     setIsSubmitting(true);
+
     try {
       const { firstName, lastName: splitLastName } = splitName(fullName);
+
+      saveIntendedRole(role);
+
       await register({
         firstName,
         lastName: splitLastName,
         email: email.trim(),
         password,
       });
+
+      await refreshUser();
+
       toast.add({
         title: "Konto zostało utworzone.",
         type: "success",
       });
-      navigate("/dashboard", { replace: true });
+
+      navigate(AFTER_REGISTER_PATH[role], { replace: true });
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         setErrors((prev) => ({
@@ -143,25 +163,31 @@ function RegisterPage() {
         }));
         return;
       }
+
       if (error instanceof ApiError && error.status === 400) {
         const fieldErrors: RegisterErrors = {};
+
         if (error.fieldErrors?.email != null) {
           fieldErrors.email = "Podaj poprawny adres e-mail.";
         }
+
         if (error.fieldErrors?.password != null) {
-          fieldErrors.password = "Hasło musi mieć min. 8 znaków.";
+          fieldErrors.password = PASSWORD_INVALID;
         }
+
         if (
           error.fieldErrors?.firstName != null ||
           error.fieldErrors?.lastName != null
         ) {
           fieldErrors.fullName = "Podaj imię i nazwisko.";
         }
+
         if (Object.keys(fieldErrors).length > 0) {
           setErrors((prev) => ({ ...prev, ...fieldErrors }));
           return;
         }
       }
+
       toast.add({
         title: registerErrorTitle(error),
         type: "error",
@@ -175,7 +201,9 @@ function RegisterPage() {
     <AuthLayout>
       <div className="flex flex-col gap-6">
         <AuthLogo />
+
         <h1 className="text-3xl font-normal">Załóż konto</h1>
+
         <SegmentedControl<AccountRole>
           aria-label="Typ konta"
           options={[
@@ -185,6 +213,7 @@ function RegisterPage() {
           value={role}
           onChange={handleRoleChange}
         />
+
         <form
           onSubmit={handleSubmit}
           noValidate
@@ -192,6 +221,7 @@ function RegisterPage() {
         >
           <Field data-invalid={errors.fullName != null}>
             <FieldLabel htmlFor="register-fullname">Imię i nazwisko</FieldLabel>
+
             <MaskedInput
               id="register-fullname"
               type="text"
@@ -205,6 +235,7 @@ function RegisterPage() {
               }}
               aria-invalid={errors.fullName != null}
             />
+
             {errors.fullName != null ? (
               <FieldError>{errors.fullName}</FieldError>
             ) : fullName !== "" && !hasFullName ? (
@@ -213,8 +244,10 @@ function RegisterPage() {
               </FieldDescription>
             ) : null}
           </Field>
+
           <Field data-invalid={errors.email != null}>
             <FieldLabel htmlFor="register-email">E-mail</FieldLabel>
+
             <Input
               id="register-email"
               type="email"
@@ -228,6 +261,7 @@ function RegisterPage() {
               }}
               aria-invalid={errors.email != null}
             />
+
             {errors.email != null ? (
               <FieldError>{errors.email}</FieldError>
             ) : email !== "" && !hasValidEmail ? (
@@ -236,58 +270,37 @@ function RegisterPage() {
               </FieldDescription>
             ) : null}
           </Field>
-          <Field data-invalid={errors.password != null}>
-            <FieldLabel htmlFor="register-password">Hasło</FieldLabel>
-            <MaskedInput
-              id="register-password"
-              type="password"
-              autoComplete="new-password"
-              placeholder="Min. 8 znaków"
-              value={password}
-              mask={maskPassword}
-              onValueChange={(value) => {
-                setPassword(value);
-                clearError("password");
-              }}
-              aria-invalid={errors.password != null}
-            />
-            {errors.password != null ? (
-              <FieldError>{errors.password}</FieldError>
-            ) : (
-              <FieldDescription className="text-xs">
-                Od {MIN_PASSWORD_LENGTH} do {MAX_PASSWORD_LENGTH} znaków.
-              </FieldDescription>
-            )}
-          </Field>
-          <Field data-invalid={confirmError != null}>
-            <FieldLabel htmlFor="register-confirm">Powtórz hasło</FieldLabel>
-            <MaskedInput
-              id="register-confirm"
-              type="password"
-              autoComplete="new-password"
-              value={confirmPassword}
-              mask={maskPassword}
-              onValueChange={(value) => {
-                setConfirmPassword(value);
-                clearError("confirmPassword");
-              }}
-              aria-invalid={confirmError != null}
-            />
-            {confirmError != null ? (
-              <FieldError>{confirmError}</FieldError>
-            ) : null}
-          </Field>
+
+          <NewPasswordFields
+            idPrefix="register"
+            passwordLabel="Hasło"
+            confirmLabel="Powtórz hasło"
+            password={password}
+            confirm={confirmPassword}
+            onPasswordChange={(value) => {
+              setPassword(value);
+              clearError("password");
+            }}
+            onConfirmChange={(value) => {
+              setConfirmPassword(value);
+              clearError("confirmPassword");
+            }}
+            passwordError={errors.password}
+            confirmError={errors.confirmPassword}
+          />
+
           <p className="text-sm text-muted-foreground">{ROLE_HINTS[role]}</p>
+
           <Button
             type="submit"
             size="lg"
             loading={isSubmitting}
-            disabled={!canSubmit}
-            className="w-full bg-foreground text-background hover:bg-foreground/90 cursor-pointer"
+            className="w-full bg-foreground text-background hover:bg-foreground/90"
           >
             Utwórz konto
           </Button>
         </form>
+
         <p className="text-sm text-muted-foreground">
           Masz konto?{" "}
           <Link
@@ -306,6 +319,7 @@ function registerErrorTitle(error: unknown): string {
   if (error instanceof ApiError && error.status === 0) {
     return "Brak połączenia z serwerem. Spróbuj ponownie.";
   }
+
   return "Wystąpił nieoczekiwany błąd. Spróbuj ponownie później.";
 }
 

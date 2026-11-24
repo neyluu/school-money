@@ -34,10 +34,12 @@ import {
   getLatestPastDate,
   isDateInRange,
   maskAccessCode,
+  isChildOldEnough,
 } from "@/lib/input-rules";
 
 const MIN_NAME_LENGTH = 2;
 const MAX_NAME_LENGTH = 100;
+const MIN_CHILD_AGE = 5;
 
 type FormErrors = {
   firstName?: string;
@@ -73,6 +75,8 @@ function validate(values: {
     errors.birthDate = "Podaj datę urodzenia.";
   } else if (!isDateInRange(values.birthDate, "", getLatestPastDate())) {
     errors.birthDate = "Data urodzenia musi być w przeszłości.";
+  } else if (!isChildOldEnough(values.birthDate, MIN_CHILD_AGE)) {
+    errors.birthDate = "Dziecko jest zbyt młode.";
   }
 
   if (values.avatar != null) {

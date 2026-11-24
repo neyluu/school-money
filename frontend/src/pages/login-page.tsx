@@ -1,95 +1,124 @@
-import * as React from "react"
-import { Link, useNavigate, useSearchParams } from "react-router"
-import { AuthLayout, AuthLogo } from "@/components/auth-layout"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import * as React from "react";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router";
+import { AuthLayout, AuthLogo } from "@/components/auth-layout";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldLabel,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { toast } from "@/components/ui/toast"
-import { useAutofilled } from "@/hooks/use-autofilled"
-import { ROLE_PARAM, withRole } from "@/lib/account-role"
-import { ApiError } from "@/lib/api-client"
-import { login } from "@/lib/auth"
-import { EMAIL_MAX_LENGTH } from "@/lib/input-rules"
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { toast } from "@/components/ui/toast";
+import { useAuth } from "@/hooks/use-auth";
+import { useAutofilled } from "@/hooks/use-autofilled";
+import { ROLE_PARAM, withRole } from "@/lib/account-role";
+import { ApiError } from "@/lib/api-client";
+import { login } from "@/lib/auth";
+import { EMAIL_MAX_LENGTH } from "@/lib/input-rules";
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type LoginErrors = {
-  email?: string
-  password?: string
-}
+  email?: string;
+  password?: string;
+};
+
+type LocationState = {
+  from?: {
+    pathname?: string;
+  };
+};
 
 function LoginPage() {
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const [email, setEmail] = React.useState("")
-  const [password, setPassword] = React.useState("")
-  const [rememberMe, setRememberMe] = React.useState(false)
-  const [errors, setErrors] = React.useState<LoginErrors>({})
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const { refreshUser } = useAuth();
 
-  const formRef = React.useRef<HTMLFormElement>(null)
-  const isAutofilled = useAutofilled(formRef)
-  const hasValidEmail = EMAIL_PATTERN.test(email.trim())
-  const isUntouched = email === "" && password === ""
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [rememberMe, setRememberMe] = React.useState(false);
+  const [errors, setErrors] = React.useState<LoginErrors>({});
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const formRef = React.useRef<HTMLFormElement>(null);
+  const isAutofilled = useAutofilled(formRef);
+
+  const hasValidEmail = EMAIL_PATTERN.test(email.trim());
+  const isUntouched = email === "" && password === "";
+
   const canSubmit =
-    (hasValidEmail && password !== "") || (isAutofilled && isUntouched)
+    (hasValidEmail && password !== "") || (isAutofilled && isUntouched);
 
-  const registerPath = withRole("/register", searchParams.get(ROLE_PARAM))
+  const registerPath = withRole("/register", searchParams.get(ROLE_PARAM));
+
+  const from =
+    (location.state as LocationState | null)?.from?.pathname ?? "/dashboard";
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+    event.preventDefault();
+
     if (isSubmitting) {
-      return
+      return;
     }
 
-    const nextErrors: LoginErrors = {}
+    const nextErrors: LoginErrors = {};
+
     if (email.trim() === "") {
-      nextErrors.email = "Podaj adres e-mail."
+      nextErrors.email = "Podaj adres e-mail.";
     } else if (!EMAIL_PATTERN.test(email.trim())) {
-      nextErrors.email = "Podaj poprawny adres e-mail."
-    }
-    if (password === "") {
-      nextErrors.password = "Podaj hasło."
-    }
-    setErrors(nextErrors)
-    if (Object.keys(nextErrors).length > 0) {
-      return
+      nextErrors.email = "Podaj poprawny adres e-mail.";
     }
 
-    setIsSubmitting(true)
+    if (password === "") {
+      nextErrors.password = "Podaj hasło.";
+    }
+
+    setErrors(nextErrors);
+
+    if (Object.keys(nextErrors).length > 0) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
     try {
-      await login(email.trim(), password, rememberMe)
+      await login(email.trim(), password, rememberMe);
+
+      await refreshUser();
+
       toast.add({
         title: "Zalogowano pomyślnie.",
         type: "success",
-      })
-      navigate("/dashboard", { replace: true })
+      });
+
+      navigate(from, { replace: true });
     } catch (error) {
       if (error instanceof ApiError && error.status === 400) {
-        const fieldErrors: LoginErrors = {}
+        const fieldErrors: LoginErrors = {};
+
         if (error.fieldErrors?.email != null) {
-          fieldErrors.email = "Podaj poprawny adres e-mail."
+          fieldErrors.email = "Podaj poprawny adres e-mail.";
         }
+
         if (error.fieldErrors?.password != null) {
-          fieldErrors.password = "Podaj hasło."
+          fieldErrors.password = "Podaj hasło.";
         }
+
         if (Object.keys(fieldErrors).length > 0) {
-          setErrors(fieldErrors)
-          return
+          setErrors(fieldErrors);
+          return;
         }
       }
+
       toast.add({
         title: loginErrorTitle(error),
         type: "error",
-      })
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
@@ -97,7 +126,9 @@ function LoginPage() {
     <AuthLayout>
       <div className="flex flex-col gap-6">
         <AuthLogo />
+
         <h1 className="text-3xl font-normal">Zaloguj się</h1>
+
         <form
           ref={formRef}
           onSubmit={handleSubmit}
@@ -106,6 +137,7 @@ function LoginPage() {
         >
           <Field data-invalid={errors.email != null}>
             <FieldLabel htmlFor="login-email">E-mail</FieldLabel>
+
             <Input
               id="login-email"
               type="email"
@@ -114,11 +146,15 @@ function LoginPage() {
               maxLength={EMAIL_MAX_LENGTH}
               value={email}
               onChange={(event) => {
-                setEmail(event.target.value)
-                setErrors((prev) => ({ ...prev, email: undefined }))
+                setEmail(event.target.value);
+                setErrors((prev) => ({
+                  ...prev,
+                  email: undefined,
+                }));
               }}
               aria-invalid={errors.email != null}
             />
+
             {errors.email != null ? (
               <FieldError>{errors.email}</FieldError>
             ) : email !== "" && !hasValidEmail ? (
@@ -127,23 +163,30 @@ function LoginPage() {
               </FieldDescription>
             ) : null}
           </Field>
+
           <Field data-invalid={errors.password != null}>
             <FieldLabel htmlFor="login-password">Hasło</FieldLabel>
+
             <Input
               id="login-password"
               type="password"
               autoComplete="current-password"
               value={password}
               onChange={(event) => {
-                setPassword(event.target.value)
-                setErrors((prev) => ({ ...prev, password: undefined }))
+                setPassword(event.target.value);
+                setErrors((prev) => ({
+                  ...prev,
+                  password: undefined,
+                }));
               }}
               aria-invalid={errors.password != null}
             />
+
             {errors.password != null ? (
               <FieldError>{errors.password}</FieldError>
             ) : null}
           </Field>
+
           <div className="flex items-center justify-between gap-2">
             <Field orientation="horizontal">
               <Checkbox
@@ -152,11 +195,11 @@ function LoginPage() {
                 onCheckedChange={setRememberMe}
                 className="cursor-pointer"
               />
-              <FieldLabel htmlFor="login-remember">
-                Zapamiętaj mnie
-              </FieldLabel>
+
+              <FieldLabel htmlFor="login-remember">Zapamiętaj mnie</FieldLabel>
             </Field>
           </div>
+
           <Button
             type="submit"
             size="lg"
@@ -167,6 +210,7 @@ function LoginPage() {
             Zaloguj się
           </Button>
         </form>
+
         <p className="text-sm text-muted-foreground">
           Nie masz konta?{" "}
           <Link
@@ -178,20 +222,23 @@ function LoginPage() {
         </p>
       </div>
     </AuthLayout>
-  )
+  );
 }
 
 function loginErrorTitle(error: unknown): string {
   if (error instanceof ApiError && error.status === 401) {
-    return "Nieprawidłowy e-mail lub hasło."
+    return "Nieprawidłowy e-mail lub hasło.";
   }
+
   if (error instanceof ApiError && error.status === 403) {
-    return "Twoje konto jest zablokowane. Skontaktuj się z administratorem."
+    return "Twoje konto jest zablokowane. Skontaktuj się z administratorem.";
   }
+
   if (error instanceof ApiError && error.status === 0) {
-    return "Brak połączenia z serwerem. Spróbuj ponownie."
+    return "Brak połączenia z serwerem. Spróbuj ponownie.";
   }
-  return "Wystąpił nieoczekiwany błąd. Spróbuj ponownie później."
+
+  return "Wystąpił nieoczekiwany błąd. Spróbuj ponownie później.";
 }
 
-export { LoginPage }
+export { LoginPage };

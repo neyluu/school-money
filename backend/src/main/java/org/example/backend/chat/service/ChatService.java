@@ -15,6 +15,7 @@ import org.example.backend.core.entity.types.UserRole;
 import org.example.backend.core.repository.ConversationReadStateRepository;
 import org.example.backend.core.repository.ConversationRepository;
 import org.example.backend.core.repository.MessageRepository;
+import org.example.backend.core.repository.ConversationReadStateRepository.HiddenState;
 import org.example.backend.core.repository.MessageRepository.UnreadCount;
 import org.example.backend.core.repository.SchoolClassRepository;
 import org.example.backend.core.repository.UserRepository;
@@ -57,7 +58,14 @@ public class ChatService
         List<Conversation> conversations = new ArrayList<>(getOrCreateClassConversations(classIds));
         conversations.addAll(conversationRepository.findAllPrivateForUser(userId));
 
+        Map<Integer, Integer> hiddenUpTo = conversations.isEmpty()
+                ? Map.of()
+                : readStateRepository.findHidden(conversations.stream().map(Conversation::getId).toList(), userId).stream()
+                    .collect(Collectors.toMap(HiddenState::getConversationId, HiddenState::getHiddenUpTo));
+
         return toResponses(conversations, userId).stream()
+                .filter(chat -> chat.type() == ConversationType.CLASS || chat.lastMessage() != null)
+                .filter(chat -> !isHidden(chat, hiddenUpTo.get(chat.id())))
                 .sorted(Comparator.comparing(ChatService::lastActivity).reversed())
                 .toList();
     }
@@ -108,6 +116,10 @@ public class ChatService
             conversationRepository.createPrivateIfMissing(userAId, userBId);
             conversation = conversationRepository.findPrivate(userAId, userBId).orElseThrow();
         }
+        else
+        {
+            readStateRepository.setHiddenUpTo(conversation.getId(), user.id(), null);
+        }
 
         return toResponses(List.of(findAccessibleConversation(conversation.getId(), user.id())), user.id()).getFirst();
     }
@@ -149,6 +161,11 @@ public class ChatService
         Conversation conversation = findAccessibleConversation(chatId, userId);
         requireCanSend(conversation, userId);
 
+        if(!canSend(conversation, userId))
+        {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can no longer message this user");
+        }
+
         Message message = new Message();
         message.setConversation(conversation);
         message.setSender(userRepository.getReferenceById(userId));
@@ -157,6 +174,19 @@ public class ChatService
         updateReadState(conversation, userId, message.getId());
 
         return MessageResponse.from(message);
+    }
+
+    @Transactional
+    public void hide(Integer chatId, Integer userId)
+    {
+        Conversation conversation = findAccessibleConversation(chatId, userId);
+
+        Integer lastMessageId = messageRepository.findLastMessageId(chatId);
+        readStateRepository.setHiddenUpTo(conversation.getId(), userId, lastMessageId == null ? 0 : lastMessageId);
+        if(lastMessageId != null)
+        {
+            updateReadState(conversation, userId, lastMessageId);
+        }
     }
 
     @Transactional
@@ -185,9 +215,7 @@ public class ChatService
             List<User> classmates = classIds.isEmpty()
                     ? List.of()
                     : conversationRepository.findContacts(user.id(), classIds, MembershipStatus.ACCEPTED);
-            List<User> admins = conversationRepository.isClassOwner(user.id())
-                    ? userRepository.findAllByRoleAndIsBlocked(UserRole.ADMIN, false)
-                    : List.of();
+            List<User> admins = userRepository.findAllByRoleAndIsBlocked(UserRole.ADMIN, false);
 
             contacts = Stream.concat(classmates.stream(), admins.stream());
         }
@@ -203,13 +231,13 @@ public class ChatService
 
     private boolean canStartPrivateChat(AuthenticatedUser user, User target)
     {
-        if(user.role() == UserRole.ADMIN)
+        if(target.getIsBlocked())
+        {
+            return false;
+        }
+        if(user.role() == UserRole.ADMIN || target.getRole() == UserRole.ADMIN)
         {
             return true;
-        }
-        if(target.getRole() == UserRole.ADMIN)
-        {
-            return conversationRepository.isClassOwner(user.id());
         }
         return conversationRepository.shareClass(user.id(), target.getId(), MembershipStatus.ACCEPTED);
     }
@@ -292,9 +320,32 @@ public class ChatService
                     conversation,
                     userId,
                     lastMessages.get(conversation.getId()),
-                    unreadCounts.getOrDefault(conversation.getId(), 0L)
+                    unreadCounts.getOrDefault(conversation.getId(), 0L),
+                    canSend(conversation, userId)
                 ))
                 .toList();
+    }
+
+    private boolean canSend(Conversation conversation, Integer userId)
+    {
+        if(conversation.getType() == ConversationType.CLASS)
+        {
+            return true;
+        }
+
+        boolean isUserA = conversation.getUserA().getId().equals(userId);
+        User sender = isUserA ? conversation.getUserA() : conversation.getUserB();
+        User recipient = isUserA ? conversation.getUserB() : conversation.getUserA();
+
+        if(sender.getIsBlocked() || recipient.getIsBlocked())
+        {
+            return false;
+        }
+        if(sender.getRole() == UserRole.ADMIN || recipient.getRole() == UserRole.ADMIN)
+        {
+            return true;
+        }
+        return conversationRepository.shareClass(sender.getId(), recipient.getId(), MembershipStatus.ACCEPTED);
     }
 
     private void updateReadState(Conversation conversation, Integer userId, Integer messageId)
@@ -305,6 +356,15 @@ public class ChatService
     private List<Integer> findClassIds(Integer userId)
     {
         return conversationRepository.findClassIdsForMember(userId, MembershipStatus.ACCEPTED);
+    }
+
+    private static boolean isHidden(ChatResponse chat, Integer hiddenUpTo)
+    {
+        if(hiddenUpTo == null)
+        {
+            return false;
+        }
+        return chat.lastMessage() == null || chat.lastMessage().id() <= hiddenUpTo;
     }
 
     private static Instant lastActivity(ChatResponse chat)

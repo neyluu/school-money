@@ -66,7 +66,16 @@ function ChatWindow({
             isLoadingOlder={isLoadingOlder}
             onLoadOlder={() => void loadOlder()}
           />
-          <ChatComposer isSending={isSending} onSend={send} />
+          {chat.canSend ? (
+            <ChatComposer isSending={isSending} onSend={send} />
+          ) : (
+            <p className="shrink-0 border-t p-3 text-sm text-muted-foreground">
+              {chat.otherUser?.deleted
+                ? "Ta osoba usunęła konto."
+                : "Nie możesz już pisać do tej osoby, bo nie należycie do wspólnej klasy."}{" "}
+              Historia rozmowy pozostaje widoczna.
+            </p>
+          )}
         </>
       ) : (
         <div className="min-h-0 flex-1 overflow-y-auto p-3">

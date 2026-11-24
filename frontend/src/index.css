@@ -76,7 +76,7 @@
   --danger-bg: oklch(0.94 0.05 27.325);
   --info-bg: oklch(0.94 0.025 250);
   --success-border: oklch(0.82 0.09 131.684);
-  --warning-border: oklch(0.82 0.10 58.318);
+  --warning-border: oklch(0.82 0.1 58.318);
   --danger-border: oklch(0.82 0.12 27.325);
   --info-border: oklch(0.82 0.045 250);
   --border: oklch(0.9 0 0);
@@ -192,9 +192,22 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .accordion-content,
   .accordion-content-open {
     transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 150ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
   }
 }

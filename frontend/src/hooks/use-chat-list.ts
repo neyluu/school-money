@@ -3,14 +3,16 @@ import { useNavigate } from "react-router";
 import { usePolling } from "@/hooks/use-polling";
 import { ApiError } from "@/lib/api-client";
 import { me } from "@/lib/auth";
-import { getChats } from "@/lib/chat";
+import { getChat, getChats, hideChat } from "@/lib/chat";
 import type { Chat } from "@/lib/chat";
 
 const REFRESH_INTERVAL_MS = 10000;
 
-function useChatList() {
+function useChatList(focusedId: number | null) {
   const navigate = useNavigate();
   const [chats, setChats] = React.useState<Chat[] | null>(null);
+  const [draft, setDraft] = React.useState<Chat | null>(null);
+  const [missingId, setMissingId] = React.useState<number | null>(null);
   const [userId, setUserId] = React.useState<number | null>(null);
   const [failed, setFailed] = React.useState(false);
   const [reloadKey, setReloadKey] = React.useState(0);
@@ -45,6 +47,34 @@ function useChatList() {
     };
   }, [handleError, reloadKey]);
 
+  const needsFocusedChat =
+    chats != null &&
+    focusedId != null &&
+    !chats.some((chat) => chat.id === focusedId) &&
+    draft?.id !== focusedId;
+
+  React.useEffect(() => {
+    if (!needsFocusedChat || focusedId == null) {
+      return;
+    }
+    let ignored = false;
+    getChat(focusedId)
+      .then((chat) => {
+        if (!ignored) {
+          setDraft(chat);
+        }
+      })
+      .catch((error: unknown) => {
+        if (!ignored) {
+          setMissingId(focusedId);
+          handleError(error);
+        }
+      });
+    return () => {
+      ignored = true;
+    };
+  }, [needsFocusedChat, focusedId, handleError]);
+
   const refresh = React.useCallback(async () => {
     const request = ++latestRequest.current;
     try {
@@ -66,6 +96,10 @@ function useChatList() {
   }
 
   function addChat(chat: Chat) {
+    if (chat.type === "PRIVATE" && chat.lastMessage == null) {
+      setDraft(chat);
+      return;
+    }
     latestRequest.current += 1;
     setChats((current) => [
       chat,
@@ -73,8 +107,37 @@ function useChatList() {
     ]);
   }
 
+  function discardDraft() {
+    setDraft(null);
+  }
+
+  async function hide(chat: Chat): Promise<boolean> {
+    latestRequest.current += 1;
+    setDraft((current) => (current?.id === chat.id ? null : current));
+    setChats((current) => (current ?? []).filter((item) => item.id !== chat.id));
+    try {
+      await hideChat(chat.id);
+      return true;
+    } catch (error) {
+      handleError(error);
+      void refresh();
+      return false;
+    }
+  }
+
+  const loaded = chats ?? [];
+  const visibleDraft =
+    draft != null &&
+    draft.id === focusedId &&
+    !loaded.some((chat) => chat.id === draft.id)
+      ? draft
+      : null;
+
   return {
-    chats: chats ?? [],
+    chats: visibleDraft != null ? [visibleDraft, ...loaded] : loaded,
+    discardDraft,
+    hide,
+    isOpeningFocused: needsFocusedChat && missingId !== focusedId,
     userId,
     failed,
     isLoading: !isReady && !failed,

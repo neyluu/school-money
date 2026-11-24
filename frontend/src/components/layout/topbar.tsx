@@ -1,19 +1,24 @@
 import * as React from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { cn } from "cn";
-import { Bell, LogOut, MessageCircle } from "lucide-react";
+import { LogOut, MessageCircle, Settings } from "lucide-react";
+import { NotificationsBell } from "@/components/notifications-bell";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Logo from "@/assets/Logo.svg";
-import { logout, me } from "@/lib/auth";
+import { logout } from "@/lib/auth";
 import type { AuthUser } from "@/lib/auth";
-
-let cachedUser: AuthUser | null = null;
+import {
+  getCurrentUser,
+  loadCurrentUser,
+  subscribeCurrentUser,
+} from "@/lib/current-user";
 
 function userInitials(user: AuthUser | null): string {
   if (user == null) {
@@ -23,22 +28,10 @@ function userInitials(user: AuthUser | null): string {
 }
 
 function useCurrentUser(): AuthUser | null {
-  const [user, setUser] = React.useState<AuthUser | null>(cachedUser);
+  const user = React.useSyncExternalStore(subscribeCurrentUser, getCurrentUser);
 
   React.useEffect(() => {
-    let cancelled = false;
-    me()
-      .then((loaded) => {
-        cachedUser = loaded;
-        if (!cancelled) {
-          setUser(loaded);
-        }
-      })
-      .catch(() => {
-      });
-    return () => {
-      cancelled = true;
-    };
+    void loadCurrentUser();
   }, []);
 
   return user;
@@ -46,17 +39,14 @@ function useCurrentUser(): AuthUser | null {
 
 function Topbar({
   onSearch,
-  onNotifications,
-  unreadCount = 0,
   searchSlot,
   className,
   ...props
 }: React.ComponentProps<"header"> & {
   onSearch?: () => void;
-  onNotifications?: () => void;
-  unreadCount?: number;
   searchSlot?: React.ReactNode;
 }) {
+  const navigate = useNavigate();
   const user = useCurrentUser();
   const fullName = user != null ? `${user.firstName} ${user.lastName}` : "";
 
@@ -96,21 +86,7 @@ function Topbar({
         >
           <MessageCircle />
         </Link>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Powiadomienia"
-          onClick={onNotifications}
-          className="cursor-pointer relative"
-        >
-          <Bell />
-          {unreadCount > 0 ? (
-            <span
-              aria-hidden
-              className="absolute top-1 right-1 size-2 rounded-full bg-danger"
-            />
-          ) : null}
-        </Button>
+        <NotificationsBell />
 
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -133,7 +109,19 @@ function Topbar({
                 </span>
               </div>
             ) : null}
-            <DropdownMenuItem variant="destructive" onClick={logout} className="cursor-pointer">
+            <DropdownMenuItem
+              onClick={() => navigate("/dashboard/settings")}
+              className="cursor-pointer"
+            >
+              <Settings />
+              Ustawienia konta
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={logout}
+              className="cursor-pointer"
+            >
               <LogOut />
               Wyloguj się
             </DropdownMenuItem>

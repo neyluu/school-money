@@ -1,5 +1,9 @@
 package org.example.backend.core.repository;
 
+import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import org.example.backend.core.entity.ClassMembership;
 import org.example.backend.core.entity.types.MembershipStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -7,13 +11,13 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.Instant;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-
-public interface ClassMembershipRepository extends JpaRepository<ClassMembership, Integer> {
-    boolean existsByChildIdAndStatusIn(Integer childId, Collection<MembershipStatus> statuses);
+public interface ClassMembershipRepository
+    extends JpaRepository<ClassMembership, Integer>
+{
+    boolean existsByChildIdAndStatusIn(
+        Integer childId,
+        Collection<MembershipStatus> statuses
+    );
 
     boolean existsBySchoolClassIdAndChildParentIdAndChildActiveAndStatus(
         Integer classId,
@@ -41,7 +45,10 @@ public interface ClassMembershipRepository extends JpaRepository<ClassMembership
         WHERE m.schoolClass.id = :classId AND m.status = :status AND c.active = true
         ORDER BY c.lastName, c.firstName
         """)
-    List<ClassMembership> findAllByClassIdAndStatus(@Param("classId") Integer classId, @Param("status") MembershipStatus status);
+    List<ClassMembership> findAllByClassIdAndStatus(
+        @Param("classId") Integer classId,
+        @Param("status") MembershipStatus status
+    );
 
     @Query("""
         SELECT m FROM ClassMembership m
@@ -50,6 +57,8 @@ public interface ClassMembershipRepository extends JpaRepository<ClassMembership
         """)
     List<ClassMembership> findAllByParentId(@Param("parentId") Integer parentId);
 
+    Optional<ClassMembership> findFirstByChildId(Integer childId);
+
     @Query("""
         SELECT m FROM ClassMembership m
         JOIN FETCH m.schoolClass sc
@@ -57,18 +66,8 @@ public interface ClassMembershipRepository extends JpaRepository<ClassMembership
         WHERE c.parent.id IN :parentIds AND c.active = true AND m.status = :status AND sc.deletedAt IS NULL
         """)
     List<ClassMembership> findAllByParentIdsAndStatus(
-        @Param("parentIds") Collection<Integer> parentIds,
-        @Param("status") MembershipStatus status
-    );
-
-    @Query("""
-        SELECT m.schoolClass.id AS classId, COUNT(m) AS count FROM ClassMembership m
-        WHERE m.schoolClass.id IN :classIds AND m.status = :status AND m.child.active = true
-        GROUP BY m.schoolClass.id
-        """)
-    List<ClassMembershipCount> countByClassIdsAndStatus(
-        @Param("classIds") Collection<Integer> classIds,
-        @Param("status") MembershipStatus status
+            @Param("parentIds") Collection<Integer> parentIds,
+            @Param("status") MembershipStatus status
     );
 
     @Modifying(clearAutomatically = true)

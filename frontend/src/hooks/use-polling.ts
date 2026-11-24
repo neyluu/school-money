@@ -4,6 +4,7 @@ function usePolling(
   task: () => Promise<void>,
   intervalMs: number,
   enabled = true,
+  immediate = true,
 ) {
   const runTask = React.useEffectEvent(task);
 
@@ -16,31 +17,49 @@ function usePolling(
     let running = false;
     let timer: number | undefined;
 
-    async function tick() {
+    function schedule(delay: number) {
       window.clearTimeout(timer);
-      if (stopped || running || document.hidden) {
+      if (!stopped) {
+        timer = window.setTimeout(() => void tick(), delay);
+      }
+    }
+
+    async function tick() {
+      if (stopped || running) {
         return;
       }
-      running = true;
-      await runTask();
-      running = false;
-      if (!stopped) {
-        timer = window.setTimeout(() => void tick(), intervalMs);
+
+      if (document.hidden) {
+        schedule(intervalMs);
+        return;
       }
+
+      running = true;
+      try {
+        await runTask();
+      } catch {
+        //
+      } finally {
+        running = false;
+      }
+      schedule(intervalMs);
     }
 
     function handleVisibility() {
-      void tick();
+      if (!document.hidden) {
+        schedule(0);
+      }
     }
 
-    timer = window.setTimeout(() => void tick(), intervalMs);
+    schedule(immediate ? 0 : intervalMs);
     document.addEventListener("visibilitychange", handleVisibility);
+
     return () => {
       stopped = true;
       window.clearTimeout(timer);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [enabled, intervalMs]);
+  }, [enabled, intervalMs, immediate]);
 }
 
 export { usePolling };
