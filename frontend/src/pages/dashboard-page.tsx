@@ -85,7 +85,9 @@ function calculateAwaitedAmount(fundraisings: OwnedFundraising[]): number {
   const cents = fundraisings
     .filter(
       (fundraising) =>
-        fundraising.status === "ACTIVE" && !fundraising.isBlocked,
+        fundraising.status === "ACTIVE" &&
+        !fundraising.isBlocked &&
+        !fundraising.isClassBlocked,
     )
     .reduce((sum, fundraising) => {
       const expected = Math.round(
@@ -173,6 +175,8 @@ function DashboardPage() {
   }
 
   const isTreasurer = data?.classes.some((item) => item.isOwner) ?? false;
+  const canCreateFundraising =
+    data?.classes.some((item) => item.isOwner && !item.isBlocked) ?? false;
   const children = data != null ? collectChildren(data.classes) : [];
   const wantsOnboarding =
     searchParams.get(ONBOARDING_PARAM) === "treasurer" ||
@@ -192,10 +196,12 @@ function DashboardPage() {
               >
                 Mój rachunek
               </Button>
-              <Button render={<Link to="/dashboard/fundraisers/new" />}>
-                <Plus />
-                Nowa zbiórka
-              </Button>
+              {canCreateFundraising ? (
+                <Button render={<Link to="/dashboard/fundraisers/new" />}>
+                  <Plus />
+                  Nowa zbiórka
+                </Button>
+              ) : null}
             </>
           }
         />
@@ -253,7 +259,7 @@ function DashboardPage() {
                     <DashboardAccountsCard
                       wallet={data.wallet}
                       fundraisings={data.ownedFundraisings}
-                      canCreate
+                      canCreate={canCreateFundraising}
                     />
                     <DashboardDeadlinesCard
                       fundraisings={data.ownedFundraisings}

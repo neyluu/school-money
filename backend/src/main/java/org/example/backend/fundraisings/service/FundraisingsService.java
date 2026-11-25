@@ -62,6 +62,7 @@ public class FundraisingsService
         return FundraiseResponse.from(fundraising, userId);
     }
 
+    @Transactional(readOnly = true)
     public List<FundraiseResponse> findAll(Integer userId, Integer classId)
     {
         List<Fundraising> fundraisings;
@@ -80,6 +81,7 @@ public class FundraisingsService
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public FundraiseResponse findById(Integer userId, Integer fundraiseId)
     {
         Fundraising fundraising = fundraisingRepository
@@ -164,6 +166,7 @@ public class FundraisingsService
         return saved;
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<byte[]> getLogo(Integer userId, Integer fundraiseId)
     {
         Fundraising fundraising = fundraisingRepository

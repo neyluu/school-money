@@ -98,11 +98,14 @@ async function loadSnapshot(): Promise<Snapshot> {
     getOwnedFundraisings(),
   ]);
   const ownedClass = classes.find((item) => item.isOwner);
+  const activeFundraisingsCount = fundraisings.filter(
+    (item) => !item.isBlocked && !item.isClassBlocked
+  ).length;
 
   if (ownedClass == null) {
     return {
       ownedClass: undefined,
-      fundraisingsCount: fundraisings.length,
+      fundraisingsCount: activeFundraisingsCount,
       accessCode: undefined,
       pendingCount: 0,
     };
@@ -115,7 +118,7 @@ async function loadSnapshot(): Promise<Snapshot> {
 
   return {
     ownedClass,
-    fundraisingsCount: fundraisings.length,
+    fundraisingsCount: activeFundraisingsCount,
     accessCode: details.accessCode,
     pendingCount: pending.length,
   };
@@ -209,7 +212,7 @@ function TreasurerOnboarding({
         "Ustal cel, termin i kwotę od dziecka. Rodzice mogą wpłacać od razu.",
       done: fundraisingsCount > 0,
       action:
-        hasClass && fundraisingsCount === 0 ? (
+        hasClass && !ownedClass.isBlocked && fundraisingsCount === 0 ? (
           <Button
             size="sm"
             className={`${CONTROL_HEIGHT} ${CONTROL_RADIUS}`}

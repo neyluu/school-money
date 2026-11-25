@@ -5,6 +5,7 @@ import type { FundraiserStatus } from "@/components/fundraiser-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { FundraisingListItem, FundraisingStatus } from "@/lib/fundraising";
+import { isFundraisingBlocked } from "@/lib/fundraising";
 
 const FUNDRAISERS_PATH = "/dashboard/fundraisers";
 
@@ -17,15 +18,17 @@ const CARD_STATUSES: Record<FundraisingStatus, FundraiserStatus> = {
 function ClassFundraisingsCard({
   fundraisings,
   isOwner,
+  isClassBlocked = false,
 }: {
   fundraisings: FundraisingListItem[];
   isOwner: boolean;
+  isClassBlocked?: boolean;
 }) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-2">
         <CardTitle>Zbiórki ({fundraisings.length})</CardTitle>
-        {isOwner ? (
+        {isOwner && !isClassBlocked ? (
           <Button
             variant="outline"
             render={<Link to={`${FUNDRAISERS_PATH}/new`} />}
@@ -49,7 +52,11 @@ function ClassFundraisingsCard({
                 title={fundraising.name}
                 dueDate={fundraising.endDate}
                 amountPerChild={fundraising.amountPerChild}
-                status={CARD_STATUSES[fundraising.status]}
+                status={
+                  isFundraisingBlocked(fundraising)
+                    ? "blocked"
+                    : CARD_STATUSES[fundraising.status]
+                }
                 href={`${FUNDRAISERS_PATH}/${fundraising.id}`}
                 className="w-full"
               />

@@ -61,13 +61,14 @@ function FundraisingDetailsContent({
     undefined
   )
 
+  const isBlocked = summary.isBlocked || summary.isClassBlocked
   const canPay = summary.acceptsPayments
   const canPayForOthers =
     canPay && students.some((student) => !student.isMine && !student.isPaid)
   const canManage =
-    summary.isOwner && summary.status === "ACTIVE" && !summary.isBlocked
+    summary.isOwner && summary.status === "ACTIVE" && !isBlocked
   const canReplenish = canManage && summary.withdrawnAmount > 0
-  const canAddInvoice = summary.isOwner && !summary.isBlocked
+  const canAddInvoice = summary.isOwner && !isBlocked
   const waitingStudents = students.filter((student) => !student.isPaid)
 
   function openPay(preselect?: PayPreselect) {
@@ -142,6 +143,13 @@ function FundraisingDetailsContent({
   return (
     <div className="flex flex-col gap-6">
       <FundraisingHeader summary={summary} actions={actions} />
+      {isBlocked ? (
+        <div className="rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
+          {summary.isBlocked
+            ? "Ta zbiórka została zablokowana przez administratora. Wpłaty, wypłaty i zwroty są wstrzymane."
+            : "Zbiórka jest zablokowana, ponieważ jej klasa została zablokowana przez administratora."}
+        </div>
+      ) : null}
       {summary.isOwner ? <FundraisingStats summary={summary} /> : null}
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr] lg:items-start">
         <div className="flex min-w-0 flex-col gap-6">

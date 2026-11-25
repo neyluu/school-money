@@ -31,6 +31,7 @@ export type ClassSummary = {
   childrenCount: number;
   myChildren: ClassMembershipInfo[];
   deletedAt: string | null;
+  isBlocked: boolean;
 };
 
 export type ClassChild = {
@@ -51,6 +52,7 @@ export type ClassDetails = {
   owner: Person;
   children: ClassChild[];
   createdAt: string;
+  isBlocked: boolean;
 };
 
 export type PendingMembership = {

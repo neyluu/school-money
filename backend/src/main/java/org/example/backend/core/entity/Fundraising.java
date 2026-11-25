@@ -76,4 +76,9 @@ public class Fundraising {
     @Column(name = "updated_at", nullable = false)
     @UpdateTimestamp
     private Instant updatedAt;
+
+    public boolean isEffectivelyBlocked()
+    {
+        return Boolean.TRUE.equals(isBlocked) || Boolean.TRUE.equals(schoolClass.getIsBlocked());
+    }
 }

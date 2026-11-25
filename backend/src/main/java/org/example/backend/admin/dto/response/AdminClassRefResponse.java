@@ -6,7 +6,8 @@ public record AdminClassRefResponse(
     Integer id,
     String name,
     String school,
-    String city
+    String city,
+    boolean isBlocked
 ) {
     public static AdminClassRefResponse from(SchoolClass schoolClass)
     {
@@ -14,7 +15,8 @@ public record AdminClassRefResponse(
             schoolClass.getId(),
             schoolClass.getName(),
             schoolClass.getSchool(),
-            schoolClass.getCity()
+            schoolClass.getCity(),
+            Boolean.TRUE.equals(schoolClass.getIsBlocked())
         );
     }
 }

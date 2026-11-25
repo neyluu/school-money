@@ -150,7 +150,11 @@ function FundraisingEditPage() {
   const isUnavailable =
     error instanceof ApiError && (error.status === 404 || error.status === 403)
   const canEdit =
-    data != null && data[0].isOwner && data[0].status === "ACTIVE"
+    data != null &&
+    data[0].isOwner &&
+    data[0].status === "ACTIVE" &&
+    !data[0].isBlocked &&
+    !data[0].isClassBlocked
 
   return (
     <AppShell activeId="fundraisers">
@@ -166,7 +170,7 @@ function FundraisingEditPage() {
                 <EmptyState
                   icon={<HandCoins />}
                   title="Tej zbiórki nie da się edytować"
-                  description="Edytować może ją tylko skarbnik i tylko dopóki zbiórka trwa."
+                  description="Edytować może ją tylko skarbnik, tylko dopóki zbiórka trwa i tylko gdy nie jest zablokowana."
                 />
               </CardContent>
             </Card>

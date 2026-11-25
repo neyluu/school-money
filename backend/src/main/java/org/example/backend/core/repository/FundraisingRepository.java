@@ -20,8 +20,24 @@ import java.util.List;
 public interface FundraisingRepository extends JpaRepository<Fundraising, Integer>, JpaSpecificationExecutor<Fundraising>
 {
     boolean existsBySchoolClassId(Integer classId);
-    long countByStatusAndIsBlocked(FundraisingStatus status, Boolean isBlocked);
     long countByIsBlocked(Boolean isBlocked);
+
+    @Query("""
+        SELECT COUNT(f)
+        FROM Fundraising f
+        WHERE f.isBlocked = false
+            AND f.schoolClass.isBlocked = true
+        """)
+    long countByBlockedClassOnly();
+
+    @Query("""
+        SELECT COUNT(f)
+        FROM Fundraising f
+        WHERE f.status = :status
+            AND f.isBlocked = false
+            AND f.schoolClass.isBlocked = false
+        """)
+    long countByStatusAndNotBlocked(@Param("status") FundraisingStatus status);
 
     List<Fundraising> findAllBySchoolClassId(Integer classId);
     List<Fundraising> findAllBySchoolClassOwnerIdIn(Collection<Integer> ownerIds);
@@ -92,9 +108,7 @@ public interface FundraisingRepository extends JpaRepository<Fundraising, Intege
             FROM fundraisings f
                 JOIN classes c ON c.id = f.class_id
             WHERE
-                c.is_blocked = false
-                AND f.is_blocked = false
-                AND (
+                (
                     c.owner_id = :userId
                     OR EXISTS (
                         SELECT 1
@@ -118,8 +132,6 @@ public interface FundraisingRepository extends JpaRepository<Fundraising, Intege
                 JOIN classes c ON c.id = f.class_id
             WHERE 
                 c.id = :classId
-                AND c.is_blocked = false
-                AND f.is_blocked = false
                 AND (
                     c.owner_id = :userId
                     OR EXISTS (
@@ -143,8 +155,6 @@ public interface FundraisingRepository extends JpaRepository<Fundraising, Intege
                  JOIN classes c ON c.id = f.class_id
             WHERE
                 f.id = :fundraisingId
-                AND c.is_blocked = false
-                AND f.is_blocked = false
                 AND (
                     c.owner_id = :userId
                     OR EXISTS (

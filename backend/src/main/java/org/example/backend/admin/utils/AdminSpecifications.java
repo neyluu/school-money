@@ -133,7 +133,12 @@ public final class AdminSpecifications
             }
             if(filter.blocked() != null)
             {
-                predicates.add(builder.equal(root.get("isBlocked"), filter.blocked()));
+                Predicate ownBlocked = builder.equal(root.get("isBlocked"), filter.blocked());
+                Predicate classBlocked = builder.equal(root.get("schoolClass").get("isBlocked"), filter.blocked());
+
+                predicates.add(filter.blocked()
+                    ? builder.or(ownBlocked, classBlocked)
+                    : builder.and(ownBlocked, classBlocked));
             }
             if(filter.classId() != null)
             {

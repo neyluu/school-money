@@ -23,6 +23,7 @@ export type ClassSummary = {
   childrenCount: number;
   myChildren: ClassMembership[];
   deletedAt: string | null;
+  isBlocked: boolean;
 };
 
 export type ChildClassInfo = {
@@ -30,6 +31,7 @@ export type ChildClassInfo = {
   className: string;
   school: string;
   status: MembershipStatus;
+  isBlocked: boolean;
 };
 
 export const STATUS_LABELS: Record<MembershipStatus, string> = {
@@ -72,6 +74,7 @@ function groupClassesByChild(
         className: cls.name,
         school: cls.school,
         status: membership.status,
+        isBlocked: cls.isBlocked,
       });
       map.set(membership.childId, list);
     }

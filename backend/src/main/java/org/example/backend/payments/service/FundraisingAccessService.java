@@ -57,7 +57,7 @@ public class FundraisingAccessService
 
     public void requireNotBlocked(Fundraising fundraising)
     {
-        if(fundraising.getIsBlocked() || fundraising.getSchoolClass().getIsBlocked())
+        if(fundraising.isEffectivelyBlocked())
         {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Fundraising is blocked");
         }
@@ -65,7 +65,7 @@ public class FundraisingAccessService
 
     public void requireBlocked(Fundraising fundraising)
     {
-        if(!fundraising.getIsBlocked() && !fundraising.getSchoolClass().getIsBlocked())
+        if(!fundraising.isEffectivelyBlocked())
         {
             throw new ResponseStatusException(
                 HttpStatus.CONFLICT,

@@ -49,7 +49,12 @@ function DashboardDeadlinesCard({
   fundraisings: OwnedFundraising[]
 }) {
   const active = fundraisings
-    .filter((fundraising) => fundraising.status === "ACTIVE" && !fundraising.isBlocked)
+    .filter(
+      (fundraising) =>
+        fundraising.status === "ACTIVE" &&
+        !fundraising.isBlocked &&
+        !fundraising.isClassBlocked
+    )
     .sort((a, b) => a.endDate.localeCompare(b.endDate))
     .slice(0, MAX_ROWS)
 

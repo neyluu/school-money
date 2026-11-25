@@ -16,6 +16,7 @@ export type OwnedFundraising = {
   name: string
   status: FundraisingStatus
   isBlocked: boolean
+  isClassBlocked: boolean
   endDate: string
   amountPerChild: number
   iban: string | null

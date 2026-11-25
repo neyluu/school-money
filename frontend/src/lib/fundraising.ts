@@ -17,6 +17,8 @@ export type FundraisingListItem = {
   status: FundraisingStatus
   cancelledAt: string | null
   closedAt: string | null
+  isBlocked: boolean
+  isClassBlocked: boolean
 }
 
 export type FundraisingSummary = {
@@ -28,6 +30,7 @@ export type FundraisingSummary = {
   amountPerChild: number
   status: FundraisingStatus
   isBlocked: boolean
+  isClassBlocked: boolean
   acceptsPayments: boolean
   classId: number
   className: string
@@ -88,6 +91,12 @@ export type FundraisingInvoice = {
   title: string | null
   file: InvoiceFile
   createdAt: string
+}
+
+function isFundraisingBlocked(
+  item: Pick<FundraisingListItem, "isBlocked" | "isClassBlocked">
+): boolean {
+  return item.isBlocked || item.isClassBlocked
 }
 
 function getFundraisings(classId?: number): Promise<FundraisingListItem[]> {
@@ -216,6 +225,7 @@ export {
   getFundraisingWallet,
   getFundraisingWithdrawals,
   getInvoiceFile,
+  isFundraisingBlocked,
   payForFundraising,
   withdrawFromFundraising,
 }

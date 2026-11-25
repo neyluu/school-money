@@ -67,6 +67,7 @@ public class FundraisingOverviewService
             fundraising.getAmountPerChild(),
             fundraising.getStatus(),
             fundraising.getIsBlocked(),
+            fundraising.getSchoolClass().getIsBlocked(),
             acceptsPayments,
             fundraising.getSchoolClass().getId(),
             fundraising.getSchoolClass().getName(),

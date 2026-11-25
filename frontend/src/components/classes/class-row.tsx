@@ -59,6 +59,9 @@ function ClassRow({ item, href }: { item: ClassSummary; href: string }) {
             ))
           : null}
         <Badge variant="neutral">Dzieci: {item.childrenCount}</Badge>
+        {item.isBlocked ? (
+          <Badge variant="danger">Zablokowana</Badge>
+        ) : null}
         {isDeleted ? (
           <Badge variant="neutral">Usunięta</Badge>
         ) : item.isOwner ? (

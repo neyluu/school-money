@@ -20,7 +20,9 @@ public record FundraiseResponse(
     BigDecimal amountPerChild,
     FundraisingStatus status,
     Instant cancelledAt,
-    Instant closedAt
+    Instant closedAt,
+    boolean isBlocked,
+    boolean isClassBlocked
 ) {
     public static FundraiseResponse from(Fundraising fundraising, Integer userId)
     {
@@ -35,7 +37,9 @@ public record FundraiseResponse(
             fundraising.getAmountPerChild(),
             fundraising.getStatus(),
             fundraising.getCancelledAt(),
-            fundraising.getClosedAt()
+            fundraising.getClosedAt(),
+            Boolean.TRUE.equals(fundraising.getIsBlocked()),
+            Boolean.TRUE.equals(fundraising.getSchoolClass().getIsBlocked())
         );
     }
 }

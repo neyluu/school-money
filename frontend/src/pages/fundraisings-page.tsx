@@ -14,10 +14,10 @@ import { Toaster } from "@/components/ui/toast"
 import { useAsyncData } from "@/hooks/use-async-data"
 import { getClasses } from "@/lib/classes"
 import type { ClassSummary } from "@/lib/classes"
-import { getFundraisings } from "@/lib/fundraising"
+import { getFundraisings, isFundraisingBlocked } from "@/lib/fundraising"
 import type { FundraisingListItem, FundraisingStatus } from "@/lib/fundraising"
 
-type FundraisingFilter = "all" | "mine" | "active" | "closed"
+type FundraisingFilter = "all" | "mine" | "active" | "closed" | "blocked"
 
 const NEW_FUNDRAISING_PATH = "/dashboard/fundraisers/new"
 
@@ -26,6 +26,7 @@ const FILTER_OPTIONS: SegmentedOption<FundraisingFilter>[] = [
   { value: "mine", label: "Moje" },
   { value: "active", label: "Trwające" },
   { value: "closed", label: "Zakończone" },
+  { value: "blocked", label: "Zablokowane" },
 ]
 
 const EMPTY_TEXTS: Record<FundraisingFilter, string> = {
@@ -33,6 +34,7 @@ const EMPTY_TEXTS: Record<FundraisingFilter, string> = {
   mine: "Nie prowadzisz jeszcze żadnej zbiórki.",
   active: "Żadna zbiórka aktualnie nie trwa.",
   closed: "Żadna zbiórka nie jest jeszcze zakończona.",
+  blocked: "Żadna zbiórka nie została zablokowana.",
 }
 
 const CARD_STATUSES: Record<FundraisingStatus, FundraiserStatus> = {
@@ -45,6 +47,13 @@ function matchesFilter(
   fundraising: FundraisingListItem,
   filter: FundraisingFilter
 ): boolean {
+  if (filter === "blocked") {
+    return isFundraisingBlocked(fundraising)
+  }
+  if (filter !== "all" && isFundraisingBlocked(fundraising)) {
+    return false
+  }
+
   switch (filter) {
     case "all":
       return true
@@ -72,7 +81,8 @@ function FundraisingsPage() {
   const { data, error, isLoading, reload } = useAsyncData(load)
 
   const classes = new Map((data?.[1] ?? []).map((item) => [item.id, item]))
-  const canCreate = data?.[1].some((item) => item.isOwner) ?? false
+  const canCreate =
+    data?.[1].some((item) => item.isOwner && !item.isBlocked) ?? false
   const visible = (data?.[0] ?? []).filter((fundraising) =>
     matchesFilter(fundraising, filter)
   )
@@ -119,7 +129,11 @@ function FundraisingsPage() {
                 key={fundraising.id}
                 fundraising={fundraising}
                 classLabel={describeClass(classes.get(fundraising.classId))}
-                status={CARD_STATUSES[fundraising.status]}
+                status={
+                  isFundraisingBlocked(fundraising)
+                    ? "blocked"
+                    : CARD_STATUSES[fundraising.status]
+                }
               />
             ))}
           </div>

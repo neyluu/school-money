@@ -81,8 +81,15 @@ function ClassDetailsContent({
         }
         title={details.name}
         badge={
-          details.isOwner ? (
-            <Badge variant="warning">Skarbnik</Badge>
+          details.isOwner || details.isBlocked ? (
+            <>
+              {details.isBlocked ? (
+                <Badge variant="danger">Zablokowana</Badge>
+              ) : null}
+              {details.isOwner ? (
+                <Badge variant="warning">Skarbnik</Badge>
+              ) : null}
+            </>
           ) : undefined
         }
         description={
@@ -99,7 +106,7 @@ function ClassDetailsContent({
               <MessageCircle />
               Czat klasy
             </Button>
-            {details.isOwner ? (
+            {details.isOwner && !details.isBlocked ? (
               <>
                 <Button
                   variant="outline"
@@ -122,17 +129,26 @@ function ClassDetailsContent({
         }
       />
 
+      {details.isBlocked ? (
+        <div className="rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
+          Ta klasa została zablokowana przez administratora. Możesz
+          przeglądać dane, ale wszystkie operacje są wyłączone.
+        </div>
+      ) : null}
+
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr] lg:items-start">
         <div className="flex min-w-0 flex-col gap-6">
           <ClassFundraisingsCard
             fundraisings={fundraisings}
             isOwner={details.isOwner}
+            isClassBlocked={details.isBlocked}
           />
           <ClassChildrenCard
             classId={details.id}
             students={details.children}
             isOwner={details.isOwner}
             onChanged={onChanged}
+            disabled={details.isBlocked}
           />
         </div>
         {details.isOwner ? (
@@ -141,11 +157,13 @@ function ClassDetailsContent({
               classId={details.id}
               requests={pending}
               onChanged={onChanged}
+              disabled={details.isBlocked}
             />
             <ClassAccessCodeCard
               classId={details.id}
               accessCode={details.accessCode}
               onChanged={onChanged}
+              disabled={details.isBlocked}
             />
           </div>
         ) : null}

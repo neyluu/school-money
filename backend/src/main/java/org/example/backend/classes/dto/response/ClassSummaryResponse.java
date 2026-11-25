@@ -15,7 +15,8 @@ public record ClassSummaryResponse(
     PersonResponse owner,
     long childrenCount,
     List<MembershipResponse> myChildren,
-    Instant deletedAt
+    Instant deletedAt,
+    boolean isBlocked
 ) {
     public static ClassSummaryResponse from(
         SchoolClass schoolClass,
@@ -32,7 +33,8 @@ public record ClassSummaryResponse(
             PersonResponse.from(schoolClass.getOwner()),
             childrenCount,
             myMemberships.stream().map(MembershipResponse::from).toList(),
-            schoolClass.getDeletedAt()
+            schoolClass.getDeletedAt(),
+            Boolean.TRUE.equals(schoolClass.getIsBlocked())
         );
     }
 }
