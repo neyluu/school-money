@@ -25,6 +25,13 @@ import { RegisterPage } from "./pages/register-page";
 import { ReportsPage } from "./pages/reports-page";
 import { SettingsPage } from "./pages/settings-page";
 
+import { RequireAdmin } from "./components/require-admin";
+import { AdminDashboardPage } from "./pages/admin-dashboard-page";
+import { AdminUsersPage } from "./pages/admin-users-page";
+import { AdminTreasurersPage } from "./pages/admin-treasurers-page";
+import { AdminFundraisingsPage } from "./pages/admin-fundraisings-page";
+import { AdminReportsPage } from "./pages/admin-reports-page";
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <AuthProvider>
@@ -37,6 +44,26 @@ createRoot(document.getElementById("root")!).render(
           </Route>
 
           <Route element={<RequireAuth />}>
+            <Route element={<RequireAdmin />}>
+              <Route path="/dashboard/admin" element={<AdminDashboardPage />} />
+              <Route
+                path="/dashboard/admin/users"
+                element={<AdminUsersPage />}
+              />
+              <Route
+                path="/dashboard/admin/treasurers"
+                element={<AdminTreasurersPage />}
+              />
+              <Route
+                path="/dashboard/admin/fundraisings"
+                element={<AdminFundraisingsPage />}
+              />
+              <Route
+                path="/dashboard/admin/reports"
+                element={<AdminReportsPage />}
+              />
+            </Route>
+
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/dashboard/payments" element={<PaymentsPage />} />
             <Route path="/dashboard/children" element={<ChildrenPage />} />
