@@ -84,6 +84,11 @@ export type AdminFundraising = {
   createdAt: string;
 };
 
+export type AdminRefundSummary = {
+  refundedCount: number;
+  refundedAmount: number;
+};
+
 export function getAdminStats(): Promise<AdminStats> {
   return authorizedRequest<AdminStats>("/admin/stats");
 }
@@ -127,6 +132,18 @@ export function unblockAdminUser(id: number): Promise<AdminUser> {
   });
 }
 
+export function blockAdminClass(id: number): Promise<AdminClass> {
+  return authorizedRequest<AdminClass>(`/admin/classes/${id}/block`, {
+    method: "POST",
+  });
+}
+
+export function unblockAdminClass(id: number): Promise<AdminClass> {
+  return authorizedRequest<AdminClass>(`/admin/classes/${id}/block`, {
+    method: "DELETE",
+  });
+}
+
 export function blockAdminFundraising(id: number): Promise<AdminFundraising> {
   return authorizedRequest<AdminFundraising>(
     `/admin/fundraisings/${id}/block`,
@@ -138,5 +155,14 @@ export function unblockAdminFundraising(id: number): Promise<AdminFundraising> {
   return authorizedRequest<AdminFundraising>(
     `/admin/fundraisings/${id}/block`,
     { method: "DELETE" },
+  );
+}
+
+export function refundAdminFundraising(
+  id: number,
+): Promise<AdminRefundSummary> {
+  return authorizedRequest<AdminRefundSummary>(
+    `/admin/fundraisings/${id}/refund`,
+    { method: "POST" },
   );
 }

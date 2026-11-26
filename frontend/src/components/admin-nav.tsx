@@ -1,24 +1,28 @@
-import { Link, useLocation } from "react-router"
-import { cn } from "cn"
+import { Link, useLocation } from "react-router";
+import { cn } from "cn";
 
 const LINKS = [
   { to: "/dashboard/admin", label: "Przegląd" },
   { to: "/dashboard/admin/users", label: "Użytkownicy" },
   { to: "/dashboard/admin/treasurers", label: "Skarbnicy" },
+  { to: "/dashboard/admin/classes", label: "Klasy" },
   { to: "/dashboard/admin/fundraisings", label: "Zbiórki" },
   { to: "/dashboard/admin/reports", label: "Raporty" },
-]
+];
 
 function AdminNav() {
-  const { pathname } = useLocation()
+  const { pathname } = useLocation();
 
   return (
-    <nav aria-label="Panel administratora" className="flex w-full flex-wrap gap-1 rounded-lg bg-muted p-1 max-w-2xl">
+    <nav
+      aria-label="Panel administratora"
+      className="flex w-full max-w-3xl flex-wrap gap-1 rounded-lg bg-muted p-1"
+    >
       {LINKS.map((link) => {
         const active =
           link.to === "/dashboard/admin"
             ? pathname === link.to
-            : pathname.startsWith(link.to)
+            : pathname.startsWith(link.to);
         return (
           <Link
             key={link.to}
@@ -33,10 +37,10 @@ function AdminNav() {
           >
             {link.label}
           </Link>
-        )
+        );
       })}
     </nav>
-  )
+  );
 }
 
-export { AdminNav }
+export { AdminNav };

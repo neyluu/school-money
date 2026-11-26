@@ -12,6 +12,7 @@ export type BlockTarget = {
   name: string;
   isBlocked: boolean;
   kind: string;
+  refundOnBlock?: boolean;
 };
 
 function AdminBlockDialog({
@@ -49,8 +50,10 @@ function AdminBlockDialog({
                   <span className="font-medium text-foreground">
                     {target.name}
                   </span>{" "}
-                  straci dostęp do platformy. Operację można cofnąć
-                  odblokowaniem.
+                  straci dostęp do platformy.
+                  {target.refundOnBlock
+                    ? " Wszystkie wpłaty z tej zbiórki zostaną zwrócone płatnikom."
+                    : " Operację można cofnąć odblokowaniem."}
                 </>
               )
             ) : null}
@@ -70,7 +73,11 @@ function AdminBlockDialog({
             onClick={onConfirm}
             className="cursor-pointer"
           >
-            {isUnblock ? "Odblokuj" : "Zablokuj"}
+            {isUnblock
+              ? "Odblokuj"
+              : target?.refundOnBlock
+                ? "Zablokuj i zwróć środki"
+                : "Zablokuj"}
           </Button>
         </DialogFooter>
       </DialogContent>

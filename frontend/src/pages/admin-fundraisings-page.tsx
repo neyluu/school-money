@@ -7,16 +7,17 @@ import { DataState } from "@/components/data-state";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { Section } from "@/components/section";
+import { SortIndicator } from "@/components/sort-indicator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast, Toaster } from "@/components/ui/toast";
 import { useAsyncData } from "@/hooks/use-async-data";
-import { SortIndicator } from "@/components/sort-indicator";
 import { useTableSort } from "@/hooks/use-table-sort";
 import {
   blockAdminFundraising,
   getAdminFundraisings,
+  refundAdminFundraising,
   unblockAdminFundraising,
 } from "@/lib/admin";
 import type { AdminFundraising } from "@/lib/admin";
@@ -96,15 +97,23 @@ function AdminFundraisingsPage() {
     try {
       if (target.isBlocked) {
         await unblockAdminFundraising(target.id);
+        toast.add({ title: "Zbiórka odblokowana.", type: "success" });
       } else {
         await blockAdminFundraising(target.id);
+
+        try {
+          const summary = await refundAdminFundraising(target.id);
+          toast.add({
+            title: `Zbiórka zablokowana. Zwrócono (${formatMoney(summary.refundedAmount)}).`,
+            type: "success",
+          });
+        } catch (refundError) {
+          toast.add({
+            title: `Zbiórka zablokowana, ale zwrot się nie udał: ${describeError(refundError)}`,
+            type: "error",
+          });
+        }
       }
-      toast.add({
-        title: target.isBlocked
-          ? "Zbiórka odblokowana."
-          : "Zbiórka zablokowana.",
-        type: "success",
-      });
       setTarget(null);
       reload();
     } catch (actionError) {
@@ -236,6 +245,7 @@ function AdminFundraisingsPage() {
                 name: target.name,
                 isBlocked: target.isBlocked,
                 kind: "zbiórkę",
+                refundOnBlock: !target.isBlocked,
               }
         }
         busy={busy}

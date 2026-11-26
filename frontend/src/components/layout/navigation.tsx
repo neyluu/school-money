@@ -1,5 +1,4 @@
 import {
-  ChartColumn,
   HandCoins,
   LayoutDashboard,
   MessageCircle,
@@ -7,6 +6,7 @@ import {
   ShieldCheck,
   UsersRound,
   Baby,
+  ChartColumn,
 } from "lucide-react";
 
 export type NavigationItem = {
@@ -62,9 +62,17 @@ export const defaultNavigationItems: NavigationItem[] = [
   },
 ];
 
-export const adminEntryItem: NavigationItem = {
-  id: "admin",
-  label: "Panel administratora",
-  icon: <ShieldCheck />,
-  href: "/dashboard/admin",
-};
+export const adminNavigationItems: NavigationItem[] = [
+  {
+    id: "admin",
+    label: "Panel administratora",
+    icon: <ShieldCheck />,
+    href: "/dashboard/admin",
+  },
+  {
+    id: "chat",
+    label: "Czat",
+    icon: <MessageCircle />,
+    href: "/dashboard/chat",
+  },
+];

@@ -4,7 +4,7 @@ import { BottomNavigation } from "@/components/layout/bottom-navigation";
 import { RouteTransition } from "@/components/layout/route-transition";
 import { Sidebar } from "@/components/layout/sidebar";
 import {
-  adminEntryItem,
+  adminNavigationItems,
   defaultNavigationItems,
 } from "@/components/layout/navigation";
 import type { NavigationItem } from "@/components/layout/navigation";
@@ -81,12 +81,12 @@ function AppShell({
     return () => document.removeEventListener("click", handleClick, true);
   }, []);
 
-  const base = navigationItems ?? defaultNavigationItems;
   const isAdmin = user?.role === "ADMIN";
-  const items = isAdmin ? [...base, adminEntryItem] : base;
-  const bottomItems = isAdmin
-    ? [adminEntryItem, ...base.slice(0, 4)]
-    : base.slice(0, 5);
+  const base = isAdmin
+    ? adminNavigationItems
+    : (navigationItems ?? defaultNavigationItems);
+  const items = base;
+  const bottomItems = isAdmin ? adminNavigationItems : base.slice(0, 5);
 
   return (
     <div
