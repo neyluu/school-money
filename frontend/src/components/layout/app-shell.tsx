@@ -3,8 +3,17 @@ import { cn } from "cn";
 import { BottomNavigation } from "@/components/layout/bottom-navigation";
 import { RouteTransition } from "@/components/layout/route-transition";
 import { Sidebar } from "@/components/layout/sidebar";
+import {
+  adminNavigationItems,
+  defaultNavigationItems,
+} from "@/components/layout/navigation";
 import type { NavigationItem } from "@/components/layout/navigation";
 import { Topbar } from "@/components/layout/topbar";
+import {
+  getCurrentUser,
+  loadCurrentUser,
+  subscribeCurrentUser,
+} from "@/lib/current-user";
 
 const SUPPORTS_VIEW_TRANSITIONS =
   typeof document !== "undefined" && "startViewTransition" in document;
@@ -37,6 +46,12 @@ function AppShell({
   topbar?: React.ReactNode;
   bottomNavigation?: React.ReactNode;
 }) {
+  const user = React.useSyncExternalStore(subscribeCurrentUser, getCurrentUser);
+
+  React.useEffect(() => {
+    void loadCurrentUser();
+  }, []);
+
   React.useEffect(() => {
     if (!SUPPORTS_VIEW_TRANSITIONS) {
       return;
@@ -66,6 +81,13 @@ function AppShell({
     return () => document.removeEventListener("click", handleClick, true);
   }, []);
 
+  const isAdmin = user?.role === "ADMIN";
+  const base = isAdmin
+    ? adminNavigationItems
+    : (navigationItems ?? defaultNavigationItems);
+  const items = base;
+  const bottomItems = isAdmin ? adminNavigationItems : base.slice(0, 5);
+
   return (
     <div
       className={cn(
@@ -75,11 +97,7 @@ function AppShell({
       {...props}
     >
       {sidebar ?? (
-        <Sidebar
-          items={navigationItems}
-          activeId={activeId}
-          onNavigate={onNavigate}
-        />
+        <Sidebar items={items} activeId={activeId} onNavigate={onNavigate} />
       )}
       <div className="flex min-w-0 flex-1 flex-col md:pl-60">
         {topbar ?? <Topbar />}
@@ -91,7 +109,7 @@ function AppShell({
       </div>
       {bottomNavigation ?? (
         <BottomNavigation
-          items={navigationItems?.slice(0, 5)}
+          items={bottomItems}
           activeId={activeId}
           onNavigate={onNavigate}
         />

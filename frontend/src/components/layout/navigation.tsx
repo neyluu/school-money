@@ -1,20 +1,21 @@
 import {
-  ChartColumn,
   HandCoins,
   LayoutDashboard,
   MessageCircle,
   ReceiptText,
+  ShieldCheck,
   UsersRound,
-  Baby
-} from "lucide-react"
+  Baby,
+  ChartColumn,
+} from "lucide-react";
 
 export type NavigationItem = {
-  id: string
-  label: string
-  icon: React.ReactNode
-  href: string
-  badge?: number
-}
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  href: string;
+  badge?: number;
+};
 
 export const defaultNavigationItems: NavigationItem[] = [
   {
@@ -32,7 +33,7 @@ export const defaultNavigationItems: NavigationItem[] = [
   {
     id: "children",
     label: "Moje dzieci",
-    icon: <Baby/>,
+    icon: <Baby />,
     href: "/dashboard/children",
   },
   {
@@ -59,4 +60,19 @@ export const defaultNavigationItems: NavigationItem[] = [
     icon: <MessageCircle />,
     href: "/dashboard/chat",
   },
-]
+];
+
+export const adminNavigationItems: NavigationItem[] = [
+  {
+    id: "admin",
+    label: "Panel administratora",
+    icon: <ShieldCheck />,
+    href: "/dashboard/admin",
+  },
+  {
+    id: "chat",
+    label: "Czat",
+    icon: <MessageCircle />,
+    href: "/dashboard/chat",
+  },
+];

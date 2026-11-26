@@ -10,6 +10,15 @@ INSERT INTO users (
     is_blocked
 ) VALUES
       (
+        0,
+        'a.dmin@test.com',
+        'Adam',
+        'Dmin',
+        '$2y$10$9OXptFLOJxXcJLYm8jz06ePJ1icViVjS4VbKD4z08rE8qPNsNGfaq',
+        'ADMIN',
+        false
+      ),
+      (
           1,
           'j.kowalski@test.com',
           'Jan',
