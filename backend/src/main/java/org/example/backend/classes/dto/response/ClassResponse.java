@@ -15,7 +15,8 @@ public record ClassResponse(
     boolean isOwner,
     PersonResponse owner,
     List<ClassChildResponse> children,
-    Instant createdAt
+    Instant createdAt,
+    boolean isBlocked
 ) {
     public static ClassResponse from(SchoolClass schoolClass, boolean isOwner, List<ClassMembership> acceptedMemberships)
     {
@@ -28,7 +29,8 @@ public record ClassResponse(
             isOwner,
             PersonResponse.from(schoolClass.getOwner()),
             acceptedMemberships.stream().map(membership -> ClassChildResponse.from(membership.getChild())).toList(),
-            schoolClass.getCreatedAt()
+            schoolClass.getCreatedAt(),
+            Boolean.TRUE.equals(schoolClass.getIsBlocked())
         );
     }
 }

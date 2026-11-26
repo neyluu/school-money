@@ -14,12 +14,13 @@ import {
   ProgressTrack,
 } from "@/components/ui/progress"
 
-export type FundraiserStatus = "active" | "closed" | "cancelled"
+export type FundraiserStatus = "active" | "closed" | "cancelled" | "blocked"
 
 const STATUS_LABELS: Record<FundraiserStatus, string> = {
   active: "Aktywna",
   closed: "Zamknięta",
   cancelled: "Zwrócona",
+  blocked: "Zablokowana",
 }
 
 const dateFormatter = new Intl.DateTimeFormat("pl-PL", {
@@ -69,6 +70,7 @@ function FundraiserCard({
     <Card
       className={cn(
         "w-80 gap-0 overflow-hidden rounded-lg border-0 bg-card py-0 transition-colors duration-350 ring-1 ring-primary/15 hover:ring-primary/25",
+        status === "blocked" && "ring-danger/30 hover:ring-danger/40",
         className
       )}
       {...props}
@@ -77,7 +79,13 @@ function FundraiserCard({
         {/* Badge + data po prawej */}
         <div className="absolute right-4 top-4 flex flex-col items-end gap-1.5">
           <Badge
-            variant={status === "active" ? "success" : "neutral"}
+            variant={
+              status === "active"
+                ? "success"
+                : status === "blocked"
+                  ? "danger"
+                  : "neutral"
+            }
             className="shrink-0"
           >
             {STATUS_LABELS[status]}

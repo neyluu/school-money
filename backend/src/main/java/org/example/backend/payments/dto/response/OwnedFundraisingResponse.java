@@ -10,6 +10,7 @@ public record OwnedFundraisingResponse(
     String name,
     FundraisingStatus status,
     boolean isBlocked,
+    boolean isClassBlocked,
     LocalDate endDate,
     BigDecimal amountPerChild,
     String iban,

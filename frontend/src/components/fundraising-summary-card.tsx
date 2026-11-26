@@ -17,7 +17,7 @@ const dateFormatter = new Intl.DateTimeFormat("pl-PL", {
 })
 
 function StatusBadge({ summary }: { summary: FundraisingSummary }) {
-  if (summary.isBlocked) {
+  if (summary.isBlocked || summary.isClassBlocked) {
     return <Badge variant="danger">Zablokowana</Badge>
   }
   if (summary.status === "CLOSED") {

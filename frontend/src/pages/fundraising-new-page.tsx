@@ -22,7 +22,11 @@ const LIST_PATH = "/dashboard/fundraisers"
 function FundraisingNewPage() {
   const navigate = useNavigate()
   const { data, error, isLoading, reload } = useAsyncData(getClasses)
-  const ownedClasses = (data ?? []).filter((item) => item.isOwner)
+  const ownedClasses = (data ?? []).filter(
+    (item) => item.isOwner && !item.isBlocked
+  )
+  const hasBlockedOwnedClass =
+    (data ?? []).some((item) => item.isOwner && item.isBlocked)
 
   async function handleSubmit(
     values: FundraisingFormValues
@@ -74,8 +78,16 @@ function FundraisingNewPage() {
         emptyState={
           <EmptyState
             icon={<UsersRound />}
-            title="Najpierw załóż klasę"
-            description="Zbiórkę może utworzyć tylko skarbnik, czyli osoba, która założyła klasę."
+            title={
+              hasBlockedOwnedClass
+                ? "Twoja klasa jest zablokowana"
+                : "Najpierw załóż klasę"
+            }
+            description={
+              hasBlockedOwnedClass
+                ? "Nie można utworzyć zbiórki w zablokowanej klasie. Skontaktuj się z administratorem."
+                : "Zbiórkę może utworzyć tylko skarbnik, czyli osoba, która założyła klasę."
+            }
           />
         }
       >

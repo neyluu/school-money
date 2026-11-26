@@ -14,7 +14,7 @@ import { useAsyncData } from "@/hooks/use-async-data";
 import { getClassSummaries } from "@/lib/class-management";
 import type { ClassSummary } from "@/lib/class-management";
 
-type ClassFilter = "all" | "mine" | "others";
+type ClassFilter = "all" | "mine" | "others" | "blocked";
 
 const CLASS_PATH = "/dashboard/class";
 
@@ -22,22 +22,26 @@ const FILTER_OPTIONS: SegmentedOption<ClassFilter>[] = [
   { value: "all", label: "Wszystkie" },
   { value: "mine", label: "Moje" },
   { value: "others", label: "Moich dzieci" },
+  { value: "blocked", label: "Zablokowane" },
 ];
 
 const EMPTY_TEXTS: Record<ClassFilter, string> = {
   all: "Załóż klasę albo dodaj dziecko kodem od skarbnika.",
   mine: "Nie prowadzisz jeszcze żadnej klasy.",
   others: "Żadne z Twoich dzieci nie jest jeszcze w klasie.",
+  blocked: "Żadna z Twoich klas nie została zablokowana.",
 };
 
 function matchesFilter(item: ClassSummary, filter: ClassFilter): boolean {
   switch (filter) {
+    case "blocked":
+      return item.isBlocked;
     case "all":
       return true;
     case "mine":
-      return item.isOwner;
+      return item.isOwner && !item.isBlocked;
     case "others":
-      return !item.isOwner;
+      return !item.isOwner && !item.isBlocked;
   }
 }
 
@@ -67,7 +71,7 @@ function ClassesPage() {
         />
         <SegmentedControl<ClassFilter>
           aria-label="Filtr klas"
-          className="max-w-md"
+          className="max-w-xl"
           options={FILTER_OPTIONS}
           value={filter}
           onChange={setFilter}

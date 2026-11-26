@@ -15,10 +15,12 @@ function ClassRequestsCard({
   classId,
   requests,
   onChanged,
+  disabled = false,
 }: {
   classId: number;
   requests: PendingMembership[];
   onChanged: () => void;
+  disabled?: boolean;
 }) {
   const [busyId, setBusyId] = React.useState<number | null>(null);
 
@@ -73,7 +75,7 @@ function ClassRequestsCard({
                     type="button"
                     size="icon"
                     variant="outline"
-                    disabled={busyId != null}
+                    disabled={disabled || busyId != null}
                     aria-label={`Zaakceptuj: ${name}`}
                     onClick={() =>
                       void decide(request, acceptMembership, "Zaakceptowano")
@@ -85,7 +87,7 @@ function ClassRequestsCard({
                     type="button"
                     size="icon"
                     variant="outline"
-                    disabled={busyId != null}
+                    disabled={disabled || busyId != null}
                     className="text-danger hover:text-danger"
                     aria-label={`Odrzuć: ${name}`}
                     onClick={() =>

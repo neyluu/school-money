@@ -241,13 +241,13 @@ public class AdminService
         return new AdminStatsResponse(
             userRepository.count(),
             schoolClassRepository.countDistinctOwners(),
-            fundraisingRepository.countByStatusAndIsBlocked(FundraisingStatus.ACTIVE, false),
+            fundraisingRepository.countByStatusAndNotBlocked(FundraisingStatus.ACTIVE),
             closed + cancelled,
             closed,
             cancelled,
             userRepository.countByIsBlocked(true),
             schoolClassRepository.countByIsBlockedAndDeletedAtIsNull(true),
-            fundraisingRepository.countByIsBlocked(true)
+            fundraisingRepository.countByIsBlocked(true) + fundraisingRepository.countByBlockedClassOnly()
         );
     }
 

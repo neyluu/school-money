@@ -170,6 +170,9 @@ function ChildrenPage() {
                           <Badge variant={STATUS_VARIANTS[info.status]}>
                             {STATUS_LABELS[info.status]}
                           </Badge>
+                          {info.isBlocked ? (
+                            <Badge variant="danger">Zablokowana</Badge>
+                          ) : null}
                         </>
                       ) : (
                         <span className="text-sm text-muted-foreground">

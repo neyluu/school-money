@@ -9,10 +9,12 @@ function ClassAccessCodeCard({
   classId,
   accessCode,
   onChanged,
+  disabled = false,
 }: {
   classId: number;
   accessCode: string;
   onChanged: () => void;
+  disabled?: boolean;
 }) {
   const [isBusy, setIsBusy] = React.useState(false);
   const [isVisible, setIsVisible] = React.useState(false);
@@ -94,7 +96,7 @@ function ClassAccessCodeCard({
               size="icon"
               className="w-full"
               onClick={() => void regenerate()}
-              disabled={isBusy}
+              disabled={disabled || isBusy}
               aria-label="Wygeneruj nowy kod"
             >
               <RefreshCw />
@@ -102,7 +104,9 @@ function ClassAccessCodeCard({
           </div>
         </div>
         <p className="text-xs text-muted-foreground">
-          Wygenerowanie nowego kodu unieważnia poprzedni.
+          {disabled
+            ? "Klasa jest zablokowana — nie można wygenerować nowego kodu."
+            : "Wygenerowanie nowego kodu unieważnia poprzedni."}
         </p>
       </CardContent>
     </Card>

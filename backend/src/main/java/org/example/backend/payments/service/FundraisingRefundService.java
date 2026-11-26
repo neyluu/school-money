@@ -28,6 +28,7 @@ public class FundraisingRefundService
 {
     private static final String REFUND_TITLE_PREFIX = "Zwrot ze zbiórki ";
     private static final String ADMIN_REFUND_TITLE_SUFFIX = " (decyzja administratora)";
+    private static final String ADMIN_REPLENISHMENT_TITLE = "Uzupełnienie zbiórki na potrzeby zwrotu (decyzja administratora)";
 
     private final FundraisingAccessService accessService;
     private final FundraisingContributionRepository contributionRepository;
@@ -49,10 +50,38 @@ public class FundraisingRefundService
     {
         Fundraising fundraising = accessService.findForUpdate(fundraisingId);
         accessService.requireBlocked(fundraising);
+        accessService.requireActive(fundraising);
+
+        coverShortfallFromOwner(fundraising);
 
         return refundContributions(
             fundraising,
             REFUND_TITLE_PREFIX + fundraising.getName() + ADMIN_REFUND_TITLE_SUFFIX
+        );
+    }
+
+    private void coverShortfallFromOwner(Fundraising fundraising)
+    {
+        BigDecimal total = contributionRepository.findAllActiveByFundraisingId(fundraising.getId()).stream()
+                .map(contribution -> contribution.getTransaction().getAmount())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal balance = walletRepository.findBalanceByFundraisingId(fundraising.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Fundraising wallet not found"));
+        BigDecimal shortfall = total.subtract(balance);
+
+        if(shortfall.signum() <= 0)
+        {
+            return;
+        }
+
+        Integer ownerWalletId = findUserWalletId(fundraising.getSchoolClass().getOwner().getId());
+
+        ledgerService.transfer(
+            ownerWalletId,
+            findFundraisingWalletId(fundraising.getId()),
+            shortfall,
+            TransactionType.REPLENISHMENT,
+            ADMIN_REPLENISHMENT_TITLE
         );
     }
 

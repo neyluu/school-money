@@ -56,7 +56,10 @@ function DashboardAccountsCard({
   fundraisings: OwnedFundraising[]
   canCreate: boolean
 }) {
-  const shown = [...fundraisings]
+  const shown = fundraisings
+    .filter(
+      (fundraising) => !fundraising.isBlocked && !fundraising.isClassBlocked
+    )
     .sort((a, b) => Number(b.status === "ACTIVE") - Number(a.status === "ACTIVE"))
     .slice(0, MAX_FUNDRAISINGS)
 
@@ -82,7 +85,11 @@ function DashboardAccountsCard({
               iban={fundraising.iban}
               balance={fundraising.walletBalance}
               chipClassName={
-                fundraising.status === "ACTIVE" ? "bg-success" : "bg-muted"
+                fundraising.isBlocked || fundraising.isClassBlocked
+                  ? "bg-danger"
+                  : fundraising.status === "ACTIVE"
+                    ? "bg-success"
+                    : "bg-muted"
               }
             />
           ))}

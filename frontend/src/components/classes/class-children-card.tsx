@@ -11,11 +11,13 @@ function ClassChildrenCard({
   students,
   isOwner,
   onChanged,
+  disabled = false,
 }: {
   classId: number;
   students: ClassChild[];
   isOwner: boolean;
   onChanged: () => void;
+  disabled?: boolean;
 }) {
   const [removingId, setRemovingId] = React.useState<number | null>(null);
 
@@ -45,7 +47,7 @@ function ClassChildrenCard({
                     Rodzic: {child.parent.firstName} {child.parent.lastName}
                   </span>
                 </div>
-                {isOwner ? (
+                {isOwner && !disabled ? (
                   <>
                     <Button
                       type="button"

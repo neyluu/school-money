@@ -14,6 +14,7 @@ public record FundraisingSummaryResponse(
     BigDecimal amountPerChild,
     FundraisingStatus status,
     boolean isBlocked,
+    boolean isClassBlocked,
     boolean acceptsPayments,
     Integer classId,
     String className,

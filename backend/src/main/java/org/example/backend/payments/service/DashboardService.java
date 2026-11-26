@@ -149,6 +149,7 @@ public class DashboardService
             fundraising.getName(),
             fundraising.getStatus(),
             fundraising.getIsBlocked(),
+            fundraising.getSchoolClass().getIsBlocked(),
             fundraising.getEndAt(),
             fundraising.getAmountPerChild(),
             wallet != null ? wallet.getIban() : null,
