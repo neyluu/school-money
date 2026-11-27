@@ -96,14 +96,6 @@ Change email of the current user, requires current password
 
 - ![200](https://placehold.co/50x24/49cc90/ffffff/png?text=200) OK: `UserResponse`
 
-## ![POST](https://placehold.co/60x24/49cc90/ffffff/png?text=POST) `/test/single-image`
-
-**Request body:** `object` (multipart/form-data)
-
-**Responses**
-
-- ![200](https://placehold.co/50x24/49cc90/ffffff/png?text=200) OK: `FileInfoDto`
-
 ## ![POST](https://placehold.co/60x24/49cc90/ffffff/png?text=POST) `/payments/wallet/withdrawals`
 
 Withdraw money from personal wallet to external account
@@ -686,22 +678,6 @@ Change first and last name of the current user
 **Responses**
 
 - ![200](https://placehold.co/50x24/49cc90/ffffff/png?text=200) OK: `UserResponse`
-
-## ![GET](https://placehold.co/50x24/61affe/ffffff/png?text=GET) `/test/single-image/{id}`
-
-**Parameters**
-
-- `id` (path, integer, required)
-
-**Responses**
-
-- ![200](https://placehold.co/50x24/49cc90/ffffff/png?text=200) OK: `string`
-
-## ![GET](https://placehold.co/50x24/61affe/ffffff/png?text=GET) `/test/hello-world`
-
-**Responses**
-
-- ![200](https://placehold.co/50x24/49cc90/ffffff/png?text=200) OK: `string`
 
 ## ![GET](https://placehold.co/50x24/61affe/ffffff/png?text=GET) `/reports/fundraisings/{id}`
 
