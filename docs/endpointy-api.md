@@ -8,11 +8,11 @@
 | Swagger UI | `http://localhost/api/swagger` |
 | Specyfikacja OpenAPI (JSON) | `http://localhost/api/v3/api-docs`|
 | Uwierzytelnianie | token JWT w nagłówku `Authorization: Bearer <token>` |
-| Liczba endpointów | 74 |
+| Liczba endpointów | 90 |
 
 ### 1.1. Uwierzytelnianie
 
-Token JWT zwracają endpointy `POST /auth/register` i `POST /auth/login` (pole `accessToken`). Wszystkie pozostałe endpointy, poza oznaczonymi jako publiczne, wymagają tego tokenu.
+Token JWT zwracają endpointy `POST /auth/register` i `POST /auth/login` (pole `accessToken`). Wszystkie pozostałe endpointy, poza oznaczonymi jako publiczne, wymagają tego tokenu. Endpointy `/admin/...` są dostępne tylko dla konta administratora; inne konta dostają odpowiedź 403.
 
 ### 1.2. Kody odpowiedzi i błędy
 
@@ -157,3 +157,24 @@ Token JWT zwracają endpointy `POST /auth/register` i `POST /auth/login` (pole `
 | `GET` | `/chats/class/{classId}` | Czat klasy (skarbnik i rodzice przyjętych dzieci). | JWT |
 | `GET` | `/chats/contacts` | Osoby, z którymi użytkownik może rozpocząć prywatną rozmowę. | JWT |
 | `POST` | `/chats/private` | Otwarcie istniejącej lub rozpoczęcie nowej prywatnej rozmowy z użytkownikiem. | JWT |
+
+### Administracja
+
+| Metoda | Ścieżka | Opis | Dostęp |
+|---|---|---|---|
+| `GET` | `/admin/classes` | Lista wszystkich klas, od najnowszych; wyszukiwanie po nazwie, szkole lub mieście, filtry: blokada, skarbnik, klasy usunięte. | administrator |
+| `GET` | `/admin/classes/{id}` | Szczegóły klasy wraz z dziećmi i zbiórkami. | administrator |
+| `POST` | `/admin/classes/{id}/block` | Zablokowanie klasy: nie można do niej dołączyć ani jej zmieniać, a jej zbiórki wstrzymują wpłaty i inne operacje. | administrator |
+| `DELETE` | `/admin/classes/{id}/block` | Odblokowanie klasy. | administrator |
+| `GET` | `/admin/fundraisings` | Lista wszystkich zbiórek, od najnowszych; wyszukiwanie po nazwie, filtry: status, blokada, klasa, skarbnik. | administrator |
+| `GET` | `/admin/fundraisings/{id}` | Szczegóły zbiórki z saldem rachunku i podsumowaniem wpłat. | administrator |
+| `POST` | `/admin/fundraisings/{id}/block` | Zablokowanie zbiórki: wstrzymuje wpłaty, wypłaty, zwroty środków i zwroty wpłat. | administrator |
+| `DELETE` | `/admin/fundraisings/{id}/block` | Odblokowanie zbiórki. | administrator |
+| `POST` | `/admin/fundraisings/{id}/refund` | Zwrot wszystkich wpłat z zablokowanej zbiórki rodzicom. | administrator |
+| `GET` | `/admin/reports/summary` | Raport finansowy całego systemu w podziale na miesiące: nowi użytkownicy, nowe zbiórki i obrót; domyślnie ostatnie 6 miesięcy, maks. 24. | administrator |
+| `GET` | `/admin/stats` | Liczniki całego systemu do pulpitu administratora: użytkownicy, skarbnicy, zbiórki według statusu oraz zablokowane konta, klasy i zbiórki. | administrator |
+| `GET` | `/admin/treasurers` | Lista skarbników (właścicieli klas) z ich klasami, liczbą zbiórek i łącznie zebraną kwotą. | administrator |
+| `GET` | `/admin/users` | Lista wszystkich użytkowników, od najnowszych; wyszukiwanie po e-mailu lub nazwisku, filtry: rola, blokada, klasa, okres rejestracji. | administrator |
+| `GET` | `/admin/users/{id}` | Szczegóły użytkownika: klasy, dzieci, saldo rachunku i liczba prowadzonych zbiórek. | administrator |
+| `POST` | `/admin/users/{id}/block` | Zablokowanie konta: użytkownik nie może się zalogować ani korzystać z API. Konta administratora nie można zablokować. | administrator |
+| `DELETE` | `/admin/users/{id}/block` | Odblokowanie konta. | administrator |
